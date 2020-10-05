@@ -17,7 +17,6 @@ type UserService struct {
 }
 
 func (us UserService) login(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return
@@ -37,7 +36,7 @@ func (us UserService) login(w http.ResponseWriter, r *http.Request) {
 	expiration := time.Now().Add(24 * time.Hour)
 	cookie := http.Cookie{
 		Name:     "session_id",
-		Value:    "rvasily",
+		Value:    "testcookie",
 		Expires:  expiration,
 		Secure:   true,
 		SameSite: 4,
@@ -47,7 +46,6 @@ func (us UserService) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (us UserService) reginster(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return
@@ -66,6 +64,15 @@ func (us UserService) reginster(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("user %v reg", user)
 	w.Write([]byte(`{"created": true}`))
+}
+
+func (us UserService) testCookie(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		fmt.Println("no cookie", err)
+		return
+	}
+	fmt.Println("users cookie: ", cookie)
 }
 
 func hashPassword(password string) string {
