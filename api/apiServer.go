@@ -31,13 +31,17 @@ func CORS(next http.Handler) http.Handler {
 
 func StartApiServer() {
 	mux := mux.NewRouter()
-	db := storage.NewMapDB()
+	db := storage.NewUserMapDB()
 	userService := UserService{
 		db: db,
 	}
+
+	vendorService := VendorService{}
+
 	mux.HandleFunc(apiUrl+"/login", userService.login).Methods("POST")
 	mux.HandleFunc(apiUrl+"/reg", userService.reginster).Methods("POST")
 	mux.HandleFunc(apiUrl+"/cookie", userService.testCookie).Methods("GET")
+	mux.HandleFunc(apiUrl+"/vendors/{id}", vendorService.getVendor).Methods("GET")
 
 	siteHandler := CORS(mux)
 

@@ -5,22 +5,23 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/friends/model/vendor"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type MapDB struct {
+type UserMapDB struct {
 	db map[string]string
 	*sync.RWMutex
 }
 
-func NewMapDB() MapDB {
-	return MapDB{
+func NewUserMapDB() UserMapDB {
+	return UserMapDB{
 		make(map[string]string),
 		&sync.RWMutex{},
 	}
 }
 
-func (m MapDB) CreateUser(db *sql.DB, login string, password string) error {
+func (m UserMapDB) CreateUser(db *sql.DB, login string, password string) error {
 	if _, ok := m.db[login]; ok {
 		return fmt.Errorf("user exists")
 	}
@@ -32,11 +33,31 @@ func (m MapDB) CreateUser(db *sql.DB, login string, password string) error {
 	return nil
 }
 
-func (m MapDB) CheckUser(db *sql.DB, login string, password string) bool {
+func (m UserMapDB) CheckUser(db *sql.DB, login string, password string) bool {
 	m.RLock()
 	pass, ok := m.db[login]
 	m.RUnlock()
 
 	isEqual := bcrypt.CompareHashAndPassword([]byte(pass), []byte(password))
 	return ok && (isEqual == nil)
+}
+
+type VendorMapDB struct{}
+
+func (vm VendorMapDB) GetVendor(id string) (vendor.Vendor, error) {
+	return vendor.Vendor{
+		Name: "Veggie shop",
+		Products: []vendor.Product{
+			{
+				PicturePath: "assets/vegan.png",
+				Name:        "Toffee",
+				Price:       "179 Р",
+			},
+			{
+				PicturePath: "assets/vegan.png",
+				Name:        "Toffee",
+				Price:       "179 Р",
+			},
+		},
+	}, nil
 }

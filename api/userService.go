@@ -16,8 +16,6 @@ type UserService struct {
 }
 
 func (us UserService) login(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
 	user := &model.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
@@ -45,8 +43,6 @@ func (us UserService) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (us UserService) reginster(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
 	user := &model.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
