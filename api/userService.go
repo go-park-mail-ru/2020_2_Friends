@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/friends/model"
+	user "github.com/friends/model/user"
 	"github.com/friends/storage"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,35 +14,39 @@ type UserService struct {
 	db storage.DB
 }
 
-func (us UserService) login(w http.ResponseWriter, r *http.Request) {
-	user := &model.User{}
-	err := json.NewDecoder(r.Body).Decode(user)
-	if err != nil {
-		fmt.Println("error")
-		return
-	}
-
-	ok := us.db.CheckUser(nil, user.Login, user.Password)
-	if !ok {
-		fmt.Println("user %v not auth", user)
-		w.Write([]byte(`{"authorized": false}`))
-		return
-	}
-	fmt.Println("user %v auth", user)
-	expiration := time.Now().Add(24 * time.Hour)
-	cookie := http.Cookie{
-		Name:     "session_id",
-		Value:    "testcookie",
-		Expires:  expiration,
-		Secure:   true,
-		SameSite: 4,
-	}
-	http.SetCookie(w, &cookie)
-	w.Write([]byte(`{"authorized": true}`))
+func (us UserService) CheckUser(u user.User) bool {
+	return us.db.CheckUser(nil, u.Login, u.Password)
 }
 
+// func (us UserService) login(w http.ResponseWriter, r *http.Request) {
+// 	user := &user.User{}
+// 	err := json.NewDecoder(r.Body).Decode(user)
+// 	if err != nil {
+// 		fmt.Println("error")
+// 		return
+// 	}
+
+// 	ok := us.db.CheckUser(nil, user.Login, user.Password)
+// 	if !ok {
+// 		fmt.Println("user %v not auth", user)
+// 		w.Write([]byte(`{"authorized": false}`))
+// 		return
+// 	}
+// 	fmt.Println("user %v auth", user)
+// 	expiration := time.Now().Add(24 * time.Hour)
+// 	cookie := http.Cookie{
+// 		Name:     "session_id",
+// 		Value:    "testcookie",
+// 		Expires:  expiration,
+// 		Secure:   true,
+// 		SameSite: 4,
+// 	}
+// 	http.SetCookie(w, &cookie)
+// 	w.Write([]byte(`{"authorized": true}`))
+// }
+
 func (us UserService) reginster(w http.ResponseWriter, r *http.Request) {
-	user := &model.User{}
+	user := &user.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
 		fmt.Println("error")
@@ -73,4 +76,8 @@ func (us UserService) testCookie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("users cookie: ", cookie)
+}
+
+func (us UserService) getUser(w http.ResponseWriter, r *http.Request) {
+
 }

@@ -20,7 +20,7 @@ func CORS(next http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			fmt.Println("options")
 			w.Header().Add("Content-Type", "text/plain")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token")
 			w.WriteHeader(http.StatusOK)
 			return
@@ -30,7 +30,7 @@ func CORS(next http.Handler) http.Handler {
 }
 
 func StartApiServer() {
-	mux := mux.NewRouter()
+	mux := mux.NewRouter().PathPrefix(apiUrl).Subrouter()
 	db := storage.NewUserMapDB()
 	userService := UserService{
 		db: db,
@@ -38,10 +38,17 @@ func StartApiServer() {
 
 	vendorService := VendorService{}
 
-	mux.HandleFunc(apiUrl+"/login", userService.login).Methods("POST")
-	mux.HandleFunc(apiUrl+"/reg", userService.reginster).Methods("POST")
-	mux.HandleFunc(apiUrl+"/cookie", userService.testCookie).Methods("GET")
-	mux.HandleFunc(apiUrl+"/vendors/{id}", vendorService.getVendor).Methods("GET")
+	sessionDB := storage.NewSessionMapDB()
+	sessionService := SessionService{
+		db:          sessionDB,
+		userService: userService,
+	}
+
+	mux.HandleFunc("/reg", userService.reginster).Methods("POST")
+	mux.HandleFunc("/cookie", userService.testCookie).Methods("GET")
+	mux.HandleFunc("/vendors/{id}", vendorService.getVendor).Methods("GET")
+	mux.HandleFunc("/session", sessionService.login).Methods("POST")
+	mux.HandleFunc("/session", sessionService.logout).Methods("DELETE")
 
 	siteHandler := CORS(mux)
 
