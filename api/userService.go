@@ -1,15 +1,14 @@
 package api
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/friends/model"
 	"github.com/friends/storage"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -17,16 +16,16 @@ type UserService struct {
 }
 
 func (us UserService) login(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return
-	}
 	defer r.Body.Close()
 
 	user := &model.User{}
-	json.Unmarshal(body, user)
+	err := json.NewDecoder(r.Body).Decode(user)
+	if err != nil {
+		fmt.Println("error")
+		return
+	}
 
-	ok := us.db.CheckUser(nil, user.Login, hashPassword(user.Password))
+	ok := us.db.CheckUser(nil, user.Login, user.Password)
 	if !ok {
 		fmt.Println("user %v not auth", user)
 		w.Write([]byte(`{"authorized": false}`))
@@ -46,16 +45,21 @@ func (us UserService) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (us UserService) reginster(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return
-	}
 	defer r.Body.Close()
 
 	user := &model.User{}
-	json.Unmarshal(body, user)
+	err := json.NewDecoder(r.Body).Decode(user)
+	if err != nil {
+		fmt.Println("error")
+		return
+	}
 
-	err = us.db.CreateUser(nil, user.Login, hashPassword(user.Password))
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 5)
+	if err != nil {
+		return
+	}
+
+	err = us.db.CreateUser(nil, user.Login, string(hashedPassword))
 	if err != nil {
 		fmt.Println("user %v not reg", user)
 		w.Write([]byte(`{"created": false}`))
@@ -73,9 +77,4 @@ func (us UserService) testCookie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("users cookie: ", cookie)
-}
-
-func hashPassword(password string) string {
-	hash := sha256.Sum256([]byte(password))
-	return string(hash[:])
 }

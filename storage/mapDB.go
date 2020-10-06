@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"sync"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type MapDB struct {
@@ -35,5 +37,6 @@ func (m MapDB) CheckUser(db *sql.DB, login string, password string) bool {
 	pass, ok := m.db[login]
 	m.RUnlock()
 
-	return ok && (password == pass)
+	isEqual := bcrypt.CompareHashAndPassword([]byte(pass), []byte(password))
+	return ok && (isEqual == nil)
 }

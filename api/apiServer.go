@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const apiUrl = "/api/v1"
+
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("CORS middleware")
@@ -33,9 +35,9 @@ func StartApiServer() {
 	userService := UserService{
 		db: db,
 	}
-	mux.HandleFunc("/", userService.login)
-	mux.HandleFunc("/reg", userService.reginster)
-	mux.HandleFunc("/cookie", userService.testCookie)
+	mux.HandleFunc(apiUrl+"/login", userService.login).Methods("POST")
+	mux.HandleFunc(apiUrl+"/reg", userService.reginster).Methods("POST")
+	mux.HandleFunc(apiUrl+"/cookie", userService.testCookie).Methods("GET")
 
 	siteHandler := CORS(mux)
 
