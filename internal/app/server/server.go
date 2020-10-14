@@ -8,9 +8,13 @@ import (
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
+	sessionDelivery "github.com/friends/internal/pkg/session/delivery"
+	sessionRepo "github.com/friends/internal/pkg/session/repository"
+	sessionUsecase "github.com/friends/internal/pkg/session/usecase"
 	userDelivery "github.com/friends/internal/pkg/user/delivery"
 	userRepo "github.com/friends/internal/pkg/user/repository"
 	userUsecase "github.com/friends/internal/pkg/user/usecase"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
@@ -22,13 +26,26 @@ func StartApiServer() {
 		return
 	}
 
-	repo := userRepo.NewUserRepository(db)
+	userRepo := userRepo.NewUserRepository(db)
 	userUsecase := userUsecase.UserUsecase{
-		Repository: repo,
+		Repository: userRepo,
 	}
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     configs.RedisAddr,
+		Password: "",
+		DB:       0,
+	})
+
+	sessionRepo := sessionRepo.NewSessionRedisRepo(redisClient)
+
+	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
+
+	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase)
+
 	userHandler := userDelivery.UserHandler{
-		UserUsecase: userUsecase,
+		UserUsecase:    userUsecase,
+		SessionHandler: sessionDelivery,
 	}
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()

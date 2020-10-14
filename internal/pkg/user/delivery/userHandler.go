@@ -5,11 +5,13 @@ import (
 	"net/http"
 
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 )
 
 type UserHandler struct {
-	UserUsecase user.Usecase
+	UserUsecase    user.Usecase
+	SessionHandler session.Delivery
 }
 
 func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
