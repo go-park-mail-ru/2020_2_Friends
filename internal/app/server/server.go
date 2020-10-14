@@ -16,9 +16,10 @@ import (
 )
 
 func StartApiServer() {
-	db, err := sql.Open(configs.Postgres, "host=localhost dbname=grass sslmode=disable")
+	db, err := sql.Open(configs.Postgres, configs.DataSourceNamePostgres)
 	if err != nil {
 		fmt.Println("db doesnt work", err)
+		return
 	}
 
 	repo := userRepo.NewUserRepository(db)
@@ -31,7 +32,7 @@ func StartApiServer() {
 	}
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
-	mux.HandleFunc("/users/login", userHandler.Create)
+	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
 
 	siteHandler := middleware.CORS(mux)
 

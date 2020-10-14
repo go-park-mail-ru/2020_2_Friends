@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/friends/internal/pkg/models"
@@ -17,15 +16,15 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
-		fmt.Println("error")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = uh.UserUsecase.Create(*user)
 	if err != nil {
-		w.Write([]byte(`{"created": false}`))
-
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(`{"created": true}`))
+
+	w.WriteHeader(http.StatusCreated)
 }
