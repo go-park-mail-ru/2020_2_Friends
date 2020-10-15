@@ -25,11 +25,15 @@ func StartApiServer() {
 		fmt.Println("db doesnt work", err)
 		return
 	}
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("db doesnt work", err)
+		return
+	}
 
 	userRepo := userRepo.NewUserRepository(db)
-	userUsecase := userUsecase.UserUsecase{
-		Repository: userRepo,
-	}
+	userUsecase := userUsecase.NewUserUsecase(userRepo)
+	userHandler := userDelivery.NewUserHandler(userUsecase)
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     configs.RedisAddr,
@@ -45,15 +49,11 @@ func StartApiServer() {
 
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
 
-	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase)
-
-	userHandler := userDelivery.UserHandler{
-		UserUsecase:    userUsecase,
-		SessionHandler: sessionDelivery,
-	}
+	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userHandler)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
+	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
 
 	siteHandler := middleware.CORS(mux)
 
