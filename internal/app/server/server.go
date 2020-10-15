@@ -49,7 +49,7 @@ func StartApiServer() {
 
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
 
-	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userHandler)
+	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userUsecase)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")

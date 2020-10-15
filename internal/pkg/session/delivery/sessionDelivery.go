@@ -9,18 +9,17 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
-	userDelivery "github.com/friends/internal/pkg/user/delivery"
 )
 
 type SessionDelivery struct {
 	sessionUsecase session.Usecase
-	userDelivery   user.Delivery
+	userUsecase    user.Usecase
 }
 
-func NewSessionDelivery(usecase session.Usecase, userDelivery userDelivery.UserHandler) SessionDelivery {
+func NewSessionDelivery(usecase session.Usecase, userUsecase user.Usecase) SessionDelivery {
 	return SessionDelivery{
 		sessionUsecase: usecase,
-		userDelivery:   userDelivery,
+		userUsecase:    userUsecase,
 	}
 }
 
@@ -32,7 +31,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := sd.userDelivery.Verify(*user)
+	userID, err := sd.userUsecase.Verify(*user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
