@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -12,7 +13,7 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewUserRepository(db *sql.DB) user.Repository {
 	return UserRepository{
 		db: db,
 	}

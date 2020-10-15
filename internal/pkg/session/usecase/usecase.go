@@ -10,7 +10,7 @@ type SessionUsecase struct {
 	repository session.Repository
 }
 
-func NewSessionUsecase(repo session.Repository) SessionUsecase {
+func NewSessionUsecase(repo session.Repository) session.Usecase {
 	return SessionUsecase{
 		repository: repo,
 	}

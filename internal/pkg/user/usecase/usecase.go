@@ -9,7 +9,7 @@ type UserUsecase struct {
 	repository user.Repository
 }
 
-func NewUserUsecase(repo user.Repository) UserUsecase {
+func NewUserUsecase(repo user.Repository) user.Usecase {
 	return UserUsecase{
 		repository: repo,
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/session"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -11,7 +12,7 @@ type SessionRedisRepo struct {
 	redis *redis.Client
 }
 
-func NewSessionRedisRepo(redis *redis.Client) (SessionRedisRepo, error) {
+func NewSessionRedisRepo(redis *redis.Client) (session.Repository, error) {
 	repo := SessionRedisRepo{
 		redis: redis,
 	}
