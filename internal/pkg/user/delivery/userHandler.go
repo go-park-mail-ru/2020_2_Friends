@@ -34,7 +34,3 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 }
-
-func (uh UserHandler) Verify(user models.User) (userID string, err error) {
-	return uh.userUsecase.Verify(user)
-}
