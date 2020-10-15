@@ -37,7 +37,11 @@ func StartApiServer() {
 		DB:       0,
 	})
 
-	sessionRepo := sessionRepo.NewSessionRedisRepo(redisClient)
+	sessionRepo, err := sessionRepo.NewSessionRedisRepo(redisClient)
+	if err != nil {
+		fmt.Println("redis doesnt work")
+		return
+	}
 
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
 

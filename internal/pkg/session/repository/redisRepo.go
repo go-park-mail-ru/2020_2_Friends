@@ -11,10 +11,18 @@ type SessionRedisRepo struct {
 	redis *redis.Client
 }
 
-func NewSessionRedisRepo(redis *redis.Client) SessionRedisRepo {
-	return SessionRedisRepo{
+func NewSessionRedisRepo(redis *redis.Client) (SessionRedisRepo, error) {
+	repo := SessionRedisRepo{
 		redis: redis,
 	}
+
+	ctx := context.Background()
+	err := redis.Ping(ctx).Err()
+	if err != nil {
+		return SessionRedisRepo{}, err
+	}
+
+	return repo, nil
 }
 
 func (srr SessionRedisRepo) Create(session models.Session) error {
