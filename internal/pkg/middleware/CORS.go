@@ -12,6 +12,8 @@ func CORS(next http.Handler) http.Handler {
 			w.Header().Add("Content-Type", "text/plain")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token")
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 		next.ServeHTTP(w, r)
