@@ -61,6 +61,21 @@ func (sd SessionDelivery) Check(sessionName string) (userID string, err error) {
 	return userID, err
 }
 
+func (sd SessionDelivery) DeleteCookie(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	err = sd.sessionUsecase.Delete(cookie.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	http.SetCookie(w, cookie)
+}
+
 func (sd SessionDelivery) Delete(sessionName string) error {
 	return sd.sessionUsecase.Delete(sessionName)
 }
