@@ -57,7 +57,8 @@ func StartApiServer() {
 	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
 	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
 
-	siteHandler := middleware.CORS(mux)
+	corsHandler := middleware.CORS(mux)
+	siteHandler := middleware.Panic(corsHandler)
 
 	fmt.Println("start server at 9000")
 	log.Fatal(http.ListenAndServe(configs.Port, siteHandler))
