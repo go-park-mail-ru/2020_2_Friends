@@ -31,3 +31,11 @@ func (su SessionUsecase) Create(userID string) (string, error) {
 
 	return sessionName, nil
 }
+
+func (su SessionUsecase) Check(sessionName string) (userID string, err error) {
+	return su.repository.Check(sessionName)
+}
+
+func (su SessionUsecase) Delete(sessionName string) error {
+	return su.repository.Delete(sessionName)
+}
