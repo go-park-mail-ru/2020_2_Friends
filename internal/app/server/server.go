@@ -33,7 +33,6 @@ func StartApiServer() {
 
 	userRepo := userRepo.NewUserRepository(db)
 	userUsecase := userUsecase.NewUserUsecase(userRepo)
-	userHandler := userDelivery.NewUserHandler(userUsecase)
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     configs.RedisAddr,
@@ -48,6 +47,8 @@ func StartApiServer() {
 	}
 
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
+
+	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 
 	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userUsecase)
 
