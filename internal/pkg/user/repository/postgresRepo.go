@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/user"
@@ -76,4 +77,21 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 	default:
 		return "", fmt.Errorf("there is no such user")
 	}
+}
+
+func (u UserRepository) Delete(userID string) error {
+	id, err := strconv.Atoi(userID)
+	if err != nil {
+		return err
+	}
+	_, err = u.db.Exec(
+		"DELETE FROM users WHERE id=$1",
+		id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

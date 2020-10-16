@@ -26,3 +26,7 @@ func (uu UserUsecase) CheckIfUserExists(user models.User) bool {
 func (uu UserUsecase) Verify(user models.User) (userID string, err error) {
 	return uu.repository.CheckLoginAndPassword(user)
 }
+
+func (u UserUsecase) Delete(userID string) error {
+	return u.repository.Delete(userID)
+}

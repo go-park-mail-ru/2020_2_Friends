@@ -54,6 +54,7 @@ func StartApiServer() {
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
+	mux.HandleFunc("/users", userHandler.Delete).Methods("DELETE")
 	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
 	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
 

@@ -60,3 +60,32 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
 }
+
+func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	userID, err := u.sessionUsecase.Check(cookie.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = u.userUsecase.Delete(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = u.sessionUsecase.Delete(cookie.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	http.SetCookie(w, cookie)
+}
