@@ -56,8 +56,8 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		Name:     "session_id",
 		Value:    sessionName,
 		Expires:  expiration,
-		Secure:   true,
-		SameSite: 4,
+		HttpOnly: true,
+		Path:     "/",
 	}
 	http.SetCookie(w, &cookie)
 }
@@ -81,5 +81,6 @@ func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	cookie.Path = "/"
 	http.SetCookie(w, cookie)
 }

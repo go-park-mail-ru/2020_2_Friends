@@ -41,7 +41,7 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	isExists := uh.userUsecase.CheckIfUserExists(*user)
 	if isExists {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusConflict)
 		return
 	}
 
@@ -62,8 +62,8 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name:     "session_id",
 		Value:    sessionName,
 		Expires:  expiration,
-		Secure:   true,
-		SameSite: 4,
+		HttpOnly: true,
+		Path:     "/",
 	}
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
@@ -102,5 +102,6 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	cookie.Path = "/"
 	http.SetCookie(w, cookie)
 }
