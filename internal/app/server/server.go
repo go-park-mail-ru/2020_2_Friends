@@ -3,7 +3,6 @@ package server
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/friends/configs"
@@ -17,17 +16,19 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	logrus "github.com/sirupsen/logrus"
 )
 
 func StartApiServer() {
 	db, err := sql.Open(configs.Postgres, configs.DataSourceNamePostgres)
 	if err != nil {
+		logrus.Error(fmt.Errorf("postgres not available: %w", err))
 		fmt.Println("db doesnt work", err)
 		return
 	}
 	err = db.Ping()
 	if err != nil {
-		fmt.Println("db doesnt work", err)
+		logrus.Error(fmt.Errorf("no connection with db: %w", err))
 		return
 	}
 
@@ -42,7 +43,7 @@ func StartApiServer() {
 
 	sessionRepo, err := sessionRepo.NewSessionRedisRepo(redisClient)
 	if err != nil {
-		fmt.Println("redis doesnt work")
+		logrus.Error(fmt.Errorf("Session repostiory doen't work: %w", err))
 		return
 	}
 
@@ -58,9 +59,10 @@ func StartApiServer() {
 	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
 	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
 
-	corsHandler := middleware.CORS(mux)
+	accessLogHandler := middleware.AccessLog(mux)
+	corsHandler := middleware.CORS(accessLogHandler)
 	siteHandler := middleware.Panic(corsHandler)
 
-	fmt.Println("start server at 9000")
-	log.Fatal(http.ListenAndServe(configs.Port, siteHandler))
+	logrus.Info("starting server at port ", configs.Port)
+	logrus.Fatal(http.ListenAndServe(configs.Port, siteHandler))
 }

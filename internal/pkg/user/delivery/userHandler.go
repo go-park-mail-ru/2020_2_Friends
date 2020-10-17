@@ -9,6 +9,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
+	log "github.com/friends/pkg/logger"
 )
 
 type UserHandler struct {
@@ -24,8 +25,15 @@ func NewUserHandler(usecase user.Usecase, sessionUsecase session.Usecase) UserHa
 }
 
 func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
 	user := &models.User{}
-	err := json.NewDecoder(r.Body).Decode(user)
+	err = json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -62,6 +70,13 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
