@@ -23,7 +23,7 @@ func NewUserRepository(db *sql.DB) user.Repository {
 func (ur UserRepository) Create(user models.User) (userID string, err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("couldn't hash password: %w", err)
 	}
 
 	err = ur.db.QueryRow(
@@ -32,7 +32,7 @@ func (ur UserRepository) Create(user models.User) (userID string, err error) {
 	).Scan(&userID)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("couldn't insert user in Postgres: %w", err)
 	}
 
 	return userID, nil
@@ -51,7 +51,6 @@ func (ur UserRepository) CheckIfUserExists(user models.User) bool {
 	case nil:
 		return true
 	default:
-		fmt.Println(err)
 		return true
 	}
 }
@@ -65,24 +64,24 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 	dbUser := models.User{}
 	switch err := row.Scan(&dbUser.ID, &dbUser.Login, &dbUser.Password); err {
 	case sql.ErrNoRows:
-		return "", fmt.Errorf("there is no such user")
+		return "", fmt.Errorf("user doesn't exists")
 
 	case nil:
 		isEqual := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
 		if isEqual != nil {
-			return "", fmt.Errorf("wrong password")
+			return "", fmt.Errorf("wrong password: %w", isEqual)
 		}
 		return dbUser.ID, nil
 
 	default:
-		return "", fmt.Errorf("there is no such user")
+		return "", fmt.Errorf("user doesn't exists: %w", err)
 	}
 }
 
 func (u UserRepository) Delete(userID string) error {
 	id, err := strconv.Atoi(userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("couldn't convert to string: %w", err)
 	}
 	_, err = u.db.Exec(
 		"DELETE FROM users WHERE id=$1",
@@ -90,7 +89,7 @@ func (u UserRepository) Delete(userID string) error {
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("couldn't delete user from Postgres: %w", err)
 	}
 
 	return nil
