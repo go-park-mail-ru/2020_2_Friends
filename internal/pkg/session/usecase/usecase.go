@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
@@ -26,7 +28,7 @@ func (su SessionUsecase) Create(userID string) (string, error) {
 
 	err := su.repository.Create(session)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("session not created: %w", err)
 	}
 
 	return sessionName, nil
