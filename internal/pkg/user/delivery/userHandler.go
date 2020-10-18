@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/friends/internal/pkg/profile"
 	"net/http"
 	"time"
 
@@ -15,16 +16,18 @@ import (
 type UserHandler struct {
 	userUsecase    user.Usecase
 	sessionUsecase session.Usecase
+	profileUsecase profile.Usecase
 }
 
-func NewUserHandler(usecase user.Usecase, sessionUsecase session.Usecase) UserHandler {
+func NewUserHandler(usecase user.Usecase, sessionUsecase session.Usecase, profileUsecase profile.Usecase) UserHandler {
 	return UserHandler{
 		userUsecase:    usecase,
 		sessionUsecase: sessionUsecase,
+		profileUsecase: profileUsecase,
 	}
 }
 
-func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -39,19 +42,25 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = uh.userUsecase.CheckIfUserExists(*user)
+	err = u.userUsecase.CheckIfUserExists(*user)
 	if err != nil {
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
 
-	userID, err := uh.userUsecase.Create(*user)
+	userID, err := u.userUsecase.Create(*user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	sessionName, err := uh.sessionUsecase.Create(userID)
+	err = u.profileUsecase.Create(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	sessionName, err := u.sessionUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -90,6 +99,12 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = u.userUsecase.Delete(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = u.profileUsecase.Delete(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

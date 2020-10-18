@@ -62,7 +62,7 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 	)
 
 	dbUser := models.User{}
-	switch err := row.Scan(&dbUser.ID); err {
+	switch err := row.Scan(&dbUser.ID, &dbUser.Password); err {
 	case sql.ErrNoRows:
 		return "", fmt.Errorf("user doesn't exist")
 
