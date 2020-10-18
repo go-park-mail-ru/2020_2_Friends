@@ -39,8 +39,8 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isExists := uh.userUsecase.CheckIfUserExists(*user)
-	if isExists {
+	err = uh.userUsecase.CheckIfUserExists(*user)
+	if err != nil {
 		w.WriteHeader(http.StatusConflict)
 		return
 	}

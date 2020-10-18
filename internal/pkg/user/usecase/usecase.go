@@ -19,7 +19,7 @@ func (uu UserUsecase) Create(user models.User) (userID string, err error) {
 	return uu.repository.Create(user)
 }
 
-func (uu UserUsecase) CheckIfUserExists(user models.User) bool {
+func (uu UserUsecase) CheckIfUserExists(user models.User) error {
 	return uu.repository.CheckIfUserExists(user)
 }
 
