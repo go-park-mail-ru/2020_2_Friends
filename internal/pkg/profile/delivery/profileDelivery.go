@@ -49,14 +49,11 @@ func (p ProfileDelivery) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respData, err := json.Marshal(profile)
+	err = json.NewEncoder(w).Encode(profile)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(respData)
 }
 
 func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
