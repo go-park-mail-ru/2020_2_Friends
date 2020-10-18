@@ -3,8 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/lib/pq"
 	"strconv"
+
+	"github.com/lib/pq"
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/profile"
@@ -96,8 +97,8 @@ func (p ProfileRepository) Delete(userID string) error {
 func fromDBToApp(dbProf dbProfile) models.Profile {
 	appProf := models.Profile{
 		UserID: dbProf.UserID,
-		Name: dbProf.Name.String,
-		Phone: dbProf.Phone.String,
+		Name:   dbProf.Name.String,
+		Phone:  dbProf.Phone.String,
 		Points: int(dbProf.Points.Int64),
 	}
 
@@ -110,10 +111,10 @@ func fromDBToApp(dbProf dbProfile) models.Profile {
 
 func fromAppToDB(appProf models.Profile) dbProfile {
 	return dbProfile{
-		UserID: appProf.UserID,
-		Name: sql.NullString{String: appProf.Name, Valid: true},
-		Phone: sql.NullString{String: appProf.Phone, Valid: true},
-		Points: sql.NullInt64{Int64: int64(appProf.Points), Valid: true},
+		UserID:    appProf.UserID,
+		Name:      sql.NullString{String: appProf.Name, Valid: true},
+		Phone:     sql.NullString{String: appProf.Phone, Valid: true},
+		Points:    sql.NullInt64{Int64: int64(appProf.Points), Valid: true},
 		Addresses: pq.StringArray(appProf.Addresses),
 	}
 }
