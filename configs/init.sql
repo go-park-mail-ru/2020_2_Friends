@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     username TEXT,
     phone TEXT,
     addresses TEXT[],
-    points INTEGER
+    points INTEGER,
 
     FOREIGN KEY (userID) REFERENCES users (id)
 );
