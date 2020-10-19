@@ -2,12 +2,12 @@ package delivery
 
 import (
 	"encoding/json"
-	"github.com/friends/internal/pkg/profile"
 	"net/http"
 	"time"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	log "github.com/friends/pkg/logger"
@@ -68,7 +68,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(configs.ExpireTime)
 	cookie := http.Cookie{
-		Name:     "session_id",
+		Name:     configs.SessionID,
 		Value:    sessionName,
 		Expires:  expiration,
 		HttpOnly: true,
@@ -86,7 +86,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	cookie, err := r.Cookie("session_id")
+	cookie, err := r.Cookie(configs.SessionID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

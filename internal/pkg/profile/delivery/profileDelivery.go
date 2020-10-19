@@ -2,8 +2,11 @@ package delivery
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/friends/configs"
+	"github.com/friends/internal/pkg/middleware"
 	"github.com/friends/internal/pkg/models"
 
 	"github.com/friends/internal/pkg/profile"
@@ -31,15 +34,10 @@ func (p ProfileDelivery) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	userID, err := p.sessUsecase.Check(cookie.Value)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	userID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -64,15 +62,10 @@ func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	userID, err := p.sessUsecase.Check(cookie.Value)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	userID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

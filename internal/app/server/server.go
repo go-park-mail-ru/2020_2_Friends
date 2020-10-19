@@ -61,13 +61,15 @@ func StartApiServer() {
 
 	profDelivery := profileDelivery.NewProfileDelivery(profUsecase, sessionUsecase)
 
+	authChecker := middleware.NewAuthChecker(sessionUsecase)
+
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
 	mux.HandleFunc("/users", userHandler.Delete).Methods("DELETE")
 	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
 	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
-	mux.HandleFunc("/profiles", profDelivery.Get).Methods("GET")
-	mux.HandleFunc("/profiles", profDelivery.Update).Methods("PUT")
+	mux.Handle("/profiles", authChecker.Check(profDelivery.Get)).Methods("GET")
+	mux.Handle("/profiles", authChecker.Check(profDelivery.Update)).Methods("PUT")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)
