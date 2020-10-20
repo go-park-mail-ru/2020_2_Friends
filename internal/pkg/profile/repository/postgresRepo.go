@@ -18,6 +18,7 @@ type dbProfile struct {
 	Phone     sql.NullString
 	Addresses pq.StringArray
 	Points    sql.NullInt64
+	Avatar    sql.NullString
 }
 
 type ProfileRepository struct {
@@ -45,12 +46,12 @@ func (p ProfileRepository) Create(userID string) error {
 
 func (p ProfileRepository) Get(userID string) (models.Profile, error) {
 	row := p.db.QueryRow(
-		"SELECT userID, username, phone, addresses, points FROM profiles WHERE userID=$1",
+		"SELECT userID, username, phone, addresses, points, avatar FROM profiles WHERE userID=$1",
 		userID,
 	)
 
 	profile := dbProfile{}
-	switch err := row.Scan(&profile.UserID, &profile.Name, &profile.Phone, &profile.Addresses, &profile.Points); err {
+	switch err := row.Scan(&profile.UserID, &profile.Name, &profile.Phone, &profile.Addresses, &profile.Points, &profile.Avatar); err {
 	case sql.ErrNoRows:
 		return models.Profile{}, fmt.Errorf("profile doesn't exist")
 	case nil:
@@ -115,6 +116,7 @@ func fromDBToApp(dbProf dbProfile) models.Profile {
 		Name:   dbProf.Name.String,
 		Phone:  dbProf.Phone.String,
 		Points: int(dbProf.Points.Int64),
+		Avatar: dbProf.Avatar.String,
 	}
 
 	for _, addr := range dbProf.Addresses {
@@ -131,5 +133,6 @@ func fromAppToDB(appProf models.Profile) dbProfile {
 		Phone:     sql.NullString{String: appProf.Phone, Valid: true},
 		Points:    sql.NullInt64{Int64: int64(appProf.Points), Valid: true},
 		Addresses: pq.StringArray(appProf.Addresses),
+		Avatar:    sql.NullString{String: appProf.Avatar, Valid: true},
 	}
 }
