@@ -10,4 +10,6 @@ const (
 	ExpireTime             = time.Duration(time.Hour * 24)
 	RedisAddr              = "localhost:6379"
 	ReqID                  = "reqID"
+	UserID                 = "userID"
+	SessionID              = "session_id"
 )

@@ -3,3 +3,13 @@ CREATE TABLE IF NOT EXISTS users (
     login TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS profiles (
+    userID INTEGER NOT NULL,
+    username TEXT,
+    phone TEXT,
+    addresses TEXT[],
+    points INTEGER,
+
+    FOREIGN KEY (userID) REFERENCES users (id)
+);

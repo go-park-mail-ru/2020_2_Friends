@@ -7,6 +7,9 @@ import (
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
+	profileDelivery "github.com/friends/internal/pkg/profile/delivery"
+	profileRepo "github.com/friends/internal/pkg/profile/repository"
+	profileUsecase "github.com/friends/internal/pkg/profile/usecase"
 	sessionDelivery "github.com/friends/internal/pkg/session/delivery"
 	sessionRepo "github.com/friends/internal/pkg/session/repository"
 	sessionUsecase "github.com/friends/internal/pkg/session/usecase"
@@ -47,17 +50,26 @@ func StartApiServer() {
 		return
 	}
 
+	profRepo := profileRepo.NewProfileRepository(db)
+	profUsecase := profileUsecase.NewProfileUsecase(profRepo)
+
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
+	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase, profUsecase)
 
 	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userUsecase)
+
+	profDelivery := profileDelivery.NewProfileDelivery(profUsecase, sessionUsecase)
+
+	authChecker := middleware.NewAuthChecker(sessionUsecase)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
 	mux.HandleFunc("/users", userHandler.Delete).Methods("DELETE")
 	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
 	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
+	mux.Handle("/profiles", authChecker.Check(profDelivery.Get)).Methods("GET")
+	mux.Handle("/profiles", authChecker.Check(profDelivery.Update)).Methods("PUT")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)

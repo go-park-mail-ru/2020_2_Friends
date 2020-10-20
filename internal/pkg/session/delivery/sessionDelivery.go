@@ -53,7 +53,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(configs.ExpireTime)
 	cookie := http.Cookie{
-		Name:     "session_id",
+		Name:     configs.SessionID,
 		Value:    sessionName,
 		Expires:  expiration,
 		HttpOnly: true,
@@ -70,7 +70,7 @@ func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	cookie, err := r.Cookie("session_id")
+	cookie, err := r.Cookie(configs.SessionID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

@@ -7,6 +7,7 @@ import (
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	log "github.com/friends/pkg/logger"
@@ -15,16 +16,18 @@ import (
 type UserHandler struct {
 	userUsecase    user.Usecase
 	sessionUsecase session.Usecase
+	profileUsecase profile.Usecase
 }
 
-func NewUserHandler(usecase user.Usecase, sessionUsecase session.Usecase) UserHandler {
+func NewUserHandler(usecase user.Usecase, sessionUsecase session.Usecase, profileUsecase profile.Usecase) UserHandler {
 	return UserHandler{
 		userUsecase:    usecase,
 		sessionUsecase: sessionUsecase,
+		profileUsecase: profileUsecase,
 	}
 }
 
-func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -39,19 +42,25 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = uh.userUsecase.CheckIfUserExists(*user)
+	err = u.userUsecase.CheckIfUserExists(*user)
 	if err != nil {
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
 
-	userID, err := uh.userUsecase.Create(*user)
+	userID, err := u.userUsecase.Create(*user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	sessionName, err := uh.sessionUsecase.Create(userID)
+	err = u.profileUsecase.Create(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	sessionName, err := u.sessionUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -59,7 +68,7 @@ func (uh UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(configs.ExpireTime)
 	cookie := http.Cookie{
-		Name:     "session_id",
+		Name:     configs.SessionID,
 		Value:    sessionName,
 		Expires:  expiration,
 		HttpOnly: true,
@@ -77,7 +86,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	cookie, err := r.Cookie("session_id")
+	cookie, err := r.Cookie(configs.SessionID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -90,6 +99,12 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = u.userUsecase.Delete(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = u.profileUsecase.Delete(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
