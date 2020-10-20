@@ -76,6 +76,21 @@ func (p ProfileRepository) Update(appProfile models.Profile) error {
 	return nil
 }
 
+func (p ProfileRepository) UpdateAvatar(userID string, link string) error {
+	_, err := p.db.Exec(
+		`UPDATE profiles
+		SET avatar=$1
+		WHERE userID=$2`,
+		link, userID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couln't update avatar: %w", err)
+	}
+
+	return nil
+}
+
 func (p ProfileRepository) Delete(userID string) error {
 	id, err := strconv.Atoi(userID)
 	if err != nil {

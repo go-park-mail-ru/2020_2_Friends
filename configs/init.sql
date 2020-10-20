@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     phone TEXT,
     addresses TEXT[],
     points INTEGER,
+    avatar TEXT,
 
     FOREIGN KEY (userID) REFERENCES users (id)
 );

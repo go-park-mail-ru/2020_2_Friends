@@ -84,3 +84,37 @@ func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	userID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = r.ParseMultipartForm(1024 * 1024)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	file, _, err := r.FormFile("avatar")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	err = p.profUsecase.UpdateAvatar(userID, file)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+}
