@@ -38,3 +38,17 @@ func (v VendorDelivery) GetVendor(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
+func (v VendorDelivery) GetAll(w http.ResponseWriter, r *http.Request) {
+	vendors, err := v.vendorUsecase.GetAll()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(vendors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

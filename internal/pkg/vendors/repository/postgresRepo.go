@@ -51,3 +51,26 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 
 	return vendor, nil
 }
+
+func (v VendorRepository) GetAll() ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		"SELECT id, vendorName FROM vendors",
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get vendors from db")
+	}
+
+	var vendors []models.Vendor
+	for rows.Next() {
+		vendor := models.Vendor{}
+		err = rows.Scan(&vendor.ID, &vendor.Name)
+		if err != nil {
+			continue
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
