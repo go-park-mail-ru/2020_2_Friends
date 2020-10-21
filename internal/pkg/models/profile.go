@@ -7,4 +7,5 @@ type Profile struct {
 	Phone     string   `json:"phone"`
 	Addresses []string `json:"addresses"`
 	Points    int      `json:"points"`
+	Avatar    string   `json:"avatar"`
 }

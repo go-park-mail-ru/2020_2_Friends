@@ -70,6 +70,7 @@ func StartApiServer() {
 	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
 	mux.Handle("/profiles", authChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", authChecker.Check(profDelivery.Update)).Methods("PUT")
+	mux.Handle("/profiles/avatars", authChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)
