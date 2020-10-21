@@ -14,3 +14,18 @@ CREATE TABLE IF NOT EXISTS profiles (
 
     FOREIGN KEY (userID) REFERENCES users (id)
 );
+
+CREATE TABLE IF NOT EXISTS vendors (
+    id SERIAL NOT NULL PRIMARY KEY,
+    vendorName TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS products (
+    id SERIAL NOT NULL PRIMARY KEY,
+    vendorID INTEGER,
+    productName TEXT,
+    price TEXT,
+    picture TEXT,
+
+    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+);
