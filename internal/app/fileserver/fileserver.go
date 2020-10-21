@@ -13,7 +13,7 @@ func StartFileServer() {
 
 	staticHandler := http.StripPrefix(
 		"/data/",
-		http.FileServer(http.Dir("./static")),
+		http.FileServer(http.Dir(configs.FileServerPath)),
 	)
 	mux.Handle("/data/", staticHandler)
 

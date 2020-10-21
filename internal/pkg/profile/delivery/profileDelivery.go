@@ -100,12 +100,12 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseMultipartForm(1024 * 1024)
+	err = r.ParseMultipartForm(configs.AvatarMaxSize)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	file, _, err := r.FormFile("avatar")
+	file, _, err := r.FormFile(configs.AvatarFormFileKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

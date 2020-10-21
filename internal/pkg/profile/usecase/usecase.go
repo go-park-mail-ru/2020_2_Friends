@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/profile"
 	"github.com/lithammer/shortuuid"
@@ -44,7 +45,7 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) error {
 
 	imgName := shortuuid.New()
 	imgFullName := imgName + "." + imgType
-	avatarFile, err := os.Create(filepath.Join("./static/img", filepath.Base(imgFullName)))
+	avatarFile, err := os.Create(filepath.Join(configs.FileServerPath+"/img", filepath.Base(imgFullName)))
 	if err != nil {
 		return fmt.Errorf("couldn't create file: %w", err)
 	}
@@ -52,6 +53,8 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) error {
 	switch imgType {
 	case "png":
 		err = png.Encode(avatarFile, img)
+	case "jpg":
+		fallthrough
 	case "jpeg":
 		err = jpeg.Encode(avatarFile, img, nil)
 	default:
