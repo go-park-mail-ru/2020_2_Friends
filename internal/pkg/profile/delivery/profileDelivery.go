@@ -14,6 +14,10 @@ import (
 	log "github.com/friends/pkg/logger"
 )
 
+type imgResponse struct {
+	Avatar string `json:"avatar"`
+}
+
 type ProfileDelivery struct {
 	profUsecase profile.Usecase
 	sessUsecase session.Usecase
@@ -112,9 +116,15 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = p.profUsecase.UpdateAvatar(userID, file)
+	imgName, err := p.profUsecase.UpdateAvatar(userID, file)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	}
+
+	resp := imgResponse{Avatar: imgName}
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
