@@ -79,6 +79,7 @@ func StartApiServer() {
 	mux.Handle("/profiles", authChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", authChecker.Check(profDelivery.Update)).Methods("PUT")
 	mux.Handle("/profiles/avatars", authChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
+	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
