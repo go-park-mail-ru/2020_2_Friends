@@ -38,6 +38,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("couldn't get products for vendor: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		product := models.Product{}
@@ -60,6 +61,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get vendors from db")
 	}
+	defer rows.Close()
 
 	var vendors []models.Vendor
 	for rows.Next() {
