@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/friends/internal/pkg/vendors"
+	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
 
@@ -20,6 +21,13 @@ func NewVendorDelivery(usecase vendors.Usecase) VendorDelivery {
 }
 
 func (v VendorDelivery) GetVendor(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
 	strID := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(strID)
 	if err != nil {
@@ -40,6 +48,13 @@ func (v VendorDelivery) GetVendor(w http.ResponseWriter, r *http.Request) {
 }
 
 func (v VendorDelivery) GetAll(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
 	vendors, err := v.vendorUsecase.GetAll()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
