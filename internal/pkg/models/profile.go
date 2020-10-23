@@ -9,3 +9,8 @@ type Profile struct {
 	Points    int      `json:"points"`
 	Avatar    string   `json:"avatar"`
 }
+
+//easyjson:json
+type ImgResponse struct {
+	Avatar string `json:"avatar"`
+}
