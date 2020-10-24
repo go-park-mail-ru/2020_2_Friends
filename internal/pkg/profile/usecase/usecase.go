@@ -37,17 +37,17 @@ func (p ProfileUsecase) Update(profile models.Profile) error {
 	return p.repository.Update(profile)
 }
 
-func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) error {
+func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) (string, error) {
 	img, imgType, err := image.Decode(file)
 	if err != nil {
-		return fmt.Errorf("unsupporter img type: %w", err)
+		return "", fmt.Errorf("unsupporter img type: %w", err)
 	}
 
 	imgName := shortuuid.New()
 	imgFullName := imgName + "." + imgType
 	avatarFile, err := os.Create(filepath.Join(configs.FileServerPath+"/img", filepath.Base(imgFullName)))
 	if err != nil {
-		return fmt.Errorf("couldn't create file: %w", err)
+		return "", fmt.Errorf("couldn't create file: %w", err)
 	}
 
 	switch imgType {
@@ -58,19 +58,19 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) error {
 	case "jpeg":
 		err = jpeg.Encode(avatarFile, img, nil)
 	default:
-		return fmt.Errorf("unsupporter img type: %w", err)
+		return "", fmt.Errorf("unsupporter img type: %w", err)
 	}
 
 	if err != nil {
-		return fmt.Errorf("couldn't encode: %w", err)
+		return "", fmt.Errorf("couldn't encode: %w", err)
 	}
 
 	err = p.repository.UpdateAvatar(userID, imgFullName)
 	if err != nil {
-		return fmt.Errorf("couldn't save link to avatart: %w", err)
+		return "", fmt.Errorf("couldn't save link to avatart: %w", err)
 	}
 
-	return nil
+	return imgFullName, nil
 }
 
 func (p ProfileUsecase) Delete(userID string) error {

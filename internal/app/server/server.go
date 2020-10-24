@@ -16,6 +16,9 @@ import (
 	userDelivery "github.com/friends/internal/pkg/user/delivery"
 	userRepo "github.com/friends/internal/pkg/user/repository"
 	userUsecase "github.com/friends/internal/pkg/user/usecase"
+	vendorDelivery "github.com/friends/internal/pkg/vendors/delivery"
+	vendorRepo "github.com/friends/internal/pkg/vendors/repository"
+	vendorUsecase "github.com/friends/internal/pkg/vendors/usecase"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -55,11 +58,16 @@ func StartApiServer() {
 
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
 
+	vendRepo := vendorRepo.NewVendorRepository(db)
+	vendUsecase := vendorUsecase.NewVendorUsecase(vendRepo)
+
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase, profUsecase)
 
 	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userUsecase)
 
 	profDelivery := profileDelivery.NewProfileDelivery(profUsecase, sessionUsecase)
+
+	vendDelivery := vendorDelivery.NewVendorDelivery(vendUsecase)
 
 	authChecker := middleware.NewAuthChecker(sessionUsecase)
 
@@ -71,6 +79,8 @@ func StartApiServer() {
 	mux.Handle("/profiles", authChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", authChecker.Check(profDelivery.Update)).Methods("PUT")
 	mux.Handle("/profiles/avatars", authChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
+	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
+	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)

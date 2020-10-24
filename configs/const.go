@@ -14,6 +14,6 @@ const (
 	UserID                 = "userID"
 	SessionID              = "session_id"
 	AvatarMaxSize          = 1024 * 1024
-	AvatarFormFileKey      = "Avatar"
+	AvatarFormFileKey      = "avatar"
 	FileServerPath         = "./static"
 )
