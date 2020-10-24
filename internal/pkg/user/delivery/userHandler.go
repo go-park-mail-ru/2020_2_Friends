@@ -112,7 +112,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = u.sessionUsecase.Delete(cookie.Value)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
