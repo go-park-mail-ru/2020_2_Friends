@@ -44,7 +44,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 		product := models.Product{}
 		err = rows.Scan(&product.ID, &product.Name, &product.Price, &product.Picture)
 		if err != nil {
-			continue
+			return models.Vendor{}, fmt.Errorf("error in receiving the product: %w", err)
 		}
 
 		vendor.Products = append(vendor.Products, product)
@@ -68,7 +68,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 		vendor := models.Vendor{}
 		err = rows.Scan(&vendor.ID, &vendor.Name)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
 
 		vendors = append(vendors, vendor)
