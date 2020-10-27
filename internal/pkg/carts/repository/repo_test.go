@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"testing"
@@ -20,14 +21,15 @@ func TestAdd(t *testing.T) {
 
 	userID := "0"
 	productID := "1"
+	vendorID := "2"
 
 	// succesful add
 	mock.
 		ExpectExec("INSERT INTO carts").
-		WithArgs(userID, productID).
+		WithArgs(userID, productID, vendorID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err = repo.Add(userID, productID)
+	err = repo.Add(userID, productID, vendorID)
 	if err != nil {
 		t.Error("unexpected err: %w", err)
 		return
@@ -36,10 +38,10 @@ func TestAdd(t *testing.T) {
 	// error with db
 	mock.
 		ExpectExec("INSERT INTO carts").
-		WithArgs(userID, productID).
+		WithArgs(userID, productID, vendorID).
 		WillReturnError(fmt.Errorf("db error"))
 
-	err = repo.Add(userID, productID)
+	err = repo.Add(userID, productID, vendorID)
 	if err == nil {
 		t.Error("unexpected error")
 		return
@@ -167,5 +169,70 @@ func TestGet(t *testing.T) {
 
 	if resProducts != nil {
 		t.Errorf("expected: nil\ngot:%v", resProducts)
+	}
+}
+
+func TestGetVendorID(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewCartRepository(db)
+
+	vendorID := 0
+	userID := "1"
+
+	row := mock.NewRows([]string{"vendorID"}).AddRow(vendorID)
+
+	// good query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(userID).
+		WillReturnRows(row)
+
+	respID, err := repo.GetVendorIDFromCart(userID)
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+		return
+	}
+
+	if respID != vendorID {
+		t.Errorf("expected: %v\ngot:%v", respID, vendorID)
+	}
+
+	// no rows
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(userID).
+		WillReturnError(sql.ErrNoRows)
+
+	respID, err = repo.GetVendorIDFromCart(userID)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+
+	expected := 0
+	if respID != expected {
+		t.Errorf("expected: %v\ngot:%v", expected, vendorID)
+	}
+
+	// bad query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(userID).
+		WillReturnError(fmt.Errorf("error with db"))
+
+	respID, err = repo.GetVendorIDFromCart(userID)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+
+	expected = 0
+	if respID != expected {
+		t.Errorf("expected: %v\ngot:%v", expected, vendorID)
 	}
 }

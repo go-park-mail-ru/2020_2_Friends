@@ -18,10 +18,10 @@ func NewCartRepository(db *sql.DB) carts.Repository {
 	}
 }
 
-func (c CartRepository) Add(userID, productID string) error {
+func (c CartRepository) Add(userID, productID, vendorID string) error {
 	_, err := c.db.Exec(
-		"INSERT INTO carts (userID, productID) VALUES($1, $2)",
-		userID, productID,
+		"INSERT INTO carts (userID, productID, vendorID) VALUES($1, $2, $3)",
+		userID, productID, vendorID,
 	)
 
 	if err != nil {
@@ -68,4 +68,21 @@ func (c CartRepository) Get(userID string) ([]models.Product, error) {
 	}
 
 	return products, nil
+}
+
+func (c CartRepository) GetVendorIDFromCart(userID string) (int, error) {
+	row := c.db.QueryRow(
+		"SELECT vendorID from carts WHERE userID=$1 limit 1",
+		userID,
+	)
+
+	var vendorID int
+	switch err := row.Scan(&vendorID); err {
+	case nil:
+		return vendorID, nil
+	case sql.ErrNoRows:
+		return 0, carts.ErrCartIsEmpty
+	default:
+		return 0, err
+	}
 }
