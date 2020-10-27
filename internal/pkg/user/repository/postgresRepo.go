@@ -26,21 +26,14 @@ func (ur UserRepository) Create(user models.User) (userID string, err error) {
 		return "", fmt.Errorf("couldn't hash password: %w", err)
 	}
 
-	result, err := ur.db.Exec(
-		"INSERT INTO users (login, password) VALUES ($1, $2)",
+	err = ur.db.QueryRow(
+		"INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id",
 		user.Login, hashedPassword,
-	)
+	).Scan(&userID)
 
 	if err != nil {
 		return "", fmt.Errorf("couldn't insert user in Postgres: %w", err)
 	}
-
-	lastID, err := result.LastInsertId()
-	if err != nil {
-		return "", fmt.Errorf("couldn't return last insert id: %w", err)
-	}
-
-	userID = strconv.Itoa(int(lastID))
 
 	return userID, nil
 }

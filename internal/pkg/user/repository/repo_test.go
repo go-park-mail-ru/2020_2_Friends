@@ -174,11 +174,13 @@ func TestCreate(t *testing.T) {
 		Password: "testpassword",
 	}
 
+	rows := mock.NewRows([]string{"id"}).AddRow(1)
+
 	// successful creation
 	mock.
-		ExpectExec("INSERT INTO users").
+		ExpectQuery("INSERT INTO users").
 		WithArgs(user.Login, sqlmock.AnyArg()).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+		WillReturnRows(rows)
 
 	id, err := repo.Create(user)
 	if err != nil {
@@ -193,7 +195,7 @@ func TestCreate(t *testing.T) {
 
 	// error on creation
 	mock.
-		ExpectExec("INSERT INTO users").
+		ExpectQuery("INSERT INTO users").
 		WithArgs(user.Login, sqlmock.AnyArg()).
 		WillReturnError(fmt.Errorf("erorr with db"))
 
@@ -240,6 +242,13 @@ func TestDelete(t *testing.T) {
 		WillReturnError(fmt.Errorf("db error"))
 
 	err = repo.Delete(userID)
+	if err == nil {
+		t.Error("expected err")
+		return
+	}
+
+	// bad userID
+	err = repo.Delete("a")
 	if err == nil {
 		t.Error("expected err")
 		return
