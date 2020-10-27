@@ -6,6 +6,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 )
 
+//go:generate mockgen -destination=./usecase_mock.go -package=profile github.com/friends/internal/pkg/profile Usecase
 type Usecase interface {
 	Create(userID string) error
 	Get(userID string) (models.Profile, error)
