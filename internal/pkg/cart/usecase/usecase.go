@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/friends/internal/pkg/carts"
+	"github.com/friends/internal/pkg/cart"
 	"github.com/friends/internal/pkg/models"
 )
 
 type CartUsecase struct {
-	repository carts.Repository
+	repository cart.Repository
 }
 
-func NewCartUsecase(repo carts.Repository) carts.Usecase {
+func NewCartUsecase(repo cart.Repository) cart.Usecase {
 	return CartUsecase{
 		repository: repo,
 	}
@@ -21,7 +21,7 @@ func NewCartUsecase(repo carts.Repository) carts.Usecase {
 
 func (c CartUsecase) Add(userID, productID, vendorID string) error {
 	cartVendorID, err := c.repository.GetVendorIDFromCart(userID)
-	if err != nil && !errors.Is(err, carts.ErrCartIsEmpty) {
+	if err != nil && !errors.Is(err, cart.ErrCartIsEmpty) {
 		return fmt.Errorf("error with db: %w", err)
 	}
 

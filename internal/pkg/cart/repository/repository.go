@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/friends/internal/pkg/carts"
+	"github.com/friends/internal/pkg/cart"
 	"github.com/friends/internal/pkg/models"
 )
 
@@ -12,7 +12,7 @@ type CartRepository struct {
 	db *sql.DB
 }
 
-func NewCartRepository(db *sql.DB) carts.Repository {
+func NewCartRepository(db *sql.DB) cart.Repository {
 	return CartRepository{
 		db: db,
 	}
@@ -81,7 +81,7 @@ func (c CartRepository) GetVendorIDFromCart(userID string) (int, error) {
 	case nil:
 		return vendorID, nil
 	case sql.ErrNoRows:
-		return 0, carts.ErrCartIsEmpty
+		return 0, cart.ErrCartIsEmpty
 	default:
 		return 0, err
 	}

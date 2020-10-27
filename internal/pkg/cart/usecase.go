@@ -1,4 +1,4 @@
-package carts
+package cart
 
 import "github.com/friends/internal/pkg/models"
 
