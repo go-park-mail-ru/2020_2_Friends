@@ -67,9 +67,9 @@ func (c CartDelivery) RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cartReq models.CartRequest
-	err = json.NewDecoder(r.Body).Decode(cartReq)
-	if err != nil {
+	productID, ok := r.URL.Query()["product_id"]
+	if !ok {
+		err = fmt.Errorf("no query param")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
