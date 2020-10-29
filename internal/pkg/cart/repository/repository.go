@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/friends/internal/pkg/cart"
-	"github.com/friends/internal/pkg/models"
 )
 
 type CartRepository struct {
@@ -44,30 +43,28 @@ func (c CartRepository) Remove(userID, productID string) error {
 	return nil
 }
 
-func (c CartRepository) Get(userID string) ([]models.Product, error) {
+func (c CartRepository) GetProductIDs(userID string) ([]string, error) {
 	rows, err := c.db.Query(
-		`SELECT p.ID, p.vendorID, p.productName, p.Price, p.picture FROM products AS p
-		INNER JOIN carts AS c
-		ON p.ID = c.productID WHERE userID=$1`,
+		"SELECT productID from carts where userID=$1",
 		userID,
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get products from cart")
+		return nil, fmt.Errorf("couldn't get product ids from cart: %w", err)
 	}
 
-	var products []models.Product
+	var ids []string
 	for rows.Next() {
-		product := models.Product{}
-		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Price, &product.Picture)
+		var id string
+		err = rows.Scan(&id)
 		if err != nil {
-			return nil, fmt.Errorf("error in receiving the product: %w", err)
+			return nil, fmt.Errorf("error in receiving id: %w", err)
 		}
 
-		products = append(products, product)
+		ids = append(ids, id)
 	}
 
-	return products, nil
+	return ids, nil
 }
 
 func (c CartRepository) GetVendorIDFromCart(userID string) (int, error) {

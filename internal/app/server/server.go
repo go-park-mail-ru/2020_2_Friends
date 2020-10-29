@@ -73,7 +73,7 @@ func StartApiServer() {
 	vendDelivery := vendorDelivery.NewVendorDelivery(vendUsecase)
 
 	cartRepo := cartRepo.NewCartRepository(db)
-	cartUsecase := cartUsecase.NewCartUsecase(cartRepo)
+	cartUsecase := cartUsecase.NewCartUsecase(cartRepo, vendRepo)
 	cartDelivery := cartDelivery.NewCartDelivery(cartUsecase)
 
 	authChecker := middleware.NewAuthChecker(sessionUsecase)

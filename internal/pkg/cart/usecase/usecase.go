@@ -7,20 +7,23 @@ import (
 
 	"github.com/friends/internal/pkg/cart"
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/vendors"
 )
 
 type CartUsecase struct {
-	repository cart.Repository
+	cartsRepository  cart.Repository
+	vendorRepository vendors.Repository
 }
 
-func NewCartUsecase(repo cart.Repository) cart.Usecase {
+func NewCartUsecase(cartsRepo cart.Repository, vendorsRepo vendors.Repository) cart.Usecase {
 	return CartUsecase{
-		repository: repo,
+		cartsRepository:  cartsRepo,
+		vendorRepository: vendorsRepo,
 	}
 }
 
 func (c CartUsecase) Add(userID, productID, vendorID string) error {
-	cartVendorID, err := c.repository.GetVendorIDFromCart(userID)
+	cartVendorID, err := c.cartsRepository.GetVendorIDFromCart(userID)
 	if err != nil && !errors.Is(err, cart.ErrCartIsEmpty) {
 		return fmt.Errorf("error with db: %w", err)
 	}
@@ -36,7 +39,7 @@ func (c CartUsecase) Add(userID, productID, vendorID string) error {
 		}
 	}
 
-	err = c.repository.Add(userID, productID, vendorID)
+	err = c.cartsRepository.Add(userID, productID, vendorID)
 	if err != nil {
 		return fmt.Errorf("couldn't add product to cart: %w", err)
 	}
@@ -45,9 +48,13 @@ func (c CartUsecase) Add(userID, productID, vendorID string) error {
 }
 
 func (c CartUsecase) Remove(userID, productID string) error {
-	return c.repository.Remove(userID, productID)
+	return c.cartsRepository.Remove(userID, productID)
 }
 
 func (c CartUsecase) Get(userID string) ([]models.Product, error) {
-	return c.repository.Get(userID)
+	ids, err := c.cartsRepository.GetProductIDs(userID)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get product ids: %w", err)
+	}
+	return c.vendorRepository.GetAllProductsWithIDs(ids)
 }
