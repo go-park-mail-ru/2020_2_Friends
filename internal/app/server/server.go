@@ -6,6 +6,9 @@ import (
 	"net/http"
 
 	"github.com/friends/configs"
+	cartDelivery "github.com/friends/internal/pkg/cart/delivery"
+	cartRepo "github.com/friends/internal/pkg/cart/repository"
+	cartUsecase "github.com/friends/internal/pkg/cart/usecase"
 	"github.com/friends/internal/pkg/middleware"
 	profileDelivery "github.com/friends/internal/pkg/profile/delivery"
 	profileRepo "github.com/friends/internal/pkg/profile/repository"
@@ -69,6 +72,10 @@ func StartApiServer() {
 
 	vendDelivery := vendorDelivery.NewVendorDelivery(vendUsecase)
 
+	cartRepo := cartRepo.NewCartRepository(db)
+	cartUsecase := cartUsecase.NewCartUsecase(cartRepo, vendRepo)
+	cartDelivery := cartDelivery.NewCartDelivery(cartUsecase)
+
 	authChecker := middleware.NewAuthChecker(sessionUsecase)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
@@ -81,6 +88,9 @@ func StartApiServer() {
 	mux.Handle("/profiles/avatars", authChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
 	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
+	mux.Handle("/carts", authChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
+	mux.Handle("/carts", authChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
+	mux.Handle("/carts", authChecker.Check(cartDelivery.GetCart)).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)

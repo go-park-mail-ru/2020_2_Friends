@@ -29,3 +29,13 @@ CREATE TABLE IF NOT EXISTS products (
 
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
 );
+
+CREATE TABLE IF NOT EXISTS carts (
+    userID INTEGER NOT NULL,
+    productID INTEGER NOT NULL,
+    vendorID INTEGER NOT NULL,
+
+    FOREIGN KEY (userID) REFERENCES users (id),
+    FOREIGN KEY (productID) REFERENCES products (id),
+    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+);
