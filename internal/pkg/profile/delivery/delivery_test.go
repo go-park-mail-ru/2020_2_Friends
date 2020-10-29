@@ -99,7 +99,8 @@ func TestUpdateHandlerSuccess(t *testing.T) {
 
 	mockProfileUsecase.EXPECT().Update(prof).Times(1).Return(nil)
 
-	body := bytes.NewReader([]byte(fmt.Sprintf(`{"userId": "%s", "name": "%s", "phone": "%s"}`, prof.UserID, prof.Name, prof.Phone)))
+	profJson, _ := json.Marshal(&prof)
+	body := bytes.NewReader(profJson)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("PUT", "/profiles", body)
@@ -131,7 +132,8 @@ func TestUpdateHandlerError(t *testing.T) {
 
 	mockProfileUsecase.EXPECT().Update(prof).Times(1).Return(fmt.Errorf("error"))
 
-	body := bytes.NewReader([]byte(fmt.Sprintf(`{"userId": "%s", "name": "%s", "phone": "%s"}`, prof.UserID, prof.Name, prof.Phone)))
+	profJson, _ := json.Marshal(&prof)
+	body := bytes.NewReader(profJson)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("PUT", "/profiles", body)
