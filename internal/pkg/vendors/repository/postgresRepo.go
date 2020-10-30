@@ -6,6 +6,7 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/vendors"
+	"github.com/lib/pq"
 )
 
 type VendorRepository struct {
@@ -75,4 +76,28 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	}
 
 	return vendors, nil
+}
+
+func (c VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product, error) {
+	rows, err := c.db.Query(
+		"SELECT id, vendorID, productName, price, picture FROM products WHERE id = ANY ($1)",
+		pq.Array(ids),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get products from products: %w", err)
+	}
+
+	var products []models.Product
+	for rows.Next() {
+		var product models.Product
+		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Price, &product.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("error in receiving product: %w", err)
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
 }

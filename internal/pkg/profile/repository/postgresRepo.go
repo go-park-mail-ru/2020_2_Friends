@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
 
 	"github.com/lib/pq"
 
@@ -93,14 +92,9 @@ func (p ProfileRepository) UpdateAvatar(userID string, link string) error {
 }
 
 func (p ProfileRepository) Delete(userID string) error {
-	id, err := strconv.Atoi(userID)
-	if err != nil {
-		return fmt.Errorf("couldn't convert to string: %w", err)
-	}
-
-	_, err = p.db.Exec(
+	_, err := p.db.Exec(
 		"DELETE FROM profiles WHERE userID=$1",
-		id,
+		userID,
 	)
 
 	if err != nil {
