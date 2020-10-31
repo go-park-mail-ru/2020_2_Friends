@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/friends/internal/pkg/models"
 )
 
 func TestAdd(t *testing.T) {
@@ -95,27 +94,28 @@ func TestGet(t *testing.T) {
 	repo := NewCartRepository(db)
 
 	userID := "0"
-	products := []models.Product{
-		{
-			ID:       0,
-			VendorID: 0,
-			Name:     "name1",
-			Price:    "100",
-			Picture:  "pic.jpg",
-		},
-		{
-			ID:       1,
-			VendorID: 0,
-			Name:     "name2",
-			Price:    "150",
-			Picture:  "img.png",
-		},
-	}
+	// products := []models.Product{
+	// 	{
+	// 		ID:       0,
+	// 		VendorID: 0,
+	// 		Name:     "name1",
+	// 		Price:    "100",
+	// 		Picture:  "pic.jpg",
+	// 	},
+	// 	{
+	// 		ID:       1,
+	// 		VendorID: 0,
+	// 		Name:     "name2",
+	// 		Price:    "150",
+	// 		Picture:  "img.png",
+	// 	},
+	// }
+	ids := []string{"1", "2"}
 
 	// good query
-	rows := mock.NewRows([]string{"id", "vendorID", "productName", "price", "picture"})
-	for _, prod := range products {
-		rows.AddRow(prod.ID, prod.VendorID, prod.Name, prod.Price, prod.Picture)
+	rows := mock.NewRows([]string{"productID"})
+	for _, id := range ids {
+		rows.AddRow(id)
 	}
 
 	mock.
@@ -123,14 +123,14 @@ func TestGet(t *testing.T) {
 		WithArgs(userID).
 		WillReturnRows(rows)
 
-	resProducts, err := repo.Get(userID)
+	resIDs, err := repo.GetProductIDs(userID)
 	if err != nil {
 		t.Error("unexpected err: %w", err)
 		return
 	}
 
-	if !reflect.DeepEqual(products, resProducts) {
-		t.Errorf("expected: %v\ngot:%v", products, resProducts)
+	if !reflect.DeepEqual(ids, resIDs) {
+		t.Errorf("expected: %v\ngot:%v", ids, resIDs)
 		return
 	}
 
@@ -140,20 +140,20 @@ func TestGet(t *testing.T) {
 		WithArgs(userID).
 		WillReturnError(fmt.Errorf("db error"))
 
-	resProducts, err = repo.Get(userID)
+	resIDs, err = repo.GetProductIDs(userID)
 	if err == nil {
 		t.Error("expected error")
 		return
 	}
 
-	if resProducts != nil {
-		t.Errorf("expected: nil\ngot:%v", resProducts)
+	if resIDs != nil {
+		t.Errorf("expected: nil\ngot:%v", resIDs)
 	}
 
 	// bad query2
-	rows = mock.NewRows([]string{"id", "vendorID", "productName", "price"})
-	for _, prod := range products {
-		rows.AddRow(prod.ID, prod.VendorID, prod.Name, prod.Price)
+	rows = mock.NewRows([]string{"productID", "vendorID"})
+	for _, id := range ids {
+		rows.AddRow(id, "0")
 	}
 
 	mock.
@@ -161,14 +161,14 @@ func TestGet(t *testing.T) {
 		WithArgs(userID).
 		WillReturnRows(rows)
 
-	resProducts, err = repo.Get(userID)
+	resIDs, err = repo.GetProductIDs(userID)
 	if err == nil {
 		t.Error("expected error")
 		return
 	}
 
-	if resProducts != nil {
-		t.Errorf("expected: nil\ngot:%v", resProducts)
+	if resIDs != nil {
+		t.Errorf("expected: nil\ngot:%v", resIDs)
 	}
 }
 
