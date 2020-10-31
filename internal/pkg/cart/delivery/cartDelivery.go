@@ -74,7 +74,7 @@ func (c CartDelivery) RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.cartUsecase.Remove(userID, cartReq.ProductID)
+	err = c.cartUsecase.Remove(userID, productID[0])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
