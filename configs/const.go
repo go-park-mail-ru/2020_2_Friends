@@ -16,4 +16,5 @@ const (
 	AvatarMaxSize          = 1024 * 1024
 	AvatarFormFileKey      = "avatar"
 	FileServerPath         = "./static"
+	ProductID              = "product_id"
 )
