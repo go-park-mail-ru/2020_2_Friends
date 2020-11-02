@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -36,7 +37,8 @@ func TestCreateHandlerSuccess(t *testing.T) {
 
 	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
 
-	body := bytes.NewReader([]byte(fmt.Sprintf(`{"login": "%s", "password": "%s"}`, user.Login, user.Password)))
+	userJson, _ := json.Marshal(&user)
+	body := bytes.NewReader(userJson)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/users", body)
@@ -86,7 +88,8 @@ func TestCreateHandlerUserExists(t *testing.T) {
 		userUsecase: mockUserUsecase,
 	}
 
-	body := bytes.NewReader([]byte(fmt.Sprintf(`{"login": "%s", "password": "%s"}`, user.Login, user.Password)))
+	userJson, _ := json.Marshal(&user)
+	body := bytes.NewReader(userJson)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("POST", "/users", body)
