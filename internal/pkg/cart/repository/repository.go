@@ -67,19 +67,19 @@ func (c CartRepository) GetProductIDs(userID string) ([]string, error) {
 	return ids, nil
 }
 
-func (c CartRepository) GetVendorIDFromCart(userID string) (int, error) {
+func (c CartRepository) GetVendorIDFromCart(userID string) (string, error) {
 	row := c.db.QueryRow(
 		"SELECT vendorID from carts WHERE userID=$1 limit 1",
 		userID,
 	)
 
-	var vendorID int
+	var vendorID string
 	switch err := row.Scan(&vendorID); err {
 	case nil:
 		return vendorID, nil
 	case sql.ErrNoRows:
-		return 0, cart.ErrCartIsEmpty
+		return "", cart.ErrCartIsEmpty
 	default:
-		return 0, err
+		return "", err
 	}
 }

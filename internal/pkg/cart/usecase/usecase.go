@@ -3,7 +3,6 @@ package usecase
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/friends/internal/pkg/cart"
 	"github.com/friends/internal/pkg/models"
@@ -22,21 +21,19 @@ func NewCartUsecase(cartsRepo cart.Repository, vendorsRepo vendors.Repository) c
 	}
 }
 
-func (c CartUsecase) Add(userID, productID, vendorID string) error {
+func (c CartUsecase) Add(userID, productID string) error {
 	cartVendorID, err := c.cartsRepository.GetVendorIDFromCart(userID)
 	if err != nil && !errors.Is(err, cart.ErrCartIsEmpty) {
 		return fmt.Errorf("error with db: %w", err)
 	}
 
-	if err == nil {
-		intVendorID, err := strconv.Atoi(vendorID)
-		if err != nil {
-			return fmt.Errorf("err with converting vendorID to int: %w", err)
-		}
+	vendorID, err := c.vendorRepository.GetVendorIDFromProduct(productID)
+	if err != nil {
+		return fmt.Errorf("couldn't get vendor id from product to check: %w", err)
+	}
 
-		if intVendorID != cartVendorID {
-			return fmt.Errorf("wrong vendor id")
-		}
+	if cartVendorID != vendorID {
+		return fmt.Errorf("wrong vendor")
 	}
 
 	err = c.cartsRepository.Add(userID, productID, vendorID)

@@ -78,8 +78,8 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	return vendors, nil
 }
 
-func (c VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product, error) {
-	rows, err := c.db.Query(
+func (v VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product, error) {
+	rows, err := v.db.Query(
 		"SELECT id, vendorID, productName, price, picture FROM products WHERE id = ANY ($1)",
 		pq.Array(ids),
 	)
@@ -100,4 +100,19 @@ func (c VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product,
 	}
 
 	return products, nil
+}
+
+func (v VendorRepository) GetVendorIDFromProduct(productID string) (string, error) {
+	row := v.db.QueryRow(
+		"SELECT vendorID FROM products WHERE productID=$1",
+		productID,
+	)
+
+	var vendorID string
+	err := row.Scan(&vendorID)
+	if err != nil {
+		return "", fmt.Errorf("couldn't get vendorID from products: %w", err)
+	}
+
+	return vendorID, nil
 }

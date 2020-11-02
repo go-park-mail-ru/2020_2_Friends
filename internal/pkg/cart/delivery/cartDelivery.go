@@ -8,7 +8,6 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/cart"
 	"github.com/friends/internal/pkg/middleware"
-	"github.com/friends/internal/pkg/models"
 
 	log "github.com/friends/pkg/logger"
 )
@@ -38,14 +37,14 @@ func (c CartDelivery) AddToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cartReq models.CartRequest
-	err = json.NewDecoder(r.Body).Decode(&cartReq)
-	if err != nil {
+	productID, ok := r.URL.Query()[configs.ProductID]
+	if !ok {
+		err = fmt.Errorf("no query param")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = c.cartUsecase.Add(userID, cartReq.ProductID, cartReq.VendorID)
+	err = c.cartUsecase.Add(userID, productID[0])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -67,14 +66,14 @@ func (c CartDelivery) RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productID, ok := r.URL.Query()["product_id"]
+	productID, ok := r.URL.Query()[configs.ProductID]
 	if !ok {
 		err = fmt.Errorf("no query param")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = c.cartUsecase.Remove(userID, cartReq.ProductID)
+	err = c.cartUsecase.Remove(userID, productID[0])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
