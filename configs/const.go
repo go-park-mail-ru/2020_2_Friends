@@ -17,4 +17,6 @@ const (
 	AvatarFormFileKey      = "avatar"
 	FileServerPath         = "./static"
 	ProductID              = "product_id"
+	UserRole               = 1
+	AdminRole              = 2
 )

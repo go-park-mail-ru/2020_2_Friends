@@ -22,3 +22,12 @@ func (v VendorUsecase) Get(id int) (models.Vendor, error) {
 func (v VendorUsecase) GetAll() ([]models.Vendor, error) {
 	return v.repository.GetAll()
 }
+
+func (v VendorUsecase) Create(vendor models.Vendor) error {
+	err := v.repository.IsVendorExists(vendor.Name)
+	if err != nil {
+		return err
+	}
+
+	return v.repository.Create(vendor)
+}

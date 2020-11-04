@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL NOT NULL PRIMARY KEY,
     login TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    role INT NOT NULL CHECK (role > 0 AND role < 3)
 );
 
 CREATE TABLE IF NOT EXISTS profiles (

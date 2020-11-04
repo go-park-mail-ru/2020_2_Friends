@@ -9,4 +9,5 @@ type User struct {
 	Points   string   `json:"points"`
 	Email    string   `json:"email"`
 	Adresses []string `json:"adresses"`
+	Role     int      `json:"role"`
 }

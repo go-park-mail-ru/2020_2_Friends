@@ -10,6 +10,7 @@ import (
 	cartRepo "github.com/friends/internal/pkg/cart/repository"
 	cartUsecase "github.com/friends/internal/pkg/cart/usecase"
 	"github.com/friends/internal/pkg/middleware"
+	partnerDelivery "github.com/friends/internal/pkg/partner/delivery"
 	profileDelivery "github.com/friends/internal/pkg/profile/delivery"
 	profileRepo "github.com/friends/internal/pkg/profile/repository"
 	profileUsecase "github.com/friends/internal/pkg/profile/usecase"
@@ -78,6 +79,8 @@ func StartApiServer() {
 
 	authChecker := middleware.NewAuthChecker(sessionUsecase)
 
+	partnerDelivery := partnerDelivery.New(userUsecase, sessionUsecase)
+
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
 	mux.HandleFunc("/users", userHandler.Delete).Methods("DELETE")
@@ -91,6 +94,7 @@ func StartApiServer() {
 	mux.Handle("/carts", authChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.GetCart)).Methods("GET")
+	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)

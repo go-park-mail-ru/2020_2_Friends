@@ -116,3 +116,58 @@ func (v VendorRepository) GetVendorIDFromProduct(productID string) (string, erro
 
 	return vendorID, nil
 }
+
+func (v VendorRepository) IsVendorExists(vendorName string) error {
+	row := v.db.QueryRow(
+		"SELECT vendorName FROM vendors WHERE vendorName=$1",
+		vendorName,
+	)
+
+	var vn string
+	switch err := row.Scan(&vn); err {
+	case sql.ErrNoRows:
+		return nil
+	case nil:
+		return fmt.Errorf("vendor exists")
+	default:
+		return fmt.Errorf("couldn't check vendor, error with db: %w", err)
+	}
+}
+
+func (v VendorRepository) Create(vendor models.Vendor) error {
+	tx, err := v.db.Begin()
+	if err != nil {
+		return fmt.Errorf("couldn't create transaction: %w", err)
+	}
+	var vendorID int
+
+	err = tx.QueryRow(
+		"INSERT INTO vendors (vendorName) VALUES($1) RETURNING id",
+		vendor.Name,
+	).Scan(&vendorID)
+
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("couldn't insert vendor: %w", err)
+	}
+
+	for _, product := range vendor.Products {
+		_, err := tx.Exec(
+			"INSERT INTO products (vendorID, productName, price, picture) VALUES($1, $2, $3, $4)",
+			vendorID, product.Name, product.Price, product.Picture,
+		)
+
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("couldn't insert product: %w", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("couldn't commit transaction: %w", err)
+	}
+
+	return nil
+}

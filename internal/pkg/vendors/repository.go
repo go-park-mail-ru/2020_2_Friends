@@ -7,4 +7,6 @@ type Repository interface {
 	GetAll() ([]models.Vendor, error)
 	GetAllProductsWithIDs(ids []string) ([]models.Product, error)
 	GetVendorIDFromProduct(productID string) (string, error)
+	IsVendorExists(vendorName string) error
+	Create(models.Vendor) error
 }
