@@ -77,9 +77,10 @@ func StartApiServer() {
 	cartUsecase := cartUsecase.NewCartUsecase(cartRepo, vendRepo)
 	cartDelivery := cartDelivery.NewCartDelivery(cartUsecase)
 
-	authChecker := middleware.NewAuthChecker(sessionUsecase)
+	partnerDelivery := partnerDelivery.New(userUsecase, sessionUsecase, vendUsecase)
 
-	partnerDelivery := partnerDelivery.New(userUsecase, sessionUsecase)
+	authChecker := middleware.NewAuthChecker(sessionUsecase)
+	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
@@ -91,6 +92,7 @@ func StartApiServer() {
 	mux.Handle("/profiles/avatars", authChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
 	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
+	mux.Handle("/vendors", accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole)).Methods("POST")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.GetCart)).Methods("GET")

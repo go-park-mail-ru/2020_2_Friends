@@ -47,6 +47,21 @@ func (mr *MockUsecaseMockRecorder) CheckIfUserExists(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIfUserExists", reflect.TypeOf((*MockUsecase)(nil).CheckIfUserExists), arg0)
 }
 
+// CheckUsersRole mocks base method
+func (m *MockUsecase) CheckUsersRole(arg0 string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckUsersRole", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckUsersRole indicates an expected call of CheckUsersRole
+func (mr *MockUsecaseMockRecorder) CheckUsersRole(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUsersRole", reflect.TypeOf((*MockUsecase)(nil).CheckUsersRole), arg0)
+}
+
 // Create mocks base method
 func (m *MockUsecase) Create(arg0 models.User) (string, error) {
 	m.ctrl.T.Helper()

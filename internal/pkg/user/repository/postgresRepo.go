@@ -94,3 +94,19 @@ func (u UserRepository) Delete(userID string) error {
 
 	return nil
 }
+
+func (u UserRepository) CheckUsersRole(userID string) (int, error) {
+	row := u.db.QueryRow(
+		"SELECT role from users WHERE userID = $1",
+		userID,
+	)
+
+	var role int
+
+	err := row.Scan(&role)
+	if err != nil {
+		return 0, fmt.Errorf("couldn't get role from user: %w", err)
+	}
+
+	return role, nil
+}

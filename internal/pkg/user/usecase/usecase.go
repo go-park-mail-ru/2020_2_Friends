@@ -30,3 +30,7 @@ func (uu UserUsecase) Verify(user models.User) (userID string, err error) {
 func (u UserUsecase) Delete(userID string) error {
 	return u.repository.Delete(userID)
 }
+
+func (u UserUsecase) CheckUsersRole(userID string) (int, error) {
+	return u.repository.CheckUsersRole(userID)
+}

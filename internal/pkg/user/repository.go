@@ -8,4 +8,5 @@ type Repository interface {
 	CheckIfUserExists(user models.User) error
 	CheckLoginAndPassword(user models.User) (userID string, err error)
 	Delete(userID string) error
+	CheckUsersRole(userID string) (int, error)
 }
