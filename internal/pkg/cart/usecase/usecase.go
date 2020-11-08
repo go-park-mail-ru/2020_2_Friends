@@ -27,13 +27,15 @@ func (c CartUsecase) Add(userID, productID string) error {
 		return fmt.Errorf("error with db: %w", err)
 	}
 
-	vendorID, err := c.vendorRepository.GetVendorIDFromProduct(productID)
-	if err != nil {
-		return fmt.Errorf("couldn't get vendor id from product to check: %w", err)
+	vendorID, errGetVendor := c.vendorRepository.GetVendorIDFromProduct(productID)
+	if errGetVendor != nil {
+		return fmt.Errorf("couldn't get vendor id from product to check: %w", errGetVendor)
 	}
 
-	if cartVendorID != vendorID {
-		return fmt.Errorf("wrong vendor")
+	if !errors.Is(err, cart.ErrCartIsEmpty) {
+		if cartVendorID != vendorID {
+			return fmt.Errorf("wrong vendor")
+		}
 	}
 
 	err = c.cartsRepository.Add(userID, productID, vendorID)
