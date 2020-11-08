@@ -98,7 +98,7 @@ func StartApiServer() {
 	mux.Handle("/vendors/products", accessRighsChecker.AccessRightsCheck(partnerDelivery.AddProductToVendor, configs.AdminRole)).Methods("POST")
 	mux.Handle("/vendors/products/{id}", accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductOnVendor, configs.AdminRole)).Methods("PUT")
 	mux.Handle("/vendors/products/{id}", accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole)).Methods("DELETE")
-	mux.Handle("/vendors/products/{id}/avatars", accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole)).Methods("PUT")
+	mux.Handle("/vendors/products/{id}/pictures", accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole)).Methods("PUT")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.GetCart)).Methods("GET")
