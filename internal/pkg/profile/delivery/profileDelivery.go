@@ -100,7 +100,7 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseMultipartForm(configs.AvatarMaxSize)
+	err = r.ParseMultipartForm(configs.ImgMaxSize)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}

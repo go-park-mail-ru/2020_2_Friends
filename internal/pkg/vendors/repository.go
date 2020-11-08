@@ -9,4 +9,11 @@ type Repository interface {
 	GetVendorIDFromProduct(productID string) (string, error)
 	IsVendorExists(vendorName string) error
 	Create(models.Vendor) error
+	Update(models.Vendor) error
+	CheckVendorOwner(userID, vendorID string) error
+	AddProduct(product models.Product) error
+	UpdateProduct(product models.Product) error
+	DeleteProduct(productID int) error
+	UpdateVendorImage(vendorID string, link string) error
+	UpdateProductImage(vendorID string, link string) error
 }

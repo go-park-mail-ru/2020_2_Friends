@@ -104,7 +104,7 @@ func (v VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product,
 
 func (v VendorRepository) GetVendorIDFromProduct(productID string) (string, error) {
 	row := v.db.QueryRow(
-		"SELECT vendorID FROM products WHERE productID=$1",
+		"SELECT vendorID FROM products WHERE id = $1",
 		productID,
 	)
 
@@ -167,6 +167,109 @@ func (v VendorRepository) Create(vendor models.Vendor) error {
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("couldn't commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (v VendorRepository) Update(vendor models.Vendor) error {
+	_, err := v.db.Exec(
+		"UPDATE vendors SET vendorName = $1 WHERE id = $2",
+		vendor.Name, vendor.ID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couln't update vendor: %w", err)
+	}
+
+	return nil
+}
+
+func (v VendorRepository) CheckVendorOwner(userID, vendorID string) error {
+	rows, err := v.db.Query(
+		"SELECT userID FROM vendor_partner WHERE vendorID = $1",
+		vendorID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't check vendors owner: %w", err)
+	}
+
+	for rows.Next() {
+		var partner string
+		err = rows.Scan(&partner)
+		if err != nil {
+			return fmt.Errorf("error with scaning partner id: %w", err)
+		}
+
+		if partner == userID {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no rights for this vendor")
+}
+
+func (v VendorRepository) AddProduct(product models.Product) error {
+	_, err := v.db.Exec(
+		"INSERT INTO products (vendorID, productName, price) VALUES($1, $2, $3)",
+		product.VendorID, product.Name, product.Price,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't insert product: %w", err)
+	}
+
+	return nil
+}
+
+func (v VendorRepository) UpdateProduct(product models.Product) error {
+	_, err := v.db.Exec(
+		"UPDATE products SET productName = $1, price = $2, vendorID = $3 WHERE id = $3",
+		product.Name, product.Price, product.ID, product.VendorID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couln't update product: %w", err)
+	}
+
+	return nil
+}
+
+func (v VendorRepository) DeleteProduct(productID int) error {
+	_, err := v.db.Exec(
+		"DELETE FROM products WHERE id = $1",
+		productID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couln't delete product: %w", err)
+	}
+
+	return nil
+}
+
+func (v VendorRepository) UpdateVendorImage(vendorID string, link string) error {
+	_, err := v.db.Exec(
+		"UPDATE vendors SET picture=$1 WHERE id=$2",
+		link, vendorID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couln't update vendors picture: %w", err)
+	}
+
+	return nil
+}
+
+func (v VendorRepository) UpdateProductImage(productID string, link string) error {
+	_, err := v.db.Exec(
+		"UPDATE products SET picture=$1 WHERE id=$2",
+		link, productID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couln't update products picture: %w", err)
 	}
 
 	return nil
