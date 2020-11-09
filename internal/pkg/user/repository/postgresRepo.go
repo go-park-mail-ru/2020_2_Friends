@@ -27,8 +27,8 @@ func (ur UserRepository) Create(user models.User) (userID string, err error) {
 	}
 
 	err = ur.db.QueryRow(
-		"INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id",
-		user.Login, hashedPassword,
+		"INSERT INTO users (login, password, role) VALUES ($1, $2, $3) RETURNING id",
+		user.Login, hashedPassword, user.Role,
 	).Scan(&userID)
 
 	if err != nil {
