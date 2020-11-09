@@ -17,7 +17,7 @@ func NewAccessRightsChecker(userUsecase user.Usecase) AccessRightsChecker {
 	}
 }
 
-func (a AccessRightsChecker) AccessRightsCheck(next http.HandlerFunc, neccessaryRole int) http.Handler {
+func (a AccessRightsChecker) AccessRightsCheck(next http.HandlerFunc, neccessaryRole int) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := r.Context().Value(UserID(configs.UserID)).(string)
 		if !ok {
