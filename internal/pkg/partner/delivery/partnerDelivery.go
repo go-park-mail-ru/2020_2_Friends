@@ -10,6 +10,7 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	"github.com/friends/internal/pkg/vendors"
@@ -21,11 +22,13 @@ type PartnerDelivery struct {
 	userUsecase    user.Usecase
 	sessionUsecase session.Usecase
 	vendorUsecase  vendors.Usecase
+	profileUsecase profile.Usecase
 }
 
-func New(userUsecase user.Usecase, sessionUsecase session.Usecase, vendorUsecase vendors.Usecase) PartnerDelivery {
+func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionUsecase session.Usecase, vendorUsecase vendors.Usecase) PartnerDelivery {
 	return PartnerDelivery{
 		userUsecase:    userUsecase,
+		profileUsecase: profileUsecase,
 		sessionUsecase: sessionUsecase,
 		vendorUsecase:  vendorUsecase,
 	}
@@ -55,6 +58,12 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 	user.Role = configs.AdminRole
 
 	userID, err := p.userUsecase.Create(*user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = p.profileUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

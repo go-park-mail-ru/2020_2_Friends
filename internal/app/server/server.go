@@ -77,7 +77,7 @@ func StartApiServer() {
 	cartUsecase := cartUsecase.NewCartUsecase(cartRepo, vendRepo)
 	cartDelivery := cartDelivery.NewCartDelivery(cartUsecase)
 
-	partnerDelivery := partnerDelivery.New(userUsecase, sessionUsecase, vendUsecase)
+	partnerDelivery := partnerDelivery.New(userUsecase, profUsecase, sessionUsecase, vendUsecase)
 
 	authChecker := middleware.NewAuthChecker(sessionUsecase)
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
