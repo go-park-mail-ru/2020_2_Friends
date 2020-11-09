@@ -97,7 +97,7 @@ func (u UserRepository) Delete(userID string) error {
 
 func (u UserRepository) CheckUsersRole(userID string) (int, error) {
 	row := u.db.QueryRow(
-		"SELECT role from users WHERE userID = $1",
+		"SELECT role from users WHERE id = $1",
 		userID,
 	)
 
