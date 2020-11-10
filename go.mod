@@ -11,6 +11,8 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/lithammer/shortuuid/v3 v3.0.4
+	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/sirupsen/logrus v1.7.0
 	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
+	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102 // indirect
 )

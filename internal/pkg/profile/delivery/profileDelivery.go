@@ -46,6 +46,7 @@ func (p ProfileDelivery) Get(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	profile.Sanitize()
 
 	err = json.NewEncoder(w).Encode(profile)
 	if err != nil {
@@ -75,6 +76,7 @@ func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	profile.Sanitize()
 
 	profile.UserID = userID
 
