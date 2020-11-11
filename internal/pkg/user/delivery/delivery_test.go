@@ -56,6 +56,105 @@ func TestCreateHandlerSuccess(t *testing.T) {
 	}
 }
 
+func TestCreateHandlerUserError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserUsecase := user.NewMockUsecase(ctrl)
+	mockProfileUsecase := profile.NewMockUsecase(ctrl)
+	mockSessionUsecase := session.NewMockUsecase(ctrl)
+
+	user := models.User{
+		Login:    "testlogin",
+		Password: "testpswd",
+		Role:     1,
+	}
+
+	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
+	mockUserUsecase.EXPECT().Create(user).Times(1).Return("", fmt.Errorf("db error"))
+
+	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+
+	userJson, _ := json.Marshal(&user)
+	body := bytes.NewReader(userJson)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/users", body)
+
+	handler.Create(w, r)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected: %v\n got: %v", http.StatusInternalServerError, w.Code)
+	}
+}
+
+func TestCreateHandlerProfileError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserUsecase := user.NewMockUsecase(ctrl)
+	mockProfileUsecase := profile.NewMockUsecase(ctrl)
+	mockSessionUsecase := session.NewMockUsecase(ctrl)
+
+	user := models.User{
+		Login:    "testlogin",
+		Password: "testpswd",
+		Role:     1,
+	}
+
+	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
+	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
+	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(fmt.Errorf("db error"))
+
+	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+
+	userJson, _ := json.Marshal(&user)
+	body := bytes.NewReader(userJson)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/users", body)
+
+	handler.Create(w, r)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected: %v\n got: %v", http.StatusInternalServerError, w.Code)
+	}
+}
+
+func TestCreateHandlerSessionError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserUsecase := user.NewMockUsecase(ctrl)
+	mockProfileUsecase := profile.NewMockUsecase(ctrl)
+	mockSessionUsecase := session.NewMockUsecase(ctrl)
+
+	user := models.User{
+		Login:    "testlogin",
+		Password: "testpswd",
+		Role:     1,
+	}
+
+	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
+	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
+	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(nil)
+	mockSessionUsecase.EXPECT().Create("0").Times(1).Return("", fmt.Errorf("db error"))
+
+	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+
+	userJson, _ := json.Marshal(&user)
+	body := bytes.NewReader(userJson)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/users", body)
+
+	handler.Create(w, r)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected: %v\n got: %v", http.StatusInternalServerError, w.Code)
+	}
+}
+
 func TestCreateHandlerBadJson(t *testing.T) {
 	handler := UserHandler{}
 
