@@ -27,6 +27,7 @@ func TestCreateHandlerSuccess(t *testing.T) {
 	user := models.User{
 		Login:    "testlogin",
 		Password: "testpswd",
+		Role:     1,
 	}
 	cookieName := "sessname"
 

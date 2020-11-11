@@ -172,6 +172,7 @@ func TestCreate(t *testing.T) {
 	user := models.User{
 		Login:    "testlogin",
 		Password: "testpassword",
+		Role:     1,
 	}
 
 	rows := mock.NewRows([]string{"id"}).AddRow(1)
@@ -179,7 +180,7 @@ func TestCreate(t *testing.T) {
 	// successful creation
 	mock.
 		ExpectQuery("INSERT INTO users").
-		WithArgs(user.Login, sqlmock.AnyArg()).
+		WithArgs(user.Login, sqlmock.AnyArg(), user.Role).
 		WillReturnRows(rows)
 
 	id, err := repo.Create(user)
@@ -196,7 +197,7 @@ func TestCreate(t *testing.T) {
 	// error on creation
 	mock.
 		ExpectQuery("INSERT INTO users").
-		WithArgs(user.Login, sqlmock.AnyArg()).
+		WithArgs(user.Login, sqlmock.AnyArg(), user.Role).
 		WillReturnError(fmt.Errorf("erorr with db"))
 
 	id, err = repo.Create(user)
