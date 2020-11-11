@@ -95,6 +95,13 @@ func (p PartnerDelivery) CreateVendor(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	partnerID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	vendor := models.Vendor{}
 	err = json.NewDecoder(r.Body).Decode(&vendor)
 	if err != nil {
@@ -102,7 +109,17 @@ func (p PartnerDelivery) CreateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = p.vendorUsecase.Create(vendor)
+	vendorID, err := p.vendorUsecase.Create(partnerID, vendor)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp := models.AddResponse{
+		ID: vendorID,
+	}
+
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -182,7 +199,17 @@ func (p PartnerDelivery) AddProductToVendor(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = p.vendorUsecase.AddProduct(product)
+	productID, err := p.vendorUsecase.AddProduct(product)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp := models.AddResponse{
+		ID: productID,
+	}
+
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -15,3 +15,7 @@ type Product struct {
 	Price    string `json:"food_price"`
 	VendorID int    `json:"vendor_id"`
 }
+
+type AddResponse struct {
+	ID int `json:"id"`
+}

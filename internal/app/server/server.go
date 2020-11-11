@@ -95,7 +95,7 @@ func StartApiServer() {
 	mux.Handle("/vendors", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole))).Methods("POST")
 	mux.Handle("/vendors/{id}", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendor, configs.AdminRole))).Methods("PUT")
 	mux.Handle("/vendors/{id}/pictures", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendorPicture, configs.AdminRole))).Methods("PUT")
-	mux.Handle("/vendors/products", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.AddProductToVendor, configs.AdminRole))).Methods("POST")
+	mux.Handle("/vendors/{id}/products", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.AddProductToVendor, configs.AdminRole))).Methods("POST")
 	mux.Handle("/vendors/products/{id}", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductOnVendor, configs.AdminRole))).Methods("PUT")
 	mux.Handle("/vendors/products/{id}", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole))).Methods("DELETE")
 	mux.Handle("/vendors/products/{id}/pictures", authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole))).Methods("PUT")

@@ -33,12 +33,12 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 CREATE TABLE IF NOT EXISTS vendor_partner (
-    userID INTEGER NOT NULL,
+    partnerID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
 
-    FOREIGN KEY (userID) REFERENCES users (id),
+    FOREIGN KEY (partnerID) REFERENCES users (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
-)
+);
 
 CREATE TABLE IF NOT EXISTS carts (
     userID INTEGER NOT NULL,

@@ -33,13 +33,13 @@ func (v VendorUsecase) GetAll() ([]models.Vendor, error) {
 	return v.repository.GetAll()
 }
 
-func (v VendorUsecase) Create(vendor models.Vendor) error {
+func (v VendorUsecase) Create(partnerID string, vendor models.Vendor) (int, error) {
 	err := v.repository.IsVendorExists(vendor.Name)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return v.repository.Create(vendor)
+	return v.repository.Create(partnerID, vendor)
 }
 
 func (v VendorUsecase) Update(vendor models.Vendor) error {
@@ -50,7 +50,7 @@ func (v VendorUsecase) CheckVendorOwner(userID, vendorID string) error {
 	return v.repository.CheckVendorOwner(userID, vendorID)
 }
 
-func (v VendorUsecase) AddProduct(product models.Product) error {
+func (v VendorUsecase) AddProduct(product models.Product) (int, error) {
 	return v.repository.AddProduct(product)
 }
 

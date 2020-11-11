@@ -134,10 +134,10 @@ func (v VendorRepository) IsVendorExists(vendorName string) error {
 	}
 }
 
-func (v VendorRepository) Create(vendor models.Vendor) error {
+func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, error) {
 	tx, err := v.db.Begin()
 	if err != nil {
-		return fmt.Errorf("couldn't create transaction: %w", err)
+		return 0, fmt.Errorf("couldn't create transaction: %w", err)
 	}
 	var vendorID int
 
@@ -148,7 +148,17 @@ func (v VendorRepository) Create(vendor models.Vendor) error {
 
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("couldn't insert vendor: %w", err)
+		return 0, fmt.Errorf("couldn't insert vendor: %w", err)
+	}
+
+	_, err = tx.Exec(
+		"INSERT INTO vendor_partner (partnerID, vendorID) VALUES($1, $2)",
+		partnerID, vendorID,
+	)
+
+	if err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("couldn't insert partner and vendor: %w", err)
 	}
 
 	for _, product := range vendor.Products {
@@ -159,17 +169,17 @@ func (v VendorRepository) Create(vendor models.Vendor) error {
 
 		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("couldn't insert product: %w", err)
+			return 0, fmt.Errorf("couldn't insert product: %w", err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("couldn't commit transaction: %w", err)
+		return 0, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 
-	return nil
+	return vendorID, nil
 }
 
 func (v VendorRepository) Update(vendor models.Vendor) error {
@@ -187,7 +197,7 @@ func (v VendorRepository) Update(vendor models.Vendor) error {
 
 func (v VendorRepository) CheckVendorOwner(userID, vendorID string) error {
 	rows, err := v.db.Query(
-		"SELECT userID FROM vendor_partner WHERE vendorID = $1",
+		"SELECT partnerID FROM vendor_partner WHERE vendorID = $1",
 		vendorID,
 	)
 
@@ -210,17 +220,19 @@ func (v VendorRepository) CheckVendorOwner(userID, vendorID string) error {
 	return fmt.Errorf("no rights for this vendor")
 }
 
-func (v VendorRepository) AddProduct(product models.Product) error {
-	_, err := v.db.Exec(
-		"INSERT INTO products (vendorID, productName, price) VALUES($1, $2, $3)",
+func (v VendorRepository) AddProduct(product models.Product) (int, error) {
+	var productID int
+
+	err := v.db.QueryRow(
+		"INSERT INTO products (vendorID, productName, price) VALUES($1, $2, $3) RETURNING id",
 		product.VendorID, product.Name, product.Price,
-	)
+	).Scan(&productID)
 
 	if err != nil {
-		return fmt.Errorf("couldn't insert product: %w", err)
+		return 0, fmt.Errorf("couldn't insert product: %w", err)
 	}
 
-	return nil
+	return productID, nil
 }
 
 func (v VendorRepository) UpdateProduct(product models.Product) error {

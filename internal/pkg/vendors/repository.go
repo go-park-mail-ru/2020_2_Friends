@@ -8,10 +8,10 @@ type Repository interface {
 	GetAllProductsWithIDs(ids []string) ([]models.Product, error)
 	GetVendorIDFromProduct(productID string) (string, error)
 	IsVendorExists(vendorName string) error
-	Create(models.Vendor) error
+	Create(partnerID string, vendor models.Vendor) (int, error)
 	Update(models.Vendor) error
 	CheckVendorOwner(userID, vendorID string) error
-	AddProduct(product models.Product) error
+	AddProduct(product models.Product) (int, error)
 	UpdateProduct(product models.Product) error
 	DeleteProduct(productID int) error
 	UpdateVendorImage(vendorID string, link string) error
