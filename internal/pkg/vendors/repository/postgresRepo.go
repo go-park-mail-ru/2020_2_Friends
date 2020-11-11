@@ -21,12 +21,12 @@ func NewVendorRepository(db *sql.DB) vendors.Repository {
 
 func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	row := v.db.QueryRow(
-		"SELECT id, vendorName FROM vendors WHERE id=$1",
+		"SELECT id, vendorName, descript, picture FROM vendors WHERE id=$1",
 		id,
 	)
 
 	vendor := models.Vendor{}
-	err := row.Scan(&vendor.ID, &vendor.Name)
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("no such vendor")
 	}
@@ -56,7 +56,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 
 func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorName FROM vendors",
+		"SELECT id, vendorName, descript, picture FROM vendors",
 	)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.Vendor{}
-		err = rows.Scan(&vendor.ID, &vendor.Name)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
@@ -142,8 +142,8 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	var vendorID int
 
 	err = tx.QueryRow(
-		"INSERT INTO vendors (vendorName) VALUES($1) RETURNING id",
-		vendor.Name,
+		"INSERT INTO vendors (vendorName, descript) VALUES($1, $2) RETURNING id",
+		vendor.Name, vendor.Description,
 	).Scan(&vendorID)
 
 	if err != nil {
@@ -184,8 +184,8 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 
 func (v VendorRepository) Update(vendor models.Vendor) error {
 	_, err := v.db.Exec(
-		"UPDATE vendors SET vendorName = $1 WHERE id = $2",
-		vendor.Name, vendor.ID,
+		"UPDATE vendors SET vendorName = $1, descript = $2 WHERE id = $3",
+		vendor.Name, vendor.Description, vendor.ID,
 	)
 
 	if err != nil {
@@ -289,7 +289,7 @@ func (v VendorRepository) UpdateProductImage(productID string, link string) erro
 
 func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		`SELECT v.id, v.vendorName FROM vendors AS v
+		`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
 		JOIN vendor_partner AS vp ON v.id = vp.vendorID
 		WHERE vp.partnerID = $1`,
 		partnerID,
@@ -303,7 +303,7 @@ func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, er
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.Vendor{}
-		err = rows.Scan(&vendor.ID, &vendor.Name)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}

@@ -2,9 +2,11 @@ package models
 
 //easyjson:json
 type Vendor struct {
-	ID       int       `json:"id"`
-	Name     string    `json:"store_name"`
-	Products []Product `json:"products,omitempty"`
+	ID          int       `json:"id"`
+	Name        string    `json:"store_name"`
+	Products    []Product `json:"products,omitempty"`
+	Description string    `json:"description"`
+	Picture     string    `json:"picture"`
 }
 
 //easyjson:json
