@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS vendors (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorName TEXT NOT NULL UNIQUE,
-    descript TEXT,
-    picture TEXT
+    descript TEXT DEFAULT '' NOT NULL,
+    picture TEXT DEFAULT '' NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS products (
