@@ -237,8 +237,8 @@ func (v VendorRepository) AddProduct(product models.Product) (int, error) {
 
 func (v VendorRepository) UpdateProduct(product models.Product) error {
 	_, err := v.db.Exec(
-		"UPDATE products SET productName = $1, price = $2, vendorID = $3 WHERE id = $3",
-		product.Name, product.Price, product.ID, product.VendorID,
+		"UPDATE products SET productName = $1, price = $2 WHERE id = $3",
+		product.Name, product.Price, product.ID,
 	)
 
 	if err != nil {
@@ -248,7 +248,7 @@ func (v VendorRepository) UpdateProduct(product models.Product) error {
 	return nil
 }
 
-func (v VendorRepository) DeleteProduct(productID int) error {
+func (v VendorRepository) DeleteProduct(productID string) error {
 	_, err := v.db.Exec(
 		"DELETE FROM products WHERE id = $1",
 		productID,

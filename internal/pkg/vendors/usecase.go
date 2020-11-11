@@ -14,7 +14,7 @@ type Usecase interface {
 	CheckVendorOwner(userID, vendorID string) error
 	AddProduct(product models.Product) (int, error)
 	UpdateProduct(product models.Product) error
-	DeleteProduct(productID int) error
+	DeleteProduct(productID string) error
 	UpdateVendorPicture(vendorID string, file multipart.File) (string, error)
 	UpdateProductPicture(productID string, file multipart.File) (string, error)
 	GetVendorIDFromProduct(productID string) (string, error)

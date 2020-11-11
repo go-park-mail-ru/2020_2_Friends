@@ -58,7 +58,7 @@ func (v VendorUsecase) UpdateProduct(product models.Product) error {
 	return v.repository.UpdateProduct(product)
 }
 
-func (v VendorUsecase) DeleteProduct(productID int) error {
+func (v VendorUsecase) DeleteProduct(productID string) error {
 	return v.repository.DeleteProduct(productID)
 }
 

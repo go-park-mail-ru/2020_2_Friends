@@ -279,7 +279,7 @@ func (p PartnerDelivery) UpdateProductOnVendor(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	vendorID := mux.Vars(r)["id"]
+	vendorID := mux.Vars(r)["vendorID"]
 
 	err = p.vendorUsecase.CheckVendorOwner(userID, vendorID)
 	if err != nil {
@@ -294,7 +294,9 @@ func (p PartnerDelivery) UpdateProductOnVendor(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	product.VendorID, err = strconv.Atoi(vendorID)
+	productID := mux.Vars(r)["id"]
+
+	product.ID, err = strconv.Atoi(productID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -322,7 +324,7 @@ func (p PartnerDelivery) DeleteProductFromVendor(w http.ResponseWriter, r *http.
 		return
 	}
 
-	vendorID := mux.Vars(r)["id"]
+	vendorID := mux.Vars(r)["vendorID"]
 
 	err = p.vendorUsecase.CheckVendorOwner(userID, vendorID)
 	if err != nil {
@@ -330,14 +332,9 @@ func (p PartnerDelivery) DeleteProductFromVendor(w http.ResponseWriter, r *http.
 		return
 	}
 
-	product := models.Product{}
-	err = json.NewDecoder(r.Body).Decode(&product)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	productID := mux.Vars(r)["id"]
 
-	err = p.vendorUsecase.DeleteProduct(product.ID)
+	err = p.vendorUsecase.DeleteProduct(productID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -359,13 +356,7 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	productID := mux.Vars(r)["id"]
-
-	vendorID, err := p.vendorUsecase.GetVendorIDFromProduct(productID)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	vendorID := mux.Vars(r)["vendorID"]
 
 	err = p.vendorUsecase.CheckVendorOwner(userID, vendorID)
 	if err != nil {
@@ -384,6 +375,8 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 		return
 	}
 	defer file.Close()
+
+	productID := mux.Vars(r)["id"]
 
 	imgName, err := p.vendorUsecase.UpdateProductPicture(productID, file)
 	if err != nil {
