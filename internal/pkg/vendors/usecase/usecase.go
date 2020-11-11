@@ -137,3 +137,7 @@ func (v VendorUsecase) UpdateProductPicture(productID string, file multipart.Fil
 func (v VendorUsecase) GetVendorIDFromProduct(productID string) (string, error) {
 	return v.repository.GetVendorIDFromProduct(productID)
 }
+
+func (v VendorUsecase) GetPartnerShops(partnerID string) ([]models.Vendor, error) {
+	return v.repository.GetPartnerShops(partnerID)
+}

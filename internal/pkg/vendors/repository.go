@@ -16,4 +16,5 @@ type Repository interface {
 	DeleteProduct(productID string) error
 	UpdateVendorImage(vendorID string, link string) error
 	UpdateProductImage(vendorID string, link string) error
+	GetPartnerShops(partnerID string) ([]models.Vendor, error)
 }

@@ -103,6 +103,7 @@ func StartApiServer() {
 	mux.Handle("/carts", authChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", authChecker.Check(cartDelivery.GetCart)).Methods("GET")
 	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
+	mux.Handle("/partners/vendors", authChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)

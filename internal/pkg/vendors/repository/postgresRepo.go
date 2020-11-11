@@ -286,3 +286,30 @@ func (v VendorRepository) UpdateProductImage(productID string, link string) erro
 
 	return nil
 }
+
+func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		`SELECT v.id, v.vendorName FROM vendors AS v
+		JOIN vendor_partner AS vp ON v.id = vp.vendorID
+		WHERE vp.partnerID = $1`,
+		partnerID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get vendors from db")
+	}
+	defer rows.Close()
+
+	var vendors []models.Vendor
+	for rows.Next() {
+		vendor := models.Vendor{}
+		err = rows.Scan(&vendor.ID, &vendor.Name)
+		if err != nil {
+			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}

@@ -390,3 +390,31 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
+func (p PartnerDelivery) GetPartnerShops(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	partnerID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	vendors, err := p.vendorUsecase.GetPartnerShops(partnerID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(vendors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
