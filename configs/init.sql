@@ -26,9 +26,9 @@ CREATE TABLE IF NOT EXISTS vendors (
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorID INTEGER,
-    productName TEXT,
-    price TEXT,
-    picture TEXT,
+    productName TEXT DEFAULT '' NOT NULL,
+    price TEXT DEFAULT '' NOT NULL,
+    picture TEXT DEFAULT '' NOT NULL,
 
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
 );

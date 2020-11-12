@@ -52,6 +52,7 @@ func (c CartRepository) GetProductIDs(userID string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get product ids from cart: %w", err)
 	}
+	defer rows.Close()
 
 	var ids []string
 	for rows.Next() {

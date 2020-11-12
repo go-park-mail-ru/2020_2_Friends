@@ -1,4 +1,4 @@
-package vendors
+package repository
 
 import (
 	"database/sql"
@@ -87,6 +87,7 @@ func (v VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product,
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get products from products: %w", err)
 	}
+	defer rows.Close()
 
 	var products []models.Product
 	for rows.Next() {
@@ -204,6 +205,7 @@ func (v VendorRepository) CheckVendorOwner(userID, vendorID string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't check vendors owner: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var partner string
