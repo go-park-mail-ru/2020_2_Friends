@@ -41,6 +41,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	user.Sanitize()
 
 	err = u.userUsecase.CheckIfUserExists(*user)
 	if err != nil {

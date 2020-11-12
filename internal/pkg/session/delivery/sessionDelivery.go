@@ -38,6 +38,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	user.Sanitize()
 
 	userID, err := sd.userUsecase.Verify(*user)
 	if err != nil {
