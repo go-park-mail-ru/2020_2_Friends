@@ -172,6 +172,7 @@ func TestCreate(t *testing.T) {
 	user := models.User{
 		Login:    "testlogin",
 		Password: "testpassword",
+		Role:     1,
 	}
 
 	rows := mock.NewRows([]string{"id"}).AddRow(1)
@@ -179,7 +180,7 @@ func TestCreate(t *testing.T) {
 	// successful creation
 	mock.
 		ExpectQuery("INSERT INTO users").
-		WithArgs(user.Login, sqlmock.AnyArg()).
+		WithArgs(user.Login, sqlmock.AnyArg(), user.Role).
 		WillReturnRows(rows)
 
 	id, err := repo.Create(user)
@@ -196,7 +197,7 @@ func TestCreate(t *testing.T) {
 	// error on creation
 	mock.
 		ExpectQuery("INSERT INTO users").
-		WithArgs(user.Login, sqlmock.AnyArg()).
+		WithArgs(user.Login, sqlmock.AnyArg(), user.Role).
 		WillReturnError(fmt.Errorf("erorr with db"))
 
 	id, err = repo.Create(user)
@@ -252,5 +253,53 @@ func TestDelete(t *testing.T) {
 	if err == nil {
 		t.Error("expected err")
 		return
+	}
+}
+
+func TestCheckUsersRole(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewUserRepository(db)
+
+	user := models.User{
+		ID:   "0",
+		Role: 1,
+	}
+
+	rows := mock.NewRows([]string{"role"}).AddRow(user.Role)
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(user.ID).
+		WillReturnRows(rows)
+
+	role, err := repo.CheckUsersRole(user.ID)
+
+	if role != user.Role {
+		t.Errorf("expected: %v\n got: %v", user.Role, role)
+	}
+
+	if err != nil {
+		t.Errorf("expected no error")
+	}
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(user.ID).
+		WillReturnError(fmt.Errorf("db error"))
+
+	role, err = repo.CheckUsersRole(user.ID)
+
+	expected := 0
+	if role != 0 {
+		t.Errorf("expected: %v\n got: %v", user.Role, expected)
+	}
+
+	if err == nil {
+		t.Errorf("expected error")
 	}
 }

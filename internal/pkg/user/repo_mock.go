@@ -62,6 +62,21 @@ func (mr *MockRepositoryMockRecorder) CheckLoginAndPassword(arg0 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckLoginAndPassword", reflect.TypeOf((*MockRepository)(nil).CheckLoginAndPassword), arg0)
 }
 
+// CheckUsersRole mocks base method
+func (m *MockRepository) CheckUsersRole(arg0 string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckUsersRole", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckUsersRole indicates an expected call of CheckUsersRole
+func (mr *MockRepositoryMockRecorder) CheckUsersRole(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUsersRole", reflect.TypeOf((*MockRepository)(nil).CheckUsersRole), arg0)
+}
+
 // Create mocks base method
 func (m *MockRepository) Create(arg0 models.User) (string, error) {
 	m.ctrl.T.Helper()

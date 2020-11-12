@@ -7,6 +7,7 @@ type User struct {
 	ID       string `json:"id"`
 	Login    string `json:"login"`
 	Password string `json:"password,omitempty"`
+	Role     int    `json:"role"`
 }
 
 func (u *User) Sanitize() {

@@ -8,4 +8,5 @@ type Usecase interface {
 	CheckIfUserExists(user models.User) error
 	Verify(user models.User) (userID string, err error)
 	Delete(userID string) error
+	CheckUsersRole(userID string) (int, error)
 }

@@ -27,8 +27,8 @@ func (ur UserRepository) Create(user models.User) (userID string, err error) {
 	}
 
 	err = ur.db.QueryRow(
-		"INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id",
-		user.Login, hashedPassword,
+		"INSERT INTO users (login, password, role) VALUES ($1, $2, $3) RETURNING id",
+		user.Login, hashedPassword, user.Role,
 	).Scan(&userID)
 
 	if err != nil {
@@ -93,4 +93,20 @@ func (u UserRepository) Delete(userID string) error {
 	}
 
 	return nil
+}
+
+func (u UserRepository) CheckUsersRole(userID string) (int, error) {
+	row := u.db.QueryRow(
+		"SELECT role from users WHERE id = $1",
+		userID,
+	)
+
+	var role int
+
+	err := row.Scan(&role)
+	if err != nil {
+		return 0, fmt.Errorf("couldn't get role from user: %w", err)
+	}
+
+	return role, nil
 }

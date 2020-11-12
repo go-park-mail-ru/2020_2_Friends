@@ -13,6 +13,7 @@ import (
 	csrfRepo "github.com/friends/internal/pkg/csrf/repository"
 	csrfUsecase "github.com/friends/internal/pkg/csrf/usecase"
 	"github.com/friends/internal/pkg/middleware"
+	partnerDelivery "github.com/friends/internal/pkg/partner/delivery"
 	profileDelivery "github.com/friends/internal/pkg/profile/delivery"
 	profileRepo "github.com/friends/internal/pkg/profile/repository"
 	profileUsecase "github.com/friends/internal/pkg/profile/usecase"
@@ -79,6 +80,10 @@ func StartApiServer() {
 	cartUsecase := cartUsecase.NewCartUsecase(cartRepo, vendRepo)
 	cartDelivery := cartDelivery.NewCartDelivery(cartUsecase)
 
+	partnerDelivery := partnerDelivery.New(userUsecase, profUsecase, sessionUsecase, vendUsecase)
+
+	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
+
 	csrfRepository, err := csrfRepo.New(redisClient)
 	if err != nil {
 		logrus.Error(fmt.Errorf("CSRF repository not created: %w", err))
@@ -100,6 +105,15 @@ func StartApiServer() {
 	mux.Handle("/profiles/avatars", csrfChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
 	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
+	mux.Handle("/vendors", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole))).Methods("POST")
+	mux.Handle("/vendors/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendor, configs.AdminRole))).Methods("PUT")
+	mux.Handle("/vendors/{id}/pictures", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendorPicture, configs.AdminRole))).Methods("PUT")
+	mux.Handle("/vendors/{id}/products", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.AddProductToVendor, configs.AdminRole))).Methods("POST")
+	mux.Handle("/vendors/{vendorID}/products/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductOnVendor, configs.AdminRole))).Methods("PUT")
+	mux.Handle("/vendors/{vendorID}/products/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole))).Methods("DELETE")
+	mux.Handle("/vendors/{vendorID}/products/{id}/pictures", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole))).Methods("PUT")
+	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
+	mux.Handle("/partners/vendors", authChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.GetCart)).Methods("GET")

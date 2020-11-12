@@ -14,8 +14,11 @@ const (
 	ReqID                  = "reqID"
 	UserID                 = "userID"
 	SessionID              = "session_id"
-	AvatarMaxSize          = 1024 * 1024
+	ImgMaxSize             = 1024 * 1024
 	AvatarFormFileKey      = "avatar"
+	ImgFormFileKey         = "image"
 	FileServerPath         = "./static"
 	ProductID              = "product_id"
+	UserRole               = 1
+	AdminRole              = 2
 )

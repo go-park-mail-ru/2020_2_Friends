@@ -49,6 +49,8 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.Role = configs.UserRole
+
 	userID, err := u.userUsecase.Create(*user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
