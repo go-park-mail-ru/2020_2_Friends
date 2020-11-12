@@ -6,6 +6,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 )
 
+//go:generate mockgen -destination=./usecase_mock.go -package=vendors github.com/friends/internal/pkg/vendors Usecase
 type Usecase interface {
 	Get(id int) (models.Vendor, error)
 	GetAll() ([]models.Vendor, error)
