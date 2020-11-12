@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -433,5 +434,365 @@ func TestUpdate(t *testing.T) {
 	if err == nil {
 		t.Error("expected error")
 		return
+	}
+}
+
+func TestCheckVendorOwner(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	vendorID := "0"
+	partnerIDs := []string{"0", "1"}
+
+	rows := mock.NewRows([]string{"partnerID"})
+	for _, id := range partnerIDs {
+		rows.AddRow(id)
+	}
+
+	// is owner
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(vendorID).
+		WillReturnRows(rows)
+
+	err = repo.CheckVendorOwner(partnerIDs[0], vendorID)
+	if err != nil {
+		t.Error("expected nil")
+		return
+	}
+
+	// not owner
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(vendorID).
+		WillReturnRows(rows)
+
+	err = repo.CheckVendorOwner("3", vendorID)
+	if err == nil {
+		t.Error("expected not nil")
+		return
+	}
+
+	// bad query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(vendorID).
+		WillReturnError(fmt.Errorf("db error"))
+
+	err = repo.CheckVendorOwner(partnerIDs[0], vendorID)
+	if err == nil {
+		t.Error("expected not nil")
+		return
+	}
+
+	// bad query2
+	rows = mock.NewRows([]string{"partnerID", "junk"})
+	for _, id := range partnerIDs {
+		rows.AddRow(id, "")
+	}
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(vendorID).
+		WillReturnRows(rows)
+
+	err = repo.CheckVendorOwner(partnerIDs[0], vendorID)
+	if err == nil {
+		t.Error("expected not nil")
+		return
+	}
+}
+
+func TestAddProduct(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	product := models.Product{
+		VendorID: 1,
+		Name:     "a",
+		Price:    "0",
+	}
+
+	rows := mock.NewRows([]string{"id"}).AddRow(1)
+
+	// good query
+	mock.
+		ExpectQuery("INSERT").
+		WithArgs(product.VendorID, product.Name, product.Price).
+		WillReturnRows(rows)
+
+	id, err := repo.AddProduct(product)
+
+	if id != 1 {
+		t.Errorf("expected 1, got: %v", id)
+	}
+
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+	}
+
+	// bad query
+	mock.
+		ExpectQuery("INSERT").
+		WithArgs(product.VendorID, product.Name, product.Price).
+		WillReturnError(fmt.Errorf("db error"))
+
+	id, err = repo.AddProduct(product)
+
+	if id != 0 {
+		t.Errorf("expected 0, got: %v", id)
+	}
+
+	if err == nil {
+		t.Error("expected err")
+	}
+}
+
+func TestUpdateProduct(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	product := models.Product{
+		ID:    0,
+		Name:  "a",
+		Price: "0",
+	}
+
+	// good update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(product.Name, product.Price, product.ID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = repo.UpdateProduct(product)
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+		return
+	}
+
+	// bad update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(product.Name, product.Price, product.ID).
+		WillReturnError(fmt.Errorf("db error"))
+
+	err = repo.UpdateProduct(product)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+}
+
+func TestDeleteProduct(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	productID := "0"
+
+	// good query
+	mock.
+		ExpectExec("DELETE").
+		WithArgs(productID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = repo.DeleteProduct(productID)
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+		return
+	}
+
+	// bad query
+	mock.
+		ExpectExec("DELETE").
+		WithArgs(productID).
+		WillReturnError(fmt.Errorf("db error"))
+
+	err = repo.DeleteProduct(productID)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+}
+
+func TestUpdateVendorImage(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	vendor := models.Vendor{
+		ID:      0,
+		Picture: "image.png",
+	}
+
+	// good update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(vendor.Picture, strconv.Itoa(vendor.ID)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = repo.UpdateVendorImage(strconv.Itoa(vendor.ID), vendor.Picture)
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+		return
+	}
+
+	// bad update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(vendor.Picture, strconv.Itoa(vendor.ID)).
+		WillReturnError(fmt.Errorf("db error"))
+
+	err = repo.UpdateVendorImage(strconv.Itoa(vendor.ID), vendor.Picture)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+}
+
+func TestUpdateProductImage(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	product := models.Product{
+		ID:      0,
+		Picture: "image.png",
+	}
+
+	// good update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(product.Picture, strconv.Itoa(product.ID)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = repo.UpdateProductImage(strconv.Itoa(product.ID), product.Picture)
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+		return
+	}
+
+	// bad update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(product.Picture, strconv.Itoa(product.ID)).
+		WillReturnError(fmt.Errorf("db error"))
+
+	err = repo.UpdateProductImage(strconv.Itoa(product.ID), product.Picture)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+}
+
+func TestGetPartnerShops(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewVendorRepository(db)
+
+	partnerID := "0"
+
+	vendors := []models.Vendor{
+		{
+			ID:          1,
+			Name:        "a",
+			Description: "a",
+			Picture:     "a.jpg",
+		},
+		{
+			ID:          2,
+			Name:        "b",
+			Description: "bb",
+			Picture:     "b.jpg",
+		},
+	}
+
+	rows := mock.NewRows([]string{"id", "vendorName", "descript", "picture"})
+	for _, vendor := range vendors {
+		rows.AddRow(vendor.ID, vendor.Name, vendor.Description, vendor.Picture)
+	}
+
+	// good query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(partnerID).
+		WillReturnRows(rows)
+
+	dbVendors, err := repo.GetPartnerShops(partnerID)
+
+	if !reflect.DeepEqual(vendors, dbVendors) {
+		t.Errorf("expected: %v\n got: %v", vendors, dbVendors)
+	}
+
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+	}
+
+	// bad query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(partnerID).
+		WillReturnError(fmt.Errorf("db error"))
+
+	dbVendors, err = repo.GetPartnerShops(partnerID)
+
+	if dbVendors != nil {
+		t.Errorf("expected: %v\n got: %v", nil, dbVendors)
+	}
+
+	if err == nil {
+		t.Errorf("expected err")
+	}
+
+	// bad query2
+	rows = mock.NewRows([]string{"id"})
+	for _, vendor := range vendors {
+		rows.AddRow(vendor.ID)
+	}
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(partnerID).
+		WillReturnRows(rows)
+
+	dbVendors, err = repo.GetPartnerShops(partnerID)
+
+	if dbVendors != nil {
+		t.Errorf("expected: %v\n got: %v", nil, dbVendors)
+	}
+
+	if err == nil {
+		t.Errorf("expected err")
 	}
 }
