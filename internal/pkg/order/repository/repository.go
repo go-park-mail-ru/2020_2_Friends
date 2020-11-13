@@ -55,6 +55,36 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) 
 	return order, nil
 }
 
+func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, error) {
+	rows, err := o.db.Query(
+		`SELECT id, userID, vendorName, products, createdAt, clientAddress, orderStatus
+		FROM orders WHERE userID = $1`,
+		userID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+	}
+
+	var orders []models.OrderResponse
+	for rows.Next() {
+		var order models.OrderResponse
+		var dbProducts pq.Int64Array
+		err = rows.Scan(&order.ID, &order.UserID, &order.VendorName, &dbProducts, &order.CreatedAt, &order.Address, &order.Status)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+		}
+
+		for _, product := range dbProducts {
+			order.ProductIDs = append(order.ProductIDs, strconv.Itoa(int(product)))
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
 func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
 	var dbUserID string
 	err := o.db.QueryRow(

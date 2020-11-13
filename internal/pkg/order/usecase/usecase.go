@@ -53,6 +53,33 @@ func (o OrderUsecase) GetOrder(userID string, orderID string) (models.OrderRespo
 	return order, nil
 }
 
+func (o OrderUsecase) GetUserOrders(userID string) ([]models.OrderResponse, error) {
+	orders, err := o.orderRepository.GetUserOrders(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error with postgres: %w", err)
+	}
+
+	for _, order := range orders {
+		products, err := o.vendorRepository.GetAllProductsWithIDs(order.ProductIDs)
+		if err != nil {
+			return nil, fmt.Errorf("error with postgres, couldn't get products: %w", err)
+		}
+
+		for _, product := range products {
+			orderProduct := models.OrderProduct{
+				ID:      product.ID,
+				Name:    product.Name,
+				Price:   product.Price,
+				Picture: product.Picture,
+			}
+
+			order.Products = append(order.Products, orderProduct)
+		}
+	}
+
+	return orders, nil
+}
+
 func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
 	orders, err := o.orderRepository.GetVendorOrders(vendorID)
 	if err != nil {

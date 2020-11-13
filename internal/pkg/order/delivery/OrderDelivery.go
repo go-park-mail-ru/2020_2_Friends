@@ -99,6 +99,34 @@ func (o OrderDelivery) GetOrder(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (o OrderDelivery) GetUserOrders(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	userID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	orders, err := o.orderUsecase.GetUserOrders(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(orders)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
