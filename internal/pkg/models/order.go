@@ -8,6 +8,7 @@ import (
 
 //easyjson:json
 type OrderRequest struct {
+	VendorID   int       `json:"vendor_id"`
 	VendorName string    `json:"vendor_name"`
 	Products   []int64   `json:"products"`
 	CreatedAt  time.Time `json:"created_at"`
