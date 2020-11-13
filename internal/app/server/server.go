@@ -87,7 +87,7 @@ func StartApiServer() {
 
 	orderRepo := orderRepo.New(db)
 	orderUsecase := orderUsecase.New(orderRepo, vendRepo)
-	orderDelivery := orderDelivery.New(orderUsecase)
+	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase)
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
@@ -119,6 +119,8 @@ func StartApiServer() {
 	mux.Handle("/vendors/{vendorID}/products/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductOnVendor, configs.AdminRole))).Methods("PUT")
 	mux.Handle("/vendors/{vendorID}/products/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole))).Methods("DELETE")
 	mux.Handle("/vendors/{vendorID}/products/{id}/pictures", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole))).Methods("PUT")
+	mux.Handle("/vendors/{id}/orders", csrfChecker.Check(orderDelivery.GetVendorOrders)).Methods("GET")
+	mux.Handle("/vendors/{vendorID}/orders/{id}", csrfChecker.Check(orderDelivery.UpdateOrderStatus)).Methods("PUT")
 	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
 	mux.Handle("/partners/vendors", authChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.AddToCart)).Methods("PUT")

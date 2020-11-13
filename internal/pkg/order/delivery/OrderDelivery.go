@@ -10,17 +10,20 @@ import (
 	"github.com/friends/internal/pkg/middleware"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
+	"github.com/friends/internal/pkg/vendors"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
 
 type OrderDelivery struct {
-	orderUsecase order.Usecase
+	orderUsecase  order.Usecase
+	vendorUsecase vendors.Usecase
 }
 
-func New(orderUsecase order.Usecase) OrderDelivery {
+func New(orderUsecase order.Usecase, vendorUsecase vendors.Usecase) OrderDelivery {
 	return OrderDelivery{
-		orderUsecase: orderUsecase,
+		orderUsecase:  orderUsecase,
+		vendorUsecase: vendorUsecase,
 	}
 }
 
@@ -90,6 +93,82 @@ func (o OrderDelivery) GetOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = json.NewEncoder(w).Encode(order)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	partnerID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	vendorID := mux.Vars(r)["id"]
+
+	err = o.vendorUsecase.CheckVendorOwner(partnerID, vendorID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	orders, err := o.orderUsecase.GetVendorOrders(vendorID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(orders)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (o OrderDelivery) UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	partnerID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	vendorID := mux.Vars(r)["vendorID"]
+
+	err = o.vendorUsecase.CheckVendorOwner(partnerID, vendorID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	status := models.OrderStatusRequest{}
+	err = json.NewDecoder(r.Body).Decode(&status)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	status.Sanitize()
+
+	orderID := mux.Vars(r)["id"]
+
+	err = o.orderUsecase.UpdateOrderStatus(orderID, status.Status)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

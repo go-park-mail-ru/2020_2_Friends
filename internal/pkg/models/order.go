@@ -24,6 +24,7 @@ type OrderResponse struct {
 	CreatedAt  time.Time      `json:"created_at"`
 	Address    string         `json:"address"`
 	Status     string         `json:"status"`
+	ProductIDs []string
 }
 
 //easyjson:json
@@ -44,8 +45,18 @@ type IDResponse struct {
 	ID int `json:"id"`
 }
 
+//easyjson:json
+type OrderStatusRequest struct {
+	Status string `json:"status"`
+}
+
 func (o *OrderRequest) Sanitize() {
 	p := bluemonday.UGCPolicy()
 	o.VendorName = p.Sanitize(o.VendorName)
 	o.Address = p.Sanitize(o.Address)
+}
+
+func (s *OrderStatusRequest) Sanitize() {
+	p := bluemonday.UGCPolicy()
+	s.Status = p.Sanitize(s.Status)
 }

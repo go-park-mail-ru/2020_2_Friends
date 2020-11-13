@@ -35,7 +35,7 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 	return orderID, nil
 }
 
-func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, []string, error) {
+func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) {
 	var dbProducts pq.Int64Array
 	var order models.OrderResponse
 	err := o.db.QueryRow(
@@ -45,15 +45,14 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, []strin
 	).Scan(&order.ID, &order.UserID, &order.VendorName, &dbProducts, &order.CreatedAt, &order.Address, &order.Status)
 
 	if err != nil {
-		return models.OrderResponse{}, nil, fmt.Errorf("couldn't get order from db: %w", err)
+		return models.OrderResponse{}, fmt.Errorf("couldn't get order from db: %w", err)
 	}
 
-	products := make([]string, 0)
 	for _, product := range dbProducts {
-		products = append(products, strconv.Itoa(int(product)))
+		order.ProductIDs = append(order.ProductIDs, strconv.Itoa(int(product)))
 	}
 
-	return order, products, nil
+	return order, nil
 }
 
 func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
@@ -68,4 +67,47 @@ func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
 	}
 
 	return userID == dbUserID
+}
+
+func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
+	rows, err := o.db.Query(
+		`SELECT id, userID, vendorName, products, createdAt, clientAddress, orderStatus
+		FROM orders WHERE vendorID = $1`,
+		vendorID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+	}
+
+	var orders []models.OrderResponse
+	for rows.Next() {
+		var order models.OrderResponse
+		var dbProducts pq.Int64Array
+		err = rows.Scan(&order.ID, &order.UserID, &order.VendorName, &dbProducts, &order.CreatedAt, &order.Address, &order.Status)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+		}
+
+		for _, product := range dbProducts {
+			order.ProductIDs = append(order.ProductIDs, strconv.Itoa(int(product)))
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+func (o OrderRepository) UpdateOrderStatus(orderID string, status string) error {
+	_, err := o.db.Exec(
+		"UPDATE orders SET orderStatus = $1 WHERE id = $2",
+		status, orderID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't update status on orderID: %w", err)
+	}
+
+	return nil
 }
