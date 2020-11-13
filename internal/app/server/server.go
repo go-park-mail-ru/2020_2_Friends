@@ -13,6 +13,9 @@ import (
 	csrfRepo "github.com/friends/internal/pkg/csrf/repository"
 	csrfUsecase "github.com/friends/internal/pkg/csrf/usecase"
 	"github.com/friends/internal/pkg/middleware"
+	orderDelivery "github.com/friends/internal/pkg/order/delivery"
+	orderRepo "github.com/friends/internal/pkg/order/repository"
+	orderUsecase "github.com/friends/internal/pkg/order/usecase"
 	partnerDelivery "github.com/friends/internal/pkg/partner/delivery"
 	profileDelivery "github.com/friends/internal/pkg/profile/delivery"
 	profileRepo "github.com/friends/internal/pkg/profile/repository"
@@ -82,6 +85,10 @@ func StartApiServer() {
 
 	partnerDelivery := partnerDelivery.New(userUsecase, profUsecase, sessionUsecase, vendUsecase)
 
+	orderRepo := orderRepo.New(db)
+	orderUsecase := orderUsecase.New(orderRepo, vendRepo)
+	orderDelivery := orderDelivery.New(orderUsecase)
+
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
 	csrfRepository, err := csrfRepo.New(redisClient)
@@ -117,6 +124,8 @@ func StartApiServer() {
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.GetCart)).Methods("GET")
+	mux.Handle("/orders", csrfChecker.Check(orderDelivery.AddOrder)).Methods("POST")
+	mux.Handle("/orders/{id}", csrfChecker.Check(orderDelivery.GetOrder)).Methods("GET")
 	mux.Handle("/csrf", authChecker.Check(csrfDelivery.SetCSRF)).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
