@@ -50,3 +50,13 @@ CREATE TABLE IF NOT EXISTS carts (
     FOREIGN KEY (productID) REFERENCES products (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
 );
+
+CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL NOT NULL PRIMARY KEY,
+    userID INTEGER NOT NULL,
+    vendorName TEXT NOT NULL,
+    products INTEGER[] NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    clientAddress TEXT NOT NULL,
+    orderStatus TEXT NOT NULL
+);
