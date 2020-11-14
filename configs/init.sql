@@ -59,5 +59,5 @@ CREATE TABLE IF NOT EXISTS orders (
     products INTEGER[] NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     clientAddress TEXT NOT NULL,
-    orderStatus TEXT NOT NULL
+    orderStatus DEFAULT '' TEXT NOT NULL
 );
