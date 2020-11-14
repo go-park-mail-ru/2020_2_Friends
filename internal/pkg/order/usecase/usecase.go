@@ -86,7 +86,7 @@ func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, 
 		return nil, fmt.Errorf("error with postgres: %w", err)
 	}
 
-	for _, order := range orders {
+	for idx, order := range orders {
 		products, err := o.vendorRepository.GetAllProductsWithIDs(order.ProductIDs)
 		if err != nil {
 			return nil, fmt.Errorf("error with postgres, couldn't get products: %w", err)
@@ -100,7 +100,7 @@ func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, 
 				Picture: product.Picture,
 			}
 
-			order.Products = append(order.Products, orderProduct)
+			orders[idx].Products = append(order.Products, orderProduct)
 		}
 	}
 
