@@ -24,7 +24,7 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 	var orderID int
 
 	err := o.db.QueryRow(
-		"INSERT INTO orders (userID, vendorID, vendorName, products, createdAt, clientAddress) VALUES($1, $2, $3, $4, $5) RETURNING id",
+		"INSERT INTO orders (userID, vendorID, vendorName, products, createdAt, clientAddress) VALUES($1, $2, $3, $4, $5, $6) RETURNING id",
 		userID, order.VendorID, order.VendorName, pq.Array(order.Products), order.CreatedAt, order.Address,
 	).Scan(&orderID)
 
