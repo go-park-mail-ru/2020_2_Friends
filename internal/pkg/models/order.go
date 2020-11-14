@@ -10,7 +10,7 @@ import (
 type OrderRequest struct {
 	VendorID   int       `json:"vendor_id"`
 	VendorName string    `json:"vendor_name"`
-	Products   []int64   `json:"products"`
+	Products   []int     `json:"products"`
 	CreatedAt  time.Time `json:"created_at"`
 	Address    string    `json:"address"`
 }
@@ -24,7 +24,7 @@ type OrderResponse struct {
 	CreatedAt  time.Time      `json:"created_at"`
 	Address    string         `json:"address"`
 	Status     string         `json:"status"`
-	ProductIDs []string
+	ProductIDs []string       `json:"-"`
 }
 
 //easyjson:json
