@@ -73,7 +73,7 @@ func (o OrderUsecase) GetUserOrders(userID string) ([]models.OrderResponse, erro
 				Picture: product.Picture,
 			}
 
-			orders[idx].Products = append(order.Products, orderProduct)
+			orders[idx].Products = append(orders[idx].Products, orderProduct)
 		}
 	}
 
@@ -100,7 +100,7 @@ func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, 
 				Picture: product.Picture,
 			}
 
-			orders[idx].Products = append(order.Products, orderProduct)
+			orders[idx].Products = append(orders[idx].Products, orderProduct)
 		}
 	}
 
