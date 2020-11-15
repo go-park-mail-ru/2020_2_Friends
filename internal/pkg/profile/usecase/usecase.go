@@ -73,6 +73,10 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) (string
 	return imgFullName, nil
 }
 
+func (p ProfileUsecase) UpdateAddresses(userID string, addresses []string) error {
+	return p.repository.UpdateAddresses(userID, addresses)
+}
+
 func (p ProfileUsecase) Delete(userID string) error {
 	return p.repository.Delete(userID)
 }
