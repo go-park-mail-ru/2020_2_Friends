@@ -21,6 +21,14 @@ func New(orderRepository order.Repository, vendorRepository vendors.Repository) 
 }
 
 func (o OrderUsecase) AddOrder(userID string, order models.OrderRequest) (int, error) {
+	vendor, err := o.vendorRepository.GetVendorFromProduct(order.Products[0])
+	if err != nil {
+		return 0, fmt.Errorf("error with db: %w", err)
+	}
+
+	order.VendorID = vendor.ID
+	order.VendorName = vendor.Name
+
 	return o.orderRepository.AddOrder(userID, order)
 }
 

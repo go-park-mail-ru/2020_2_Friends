@@ -8,8 +8,8 @@ import (
 
 //easyjson:json
 type OrderRequest struct {
-	VendorID   int       `json:"vendor_id"`
-	VendorName string    `json:"vendor_name"`
+	VendorID   int       `json:"-"`
+	VendorName string    `json:"-"`
 	Products   []int     `json:"products"`
 	CreatedAt  time.Time `json:"created_at"`
 	Address    string    `json:"address"`
