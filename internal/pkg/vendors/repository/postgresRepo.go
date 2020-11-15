@@ -118,6 +118,22 @@ func (v VendorRepository) GetVendorIDFromProduct(productID string) (string, erro
 	return vendorID, nil
 }
 
+func (v VendorRepository) GetVendorFromProduct(productID int) (models.Vendor, error) {
+	vendor := models.Vendor{}
+	err := v.db.QueryRow(
+		`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
+		JOIN products AS p on v.id = p.vendorID
+		WHERE p.id = $1`,
+		productID,
+	).Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
+	}
+
+	return vendor, nil
+}
+
 func (v VendorRepository) IsVendorExists(vendorName string) error {
 	row := v.db.QueryRow(
 		"SELECT vendorName FROM vendors WHERE vendorName=$1",
