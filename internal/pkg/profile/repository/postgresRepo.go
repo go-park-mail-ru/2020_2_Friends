@@ -64,9 +64,9 @@ func (p ProfileRepository) Update(appProfile models.Profile) error {
 	profile := fromAppToDB(appProfile)
 	_, err := p.db.Exec(
 		`UPDATE profiles
-		SET username=$1, phone=$2, addresses=$3, points=$4
-		WHERE userID=$5`,
-		profile.Name, profile.Phone, profile.Addresses, profile.Points, profile.UserID,
+		SET username=$1, phone=$2, points=$3
+		WHERE userID=$4`,
+		profile.Name, profile.Phone, profile.Points, profile.UserID,
 	)
 
 	if err != nil {

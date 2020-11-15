@@ -133,18 +133,17 @@ func TestUpdate(t *testing.T) {
 	repo := NewProfileRepository(db)
 
 	profile := dbProfile{
-		UserID:    "0",
-		Name:      sql.NullString{String: "testname", Valid: true},
-		Phone:     sql.NullString{String: "0000", Valid: true},
-		Avatar:    sql.NullString{String: "avatar.jpg", Valid: true},
-		Points:    sql.NullInt64{Int64: 0, Valid: true},
-		Addresses: pq.StringArray([]string{"addr1", "addr2"}),
+		UserID: "0",
+		Name:   sql.NullString{String: "testname", Valid: true},
+		Phone:  sql.NullString{String: "0000", Valid: true},
+		Avatar: sql.NullString{String: "avatar.jpg", Valid: true},
+		Points: sql.NullInt64{Int64: 0, Valid: true},
 	}
 
 	// good update
 	mock.
 		ExpectExec("UPDATE profiles").
-		WithArgs(profile.Name, profile.Phone, profile.Addresses, profile.Points, profile.UserID).
+		WithArgs(profile.Name, profile.Phone, profile.Points, profile.UserID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = repo.Update(fromDBToApp(profile))
@@ -156,7 +155,7 @@ func TestUpdate(t *testing.T) {
 	// bad update
 	mock.
 		ExpectExec("UPDATE profiles").
-		WithArgs(profile.Name, profile.Phone, profile.Addresses, profile.Points, profile.UserID).
+		WithArgs(profile.Name, profile.Phone, profile.Points, profile.UserID).
 		WillReturnError(fmt.Errorf("error with db"))
 
 	err = repo.Update(fromDBToApp(profile))
