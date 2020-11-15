@@ -91,6 +91,19 @@ func (p ProfileRepository) UpdateAvatar(userID string, link string) error {
 	return nil
 }
 
+func (p ProfileRepository) UpdateAddresses(userID string, addresses []string) error {
+	_, err := p.db.Exec(
+		"UPDATE profiles SET addresses = $1 WHERE userID = $2",
+		pq.StringArray(addresses), userID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't update addresses: %w", err)
+	}
+
+	return nil
+}
+
 func (p ProfileRepository) Delete(userID string) error {
 	_, err := p.db.Exec(
 		"DELETE FROM profiles WHERE userID=$1",
