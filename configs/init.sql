@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     points INTEGER,
     avatar TEXT,
 
-    FOREIGN KEY (userID) REFERENCES users (id)
+    FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS vendors (
@@ -30,15 +30,15 @@ CREATE TABLE IF NOT EXISTS products (
     price TEXT DEFAULT '' NOT NULL,
     picture TEXT DEFAULT '' NOT NULL,
 
-    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS vendor_partner (
     partnerID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
 
-    FOREIGN KEY (partnerID) REFERENCES users (id),
-    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+    FOREIGN KEY (partnerID) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS carts (
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS carts (
     productID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
 
-    FOREIGN KEY (userID) REFERENCES users (id),
-    FOREIGN KEY (productID) REFERENCES products (id),
-    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+    FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (productID) REFERENCES products (id) ON DELETE CASCADE,
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
 );
