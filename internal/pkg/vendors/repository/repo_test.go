@@ -30,13 +30,13 @@ func TestGet(t *testing.T) {
 			{
 				ID:      0,
 				Name:    "aaa",
-				Price:   "0",
+				Price:   0,
 				Picture: "aaa.png",
 			},
 			{
 				ID:      1,
 				Name:    "bbb",
-				Price:   "1",
+				Price:   0,
 				Picture: "bbb.png",
 			},
 		},
@@ -229,14 +229,14 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		{
 			ID:       0,
 			Name:     "aaa",
-			Price:    "0",
+			Price:    0,
 			Picture:  "aaa.png",
 			VendorID: 1,
 		},
 		{
 			ID:       1,
 			Name:     "bbb",
-			Price:    "1",
+			Price:    0,
 			Picture:  "bbb.png",
 			VendorID: 1,
 		},
@@ -520,7 +520,7 @@ func TestAddProduct(t *testing.T) {
 	product := models.Product{
 		VendorID: 1,
 		Name:     "a",
-		Price:    "0",
+		Price:    0,
 	}
 
 	rows := mock.NewRows([]string{"id"}).AddRow(1)
@@ -570,7 +570,7 @@ func TestUpdateProduct(t *testing.T) {
 	product := models.Product{
 		ID:    0,
 		Name:  "a",
-		Price: "0",
+		Price: 0,
 	}
 
 	// good update

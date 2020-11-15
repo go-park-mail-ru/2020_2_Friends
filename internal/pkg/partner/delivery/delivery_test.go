@@ -488,7 +488,7 @@ func TestAddProductSuccess(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 
@@ -535,7 +535,7 @@ func TestAddProductError(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 
@@ -645,7 +645,7 @@ func TestUpdateProductSuccess(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 
@@ -684,7 +684,7 @@ func TestUpdateProductError(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 

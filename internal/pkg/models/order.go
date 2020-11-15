@@ -32,7 +32,7 @@ type OrderProduct struct {
 	ID      int    `json:"id"`
 	Picture string `json:"picture"`
 	Name    string `json:"food_name"`
-	Price   string `json:"food_price"`
+	Price   int    `json:"food_price"`
 }
 
 //easyjson:json
