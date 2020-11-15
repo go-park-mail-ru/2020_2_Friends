@@ -34,9 +34,54 @@ func (o OrderUsecase) GetOrder(userID string, orderID string) (models.OrderRespo
 		return models.OrderResponse{}, fmt.Errorf("error with postgres, couldn't get order: %w", err)
 	}
 
+	err = o.getProductsFromOrder(&order)
+	if err != nil {
+		return models.OrderResponse{}, err
+	}
+
+	return order, nil
+}
+
+func (o OrderUsecase) GetUserOrders(userID string) ([]models.OrderResponse, error) {
+	orders, err := o.orderRepository.GetUserOrders(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error with postgres: %w", err)
+	}
+
+	for idx := range orders {
+		err = o.getProductsFromOrder(&orders[idx])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return orders, nil
+}
+
+func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
+	orders, err := o.orderRepository.GetVendorOrders(vendorID)
+	if err != nil {
+		return nil, fmt.Errorf("error with postgres: %w", err)
+	}
+
+	for idx := range orders {
+		err = o.getProductsFromOrder(&orders[idx])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return orders, nil
+}
+
+func (o OrderUsecase) UpdateOrderStatus(orderID string, status string) error {
+	return o.orderRepository.UpdateOrderStatus(orderID, status)
+}
+
+func (o OrderUsecase) getProductsFromOrder(order *models.OrderResponse) error {
 	products, err := o.vendorRepository.GetAllProductsWithIDs(order.ProductIDs)
 	if err != nil {
-		return models.OrderResponse{}, fmt.Errorf("error with postgres, couldn't get products: %w", err)
+		return fmt.Errorf("error with postgres, couldn't get products: %w", err)
 	}
 
 	for _, product := range products {
@@ -50,63 +95,5 @@ func (o OrderUsecase) GetOrder(userID string, orderID string) (models.OrderRespo
 		order.Products = append(order.Products, orderProduct)
 	}
 
-	return order, nil
-}
-
-func (o OrderUsecase) GetUserOrders(userID string) ([]models.OrderResponse, error) {
-	orders, err := o.orderRepository.GetUserOrders(userID)
-	if err != nil {
-		return nil, fmt.Errorf("error with postgres: %w", err)
-	}
-
-	for idx, order := range orders {
-		products, err := o.vendorRepository.GetAllProductsWithIDs(order.ProductIDs)
-		if err != nil {
-			return nil, fmt.Errorf("error with postgres, couldn't get products: %w", err)
-		}
-
-		for _, product := range products {
-			orderProduct := models.OrderProduct{
-				ID:      product.ID,
-				Name:    product.Name,
-				Price:   product.Price,
-				Picture: product.Picture,
-			}
-
-			orders[idx].Products = append(orders[idx].Products, orderProduct)
-		}
-	}
-
-	return orders, nil
-}
-
-func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
-	orders, err := o.orderRepository.GetVendorOrders(vendorID)
-	if err != nil {
-		return nil, fmt.Errorf("error with postgres: %w", err)
-	}
-
-	for idx, order := range orders {
-		products, err := o.vendorRepository.GetAllProductsWithIDs(order.ProductIDs)
-		if err != nil {
-			return nil, fmt.Errorf("error with postgres, couldn't get products: %w", err)
-		}
-
-		for _, product := range products {
-			orderProduct := models.OrderProduct{
-				ID:      product.ID,
-				Name:    product.Name,
-				Price:   product.Price,
-				Picture: product.Picture,
-			}
-
-			orders[idx].Products = append(orders[idx].Products, orderProduct)
-		}
-	}
-
-	return orders, nil
-}
-
-func (o OrderUsecase) UpdateOrderStatus(orderID string, status string) error {
-	return o.orderRepository.UpdateOrderStatus(orderID, status)
+	return nil
 }
