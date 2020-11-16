@@ -10,19 +10,16 @@ import (
 	"github.com/friends/internal/pkg/models"
 
 	"github.com/friends/internal/pkg/profile"
-	"github.com/friends/internal/pkg/session"
 	log "github.com/friends/pkg/logger"
 )
 
 type ProfileDelivery struct {
 	profUsecase profile.Usecase
-	sessUsecase session.Usecase
 }
 
-func NewProfileDelivery(pUsecase profile.Usecase, sUsecase session.Usecase) ProfileDelivery {
+func NewProfileDelivery(profUsecase profile.Usecase) ProfileDelivery {
 	return ProfileDelivery{
-		profUsecase: pUsecase,
-		sessUsecase: sUsecase,
+		profUsecase: profUsecase,
 	}
 }
 
@@ -124,5 +121,35 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (p ProfileDelivery) UpdateAddresses(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	userID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
+	if !ok {
+		err = fmt.Errorf("couldn't get userID from context")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	profile := models.Profile{}
+	err = json.NewDecoder(r.Body).Decode(&profile)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	profile.Sanitize()
+
+	err = p.profUsecase.UpdateAddresses(userID, profile.Addresses)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }

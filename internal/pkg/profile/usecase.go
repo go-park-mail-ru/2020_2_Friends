@@ -12,5 +12,6 @@ type Usecase interface {
 	Get(userID string) (models.Profile, error)
 	Update(models.Profile) error
 	UpdateAvatar(userID string, file multipart.File) (string, error)
+	UpdateAddresses(userID string, addresses []string) error
 	Delete(userID string) error
 }
