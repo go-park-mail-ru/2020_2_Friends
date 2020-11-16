@@ -6,6 +6,7 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
+	"github.com/lithammer/shortuuid/v3"
 )
 
 type SessionUsecase struct {
@@ -19,7 +20,7 @@ func NewSessionUsecase(repo session.Repository) session.Usecase {
 }
 
 func (su SessionUsecase) Create(userID string) (string, error) {
-	sessionName := "session:" + userID
+	sessionName := "session:" + shortuuid.New()
 	session := models.Session{
 		Name:       sessionName,
 		UserID:     userID,
