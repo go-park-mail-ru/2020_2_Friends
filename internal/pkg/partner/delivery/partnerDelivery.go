@@ -86,7 +86,7 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 
 	adminCookie := http.Cookie{
-		Name:    "isAdmin",
+		Name:    configs.AdminsCookieName,
 		Value:   "true",
 		Expires: expiration,
 		Path:    "/",

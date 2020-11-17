@@ -70,7 +70,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 
 	if role == configs.AdminRole {
 		adminCookie := http.Cookie{
-			Name:    "isAdmin",
+			Name:    configs.AdminsCookieName,
 			Value:   "true",
 			Expires: expiration,
 		}
