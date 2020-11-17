@@ -59,5 +59,8 @@ CREATE TABLE IF NOT EXISTS orders (
     products INTEGER[] NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     clientAddress TEXT NOT NULL,
-    orderStatus TEXT DEFAULT '' NOT NULL
+    orderStatus TEXT DEFAULT '' NOT NULL,
+
+    FOREIGN KEY (userID) REFERENCES users (id),
+    FOREIGN KEY (vendorID) REFERENCES vendors (id)
 );
