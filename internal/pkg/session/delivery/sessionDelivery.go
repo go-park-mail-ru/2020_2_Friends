@@ -46,6 +46,12 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	role, err := sd.userUsecase.CheckUsersRole(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	sessionName, err := sd.sessionUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -61,6 +67,15 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	}
 	http.SetCookie(w, &cookie)
+
+	if role == configs.AdminRole {
+		adminCookie := http.Cookie{
+			Name:    "isAdmin",
+			Value:   "true",
+			Expires: expiration,
+		}
+		http.SetCookie(w, &adminCookie)
+	}
 }
 
 func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
