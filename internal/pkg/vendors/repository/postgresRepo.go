@@ -25,7 +25,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 		id,
 	)
 
-	vendor := models.Vendor{}
+	vendor := models.NewEmptyVendor()
 	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("no such vendor")
@@ -66,7 +66,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 
 	var vendors []models.Vendor
 	for rows.Next() {
-		vendor := models.Vendor{}
+		vendor := models.NewEmptyVendor()
 		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
@@ -304,7 +304,7 @@ func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, er
 
 	var vendors []models.Vendor
 	for rows.Next() {
-		vendor := models.Vendor{}
+		vendor := models.NewEmptyVendor()
 		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
