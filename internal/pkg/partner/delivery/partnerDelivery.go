@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
@@ -14,6 +13,7 @@ import (
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	"github.com/friends/internal/pkg/vendors"
+	"github.com/friends/pkg/httputils"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
@@ -69,33 +69,15 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionName, err := p.sessionUsecase.Create(userID)
+	sessionValue, err := p.sessionUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	expiration := time.Now().Add(configs.ExpireTime)
-	cookie := http.Cookie{
-		Name:     configs.SessionID,
-		Value:    sessionName,
-		Expires:  expiration,
-		HttpOnly: true,
-		Path:     "/",
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
-	}
-	http.SetCookie(w, &cookie)
+	httputils.SetCookie(w, sessionValue)
 
-	adminCookie := http.Cookie{
-		Name:     configs.AdminsCookieName,
-		Value:    "true",
-		Expires:  expiration,
-		Path:     "/",
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
-	}
-	http.SetCookie(w, &adminCookie)
+	httputils.SetAdminsCookie(w)
 
 	w.WriteHeader(http.StatusCreated)
 }
@@ -430,4 +412,52 @@ func (p PartnerDelivery) GetPartnerShops(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (p PartnerDelivery) Create2(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	user := &models.User{}
+	err = json.NewDecoder(r.Body).Decode(user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = p.userUsecase.CheckIfUserExists(*user)
+	if err != nil {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+
+	user.Role = configs.AdminRole
+
+	userID, err := p.userUsecase.Create(*user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = p.profileUsecase.Create(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	sessionValue, err := p.sessionUsecase.Create(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	httputils.SetCookieWithSameSiteNone(w, sessionValue)
+
+	httputils.SetAdminsCookieWithSameSiteNone(w)
+
+	w.WriteHeader(http.StatusCreated)
 }
