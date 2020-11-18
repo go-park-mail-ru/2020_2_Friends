@@ -75,7 +75,7 @@ func StartApiServer() {
 
 	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userUsecase)
 
-	profDelivery := profileDelivery.NewProfileDelivery(profUsecase, sessionUsecase)
+	profDelivery := profileDelivery.NewProfileDelivery(profUsecase)
 
 	vendDelivery := vendorDelivery.NewVendorDelivery(vendUsecase)
 
@@ -110,6 +110,7 @@ func StartApiServer() {
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Update)).Methods("PUT")
 	mux.Handle("/profiles/avatars", csrfChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
+	mux.Handle("/profiles/addresses", csrfChecker.Check(profDelivery.UpdateAddresses)).Methods("PUT")
 	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
 	mux.Handle("/vendors", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole))).Methods("POST")

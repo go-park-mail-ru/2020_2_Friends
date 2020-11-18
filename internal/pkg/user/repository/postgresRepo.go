@@ -7,6 +7,7 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/user"
+	ownErr "github.com/friends/pkg/error"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -64,17 +65,17 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 	dbUser := models.User{}
 	switch err := row.Scan(&dbUser.ID, &dbUser.Password); err {
 	case sql.ErrNoRows:
-		return "", fmt.Errorf("user doesn't exist")
+		return "", ownErr.NewError(ownErr.ClientError, err)
 
 	case nil:
-		isEqual := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
-		if isEqual != nil {
-			return "", fmt.Errorf("wrong password: %w", isEqual)
+		bcryptErr := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
+		if bcryptErr != nil {
+			return "", ownErr.NewError(ownErr.ClientError, fmt.Errorf("wrong password: %w", bcryptErr))
 		}
 		return dbUser.ID, nil
 
 	default:
-		return "", fmt.Errorf("db error: %w", err)
+		return "", ownErr.NewError(ownErr.ServerError, fmt.Errorf("db error: %w", err))
 	}
 }
 

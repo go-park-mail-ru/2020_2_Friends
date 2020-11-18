@@ -6,7 +6,7 @@ import "github.com/microcosm-cc/bluemonday"
 type Vendor struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"store_name"`
-	Products    []Product `json:"products,omitempty"`
+	Products    []Product `json:"products"`
 	Description string    `json:"description"`
 	Picture     string    `json:"picture"`
 }
@@ -22,6 +22,12 @@ type Product struct {
 
 type AddResponse struct {
 	ID int `json:"id"`
+}
+
+func NewEmptyVendor() Vendor {
+	return Vendor{
+		Products: make([]Product, 0),
+	}
 }
 
 func (v *Vendor) Sanitize() {

@@ -82,8 +82,21 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		Expires:  expiration,
 		HttpOnly: true,
 		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &cookie)
+
+	adminCookie := http.Cookie{
+		Name:     configs.AdminsCookieName,
+		Value:    "true",
+		Expires:  expiration,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(w, &adminCookie)
+
 	w.WriteHeader(http.StatusCreated)
 }
 
