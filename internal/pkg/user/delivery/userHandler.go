@@ -76,6 +76,8 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Expires:  expiration,
 		HttpOnly: true,
 		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusCreated)
