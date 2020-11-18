@@ -1,5 +1,9 @@
 package error
 
+import (
+	"net/http"
+)
+
 const (
 	ClientError = 0
 	ServerError = 1
@@ -27,4 +31,20 @@ func (r RequestError) IsClientError() bool {
 
 func (r RequestError) IsServerError() bool {
 	return r.errType == ServerError
+}
+
+func HandleErrorAndWriteResponse(w http.ResponseWriter, err error) {
+	re, ok := err.(RequestError)
+	if ok {
+		if re.IsClientError() {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if re.IsServerError() {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
 }

@@ -43,19 +43,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := sd.userUsecase.Verify(*user)
 	if err != nil {
-		re, ok := err.(ownErr.RequestError)
-		if ok {
-			if re.IsClientError() {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			if re.IsServerError() {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		}
-		log.ErrorMessage("error is not RequestError in SessionDelivery.Create")
-		w.WriteHeader(http.StatusInternalServerError)
+		ownErr.HandleErrorAndWriteResponse(w, err)
 		return
 	}
 
