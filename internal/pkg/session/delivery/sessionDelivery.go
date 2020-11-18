@@ -9,6 +9,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
+	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
 )
 
@@ -42,7 +43,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := sd.userUsecase.Verify(*user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ownErr.HandleErrorAndWriteResponse(w, err)
 		return
 	}
 

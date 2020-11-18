@@ -21,3 +21,7 @@ func ErrorLogWithCtx(ctx context.Context, err error) {
 		configs.ReqID: ctx.Value(configs.ReqID),
 	}).Error(err)
 }
+
+func ErrorMessage(msg string) {
+	log.Error(msg)
+}
