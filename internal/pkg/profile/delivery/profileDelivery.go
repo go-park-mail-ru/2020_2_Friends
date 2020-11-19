@@ -40,7 +40,7 @@ func (p ProfileDelivery) Get(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := p.profUsecase.Get(userID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	profile.Sanitize()

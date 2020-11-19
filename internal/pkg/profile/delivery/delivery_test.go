@@ -72,7 +72,7 @@ func TestGetError(t *testing.T) {
 
 	handler.Get(w, r.WithContext(ctx))
 
-	if w.Code != http.StatusBadRequest {
+	if w.Code != http.StatusInternalServerError {
 		t.Errorf("expected: %v\n got: %v", http.StatusCreated, w.Code)
 	}
 }
