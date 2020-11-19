@@ -75,7 +75,7 @@ func (c CartDelivery) RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 
 	err = c.cartUsecase.Remove(userID, productID[0])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -97,7 +97,7 @@ func (c CartDelivery) GetCart(w http.ResponseWriter, r *http.Request) {
 
 	products, err := c.cartUsecase.Get(userID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
