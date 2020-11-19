@@ -148,7 +148,7 @@ func TestRemoveFromCartError(t *testing.T) {
 
 	handler.RemoveFromCart(w, r.WithContext(ctx))
 
-	expected := http.StatusBadRequest
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}
@@ -243,7 +243,7 @@ func TestGetCartError(t *testing.T) {
 
 	handler.GetCart(w, r.WithContext(ctx))
 
-	expected := http.StatusBadRequest
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}

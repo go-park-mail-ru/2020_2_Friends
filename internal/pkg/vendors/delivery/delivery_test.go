@@ -64,7 +64,7 @@ func TestGetVendorDBError(t *testing.T) {
 
 	handler.GetVendor(w, r)
 
-	expected := http.StatusBadRequest
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}
