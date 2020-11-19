@@ -8,11 +8,13 @@ import (
 
 //easyjson:json
 type OrderRequest struct {
-	VendorID   int       `json:"-"`
-	VendorName string    `json:"-"`
-	Products   []int     `json:"products"`
-	CreatedAt  time.Time `json:"created_at"`
-	Address    string    `json:"address"`
+	VendorID   int            `json:"-"`
+	VendorName string         `json:"-"`
+	ProductIDs []int          `json:"products"`
+	Products   []OrderProduct `json:"-"`
+	CreatedAt  time.Time      `json:"-"`
+	Address    string         `json:"address"`
+	Price      int            `json:"-"`
 }
 
 //easyjson:json
@@ -24,12 +26,11 @@ type OrderResponse struct {
 	CreatedAt  time.Time      `json:"created_at"`
 	Address    string         `json:"address"`
 	Status     string         `json:"status"`
-	ProductIDs []string       `json:"-"`
+	Price      int            `json:"price"`
 }
 
 //easyjson:json
 type OrderProduct struct {
-	ID      int    `json:"id"`
 	Picture string `json:"picture"`
 	Name    string `json:"food_name"`
 	Price   int    `json:"food_price"`

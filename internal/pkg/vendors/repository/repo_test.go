@@ -150,12 +150,14 @@ func TestGetAll(t *testing.T) {
 			Name:        "a",
 			Description: "aa",
 			Picture:     "a.png",
+			Products:    make([]models.Product, 0),
 		},
 		{
 			ID:          1,
 			Name:        "b",
 			Description: "bb",
 			Picture:     "b.jpg",
+			Products:    make([]models.Product, 0),
 		},
 	}
 
@@ -224,7 +226,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 
 	repo := NewVendorRepository(db)
 
-	ids := []string{"0", "1"}
+	ids := []int{0, 1}
 	products := []models.Product{
 		{
 			ID:       0,
@@ -253,7 +255,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		WithArgs(pq.Array(ids)).
 		WillReturnRows(rows)
 
-	dbProducts, err := repo.GetAllProductsWithIDs(ids)
+	dbProducts, err := repo.GetAllProductsWithIDsFromSameVendor(ids)
 
 	if !reflect.DeepEqual(dbProducts, products) {
 		t.Errorf("expected: %v\n got: %v", dbProducts, products)
@@ -269,7 +271,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		WithArgs(pq.Array(ids)).
 		WillReturnError(fmt.Errorf("error with db"))
 
-	dbProducts, err = repo.GetAllProductsWithIDs(ids)
+	dbProducts, err = repo.GetAllProductsWithIDsFromSameVendor(ids)
 
 	if dbProducts != nil {
 		t.Errorf("expected: %v\n got: %v", nil, dbProducts)
@@ -290,7 +292,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		WithArgs(pq.Array(ids)).
 		WillReturnRows(rows)
 
-	dbProducts, err = repo.GetAllProductsWithIDs(ids)
+	dbProducts, err = repo.GetAllProductsWithIDsFromSameVendor(ids)
 
 	if dbProducts != nil {
 		t.Errorf("expected: %v\n got: %v", nil, dbProducts)
@@ -729,12 +731,14 @@ func TestGetPartnerShops(t *testing.T) {
 			Name:        "a",
 			Description: "a",
 			Picture:     "a.jpg",
+			Products:    make([]models.Product, 0),
 		},
 		{
 			ID:          2,
 			Name:        "b",
 			Description: "bb",
 			Picture:     "b.jpg",
+			Products:    make([]models.Product, 0),
 		},
 	}
 

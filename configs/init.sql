@@ -56,11 +56,20 @@ CREATE TABLE IF NOT EXISTS orders (
     userID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
     vendorName TEXT NOT NULL,
-    products INTEGER[] NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     clientAddress TEXT NOT NULL,
     orderStatus TEXT DEFAULT '' NOT NULL,
+    price INTEGER NOT NULL,
 
     FOREIGN KEY (userID) REFERENCES users (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
+);
+
+CREATE TABLE IF NOT EXISTS products_in_order (
+    orderID INTEGER NOT NULL,
+    productName TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    picture TEXT DEFAULT '' NOT NULL,
+
+    FOREIGN KEY (orderID) REFERENCES orders (id)
 );

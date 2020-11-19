@@ -9,4 +9,5 @@ type Repository interface {
 	CheckOrderByUser(userID string, orderID string) bool
 	GetVendorOrders(vendorID string) ([]models.OrderResponse, error)
 	UpdateOrderStatus(orderID string, status string) error
+	GetProductsFromOrder(order *models.OrderResponse) error
 }

@@ -65,17 +65,17 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 	dbUser := models.User{}
 	switch err := row.Scan(&dbUser.ID, &dbUser.Password); err {
 	case sql.ErrNoRows:
-		return "", ownErr.NewError(ownErr.ClientError, err)
+		return "", ownErr.NewClientError(err)
 
 	case nil:
 		bcryptErr := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
 		if bcryptErr != nil {
-			return "", ownErr.NewError(ownErr.ClientError, fmt.Errorf("wrong password: %w", bcryptErr))
+			return "", ownErr.NewClientError(fmt.Errorf("wrong password: %w", bcryptErr))
 		}
 		return dbUser.ID, nil
 
 	default:
-		return "", ownErr.NewError(ownErr.ServerError, fmt.Errorf("db error: %w", err))
+		return "", ownErr.NewServerError(fmt.Errorf("db error: %w", err))
 	}
 }
 

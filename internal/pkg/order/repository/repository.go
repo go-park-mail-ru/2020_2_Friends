@@ -3,11 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
-	"github.com/lib/pq"
 )
 
 type OrderRepository struct {
@@ -21,35 +19,62 @@ func New(db *sql.DB) order.Repository {
 }
 
 func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int, error) {
+	tx, err := o.db.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("couldn't create transaction: %w", err)
+	}
 	var orderID int
 
-	err := o.db.QueryRow(
-		"INSERT INTO orders (userID, vendorID, vendorName, products, createdAt, clientAddress) VALUES($1, $2, $3, $4, $5, $6) RETURNING id",
-		userID, order.VendorID, order.VendorName, pq.Array(order.Products), order.CreatedAt, order.Address,
+	err = tx.QueryRow(
+		`INSERT INTO orders (userID, vendorID, vendorName, createdAt, clientAddress, price)
+		VALUES($1, $2, $3, $4, $5, $6) RETURNING id`,
+		userID, order.VendorID, order.VendorName, order.CreatedAt, order.Address, order.Price,
 	).Scan(&orderID)
 
 	if err != nil {
+		tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert order: %w", err)
+	}
+
+	for _, product := range order.Products {
+		_, err = tx.Exec(
+			"INSERT INTO products_in_order (orderID, productName, price, picture) VALUES($1, $2, $3, $4)",
+			orderID, product.Name, product.Price, product.Picture,
+		)
+
+		if err != nil {
+			tx.Rollback()
+			return 0, fmt.Errorf("couldn't insert product: %w", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 
 	return orderID, nil
 }
 
 func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) {
-	var dbProducts pq.Int64Array
 	var order models.OrderResponse
 	err := o.db.QueryRow(
-		`SELECT id, userID, vendorName, products, createdAt, clientAddress, orderStatus
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price,
 		FROM orders WHERE id = $1`,
 		orderID,
-	).Scan(&order.ID, &order.UserID, &order.VendorName, &dbProducts, &order.CreatedAt, &order.Address, &order.Status)
+	).Scan(
+		&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+		&order.Address, &order.Status, &order.Price,
+	)
 
 	if err != nil {
 		return models.OrderResponse{}, fmt.Errorf("couldn't get order from db: %w", err)
 	}
 
-	for _, product := range dbProducts {
-		order.ProductIDs = append(order.ProductIDs, strconv.Itoa(int(product)))
+	err = o.GetProductsFromOrder(&order)
+	if err != nil {
+		return models.OrderResponse{}, err
 	}
 
 	return order, nil
@@ -57,7 +82,7 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) 
 
 func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, error) {
 	rows, err := o.db.Query(
-		`SELECT id, userID, vendorName, products, createdAt, clientAddress, orderStatus
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
 		FROM orders WHERE userID = $1`,
 		userID,
 	)
@@ -69,14 +94,17 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 	var orders []models.OrderResponse
 	for rows.Next() {
 		var order models.OrderResponse
-		var dbProducts pq.Int64Array
-		err = rows.Scan(&order.ID, &order.UserID, &order.VendorName, &dbProducts, &order.CreatedAt, &order.Address, &order.Status)
+		err = rows.Scan(
+			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+			&order.Address, &order.Status, &order.Price,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get order from db: %w", err)
 		}
 
-		for _, product := range dbProducts {
-			order.ProductIDs = append(order.ProductIDs, strconv.Itoa(int(product)))
+		err = o.GetProductsFromOrder(&order)
+		if err != nil {
+			return nil, err
 		}
 
 		orders = append(orders, order)
@@ -101,7 +129,7 @@ func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
 
 func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
 	rows, err := o.db.Query(
-		`SELECT id, userID, vendorName, products, createdAt, clientAddress, orderStatus
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
 		FROM orders WHERE vendorID = $1`,
 		vendorID,
 	)
@@ -113,14 +141,17 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 	var orders []models.OrderResponse
 	for rows.Next() {
 		var order models.OrderResponse
-		var dbProducts pq.Int64Array
-		err = rows.Scan(&order.ID, &order.UserID, &order.VendorName, &dbProducts, &order.CreatedAt, &order.Address, &order.Status)
+		err = rows.Scan(
+			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+			&order.Address, &order.Status, &order.Price,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get order from db: %w", err)
 		}
 
-		for _, product := range dbProducts {
-			order.ProductIDs = append(order.ProductIDs, strconv.Itoa(int(product)))
+		err = o.GetProductsFromOrder(&order)
+		if err != nil {
+			return nil, err
 		}
 
 		orders = append(orders, order)
@@ -137,6 +168,30 @@ func (o OrderRepository) UpdateOrderStatus(orderID string, status string) error 
 
 	if err != nil {
 		return fmt.Errorf("couldn't update status on orderID: %w", err)
+	}
+
+	return nil
+}
+
+func (o OrderRepository) GetProductsFromOrder(order *models.OrderResponse) error {
+	rows, err := o.db.Query(
+		"SELECT productName, price, picture FROM products_in_order WHERE orderID = $1",
+		order.ID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't get products from order: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		product := models.OrderProduct{}
+		err = rows.Scan(&product.Name, &product.Price, &product.Picture)
+		if err != nil {
+			return fmt.Errorf("couldn't get product: %w", err)
+		}
+
+		order.Products = append(order.Products, product)
 	}
 
 	return nil

@@ -11,6 +11,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
+	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
@@ -88,7 +89,7 @@ func (o OrderDelivery) GetOrder(w http.ResponseWriter, r *http.Request) {
 
 	order, err := o.orderUsecase.GetOrder(userID, orderID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ownErr.HandleErrorAndWriteResponse(w, err)
 		return
 	}
 
@@ -116,7 +117,7 @@ func (o OrderDelivery) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := o.orderUsecase.GetUserOrders(userID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ownErr.HandleErrorAndWriteResponse(w, err)
 		return
 	}
 
@@ -152,7 +153,7 @@ func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := o.orderUsecase.GetVendorOrders(vendorID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		ownErr.HandleErrorAndWriteResponse(w, err)
 		return
 	}
 
