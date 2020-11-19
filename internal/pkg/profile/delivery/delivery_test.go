@@ -48,7 +48,7 @@ func TestGetSuccess(t *testing.T) {
 	}
 
 	var respProf models.Profile
-	json.Unmarshal(w.Body.Bytes(), &respProf)
+	_ = json.Unmarshal(w.Body.Bytes(), &respProf)
 	if !reflect.DeepEqual(prof, respProf) {
 		t.Errorf("expected: %v\n got: %v", prof, respProf)
 	}
