@@ -89,7 +89,7 @@ func (o OrderDelivery) GetOrder(w http.ResponseWriter, r *http.Request) {
 
 	order, err := o.orderUsecase.GetOrder(userID, orderID)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (o OrderDelivery) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := o.orderUsecase.GetUserOrders(userID)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -153,7 +153,7 @@ func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := o.orderUsecase.GetVendorOrders(vendorID)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 

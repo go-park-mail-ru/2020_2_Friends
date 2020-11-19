@@ -43,7 +43,7 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := sd.userUsecase.Verify(*user)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
