@@ -12,6 +12,7 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/profile"
+	ownErr "github.com/friends/pkg/error"
 	"github.com/lithammer/shortuuid"
 )
 
@@ -40,14 +41,14 @@ func (p ProfileUsecase) Update(profile models.Profile) error {
 func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) (string, error) {
 	img, imgType, err := image.Decode(file)
 	if err != nil {
-		return "", fmt.Errorf("unsupporter img type: %w", err)
+		return "", ownErr.NewClientError(fmt.Errorf("unsupporter img type: %w", err))
 	}
 
 	imgName := shortuuid.New()
 	imgFullName := imgName + "." + imgType
 	avatarFile, err := os.Create(filepath.Join(configs.FileServerPath+"/img", filepath.Base(imgFullName)))
 	if err != nil {
-		return "", fmt.Errorf("couldn't create file: %w", err)
+		return "", ownErr.NewServerError(fmt.Errorf("couldn't create file: %w", err))
 	}
 
 	switch imgType {
@@ -58,16 +59,16 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File) (string
 	case "jpeg":
 		err = jpeg.Encode(avatarFile, img, nil)
 	default:
-		return "", fmt.Errorf("unsupporter img type: %w", err)
+		return "", ownErr.NewClientError(fmt.Errorf("unsupporter img type: %w", err))
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("couldn't encode: %w", err)
+		return "", ownErr.NewServerError(fmt.Errorf("couldn't encode: %w", err))
 	}
 
 	err = p.repository.UpdateAvatar(userID, imgFullName)
 	if err != nil {
-		return "", fmt.Errorf("couldn't save link to avatart: %w", err)
+		return "", ownErr.NewServerError(fmt.Errorf("couldn't save link to avatart: %w", err))
 	}
 
 	return imgFullName, nil

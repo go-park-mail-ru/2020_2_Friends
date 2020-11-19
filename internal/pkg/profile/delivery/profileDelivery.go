@@ -10,6 +10,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 
 	"github.com/friends/internal/pkg/profile"
+	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
 )
 
@@ -113,7 +114,7 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	imgName, err := p.profUsecase.UpdateAvatar(userID, file)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusUnsupportedMediaType)
 		return
 	}
 
