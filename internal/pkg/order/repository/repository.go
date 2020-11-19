@@ -6,6 +6,7 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
+	ownErr "github.com/friends/pkg/error"
 )
 
 type OrderRepository struct {
@@ -69,7 +70,7 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) 
 	)
 
 	if err != nil {
-		return models.OrderResponse{}, fmt.Errorf("couldn't get order from db: %w", err)
+		return models.OrderResponse{}, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 	}
 
 	err = o.GetProductsFromOrder(&order)
@@ -88,7 +89,7 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
 
 	var orders []models.OrderResponse
@@ -99,7 +100,7 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 			&order.Address, &order.Status, &order.Price,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 		}
 
 		err = o.GetProductsFromOrder(&order)
@@ -135,7 +136,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
 
 	var orders []models.OrderResponse
@@ -146,7 +147,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 			&order.Address, &order.Status, &order.Price,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 		}
 
 		err = o.GetProductsFromOrder(&order)
