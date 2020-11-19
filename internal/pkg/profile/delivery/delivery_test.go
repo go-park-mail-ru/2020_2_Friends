@@ -147,7 +147,7 @@ func TestUpdateHandlerError(t *testing.T) {
 
 	handler.Update(w, r.WithContext(ctx))
 
-	expected := http.StatusBadRequest
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}

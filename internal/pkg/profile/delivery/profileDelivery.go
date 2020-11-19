@@ -79,7 +79,7 @@ func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = p.profUsecase.Update(*profile)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
