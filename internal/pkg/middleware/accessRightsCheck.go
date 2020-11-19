@@ -32,7 +32,7 @@ func (a AccessRightsChecker) AccessRightsCheck(next http.HandlerFunc, neccessary
 		}
 
 		if role != neccessaryRole {
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusNotAcceptable)
 		}
 
 		next.ServeHTTP(w, r)

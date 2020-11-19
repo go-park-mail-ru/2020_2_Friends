@@ -32,7 +32,7 @@ func (c CSRFChecker) Check(next http.HandlerFunc) http.Handler {
 
 		cookie, err := r.Cookie(configs.SessionID)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
