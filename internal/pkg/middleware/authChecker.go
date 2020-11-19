@@ -32,13 +32,13 @@ func (a AuthChecker) Check(next http.HandlerFunc) http.Handler {
 
 		cookie, err := r.Cookie(configs.SessionID)
 		if err != nil {
-			w.WriteHeader(http.StatusNotAcceptable)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		userID, err := a.sessUsecase.Check(cookie.Value)
 		if err != nil {
-			w.WriteHeader(http.StatusNotAcceptable)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
