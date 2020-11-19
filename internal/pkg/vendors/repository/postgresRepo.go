@@ -6,6 +6,7 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/vendors"
+	ownErr "github.com/friends/pkg/error"
 	"github.com/lib/pq"
 )
 
@@ -78,26 +79,32 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	return vendors, nil
 }
 
-func (v VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product, error) {
+func (v VendorRepository) GetAllProductsWithIDsFromSameVendor(ids []int) ([]models.Product, error) {
 	rows, err := v.db.Query(
 		"SELECT id, vendorID, productName, price, picture FROM products WHERE id = ANY ($1)",
 		pq.Array(ids),
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get products from products: %w", err)
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get products from products: %w", err))
 	}
 	defer rows.Close()
 
 	var products []models.Product
+	vendorID := -1
 	for rows.Next() {
 		var product models.Product
 		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Price, &product.Picture)
 		if err != nil {
-			return nil, fmt.Errorf("error in receiving product: %w", err)
+			return nil, ownErr.NewServerError(fmt.Errorf("error in receiving product: %w", err))
+		}
+
+		if product.VendorID != vendorID && vendorID != -1 {
+			return nil, ownErr.NewClientError(fmt.Errorf("products from different vendors"))
 		}
 
 		products = append(products, product)
+		vendorID = product.VendorID
 	}
 
 	return products, nil
@@ -116,6 +123,22 @@ func (v VendorRepository) GetVendorIDFromProduct(productID string) (string, erro
 	}
 
 	return vendorID, nil
+}
+
+func (v VendorRepository) GetVendorFromProduct(productID int) (models.Vendor, error) {
+	vendor := models.Vendor{}
+	err := v.db.QueryRow(
+		`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
+		JOIN products AS p on v.id = p.vendorID
+		WHERE p.id = $1`,
+		productID,
+	).Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
+	}
+
+	return vendor, nil
 }
 
 func (v VendorRepository) IsVendorExists(vendorName string) error {

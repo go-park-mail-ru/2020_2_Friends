@@ -14,9 +14,16 @@ type RequestError struct {
 	err     error
 }
 
-func NewError(errType int, err error) RequestError {
+func NewClientError(err error) RequestError {
 	return RequestError{
-		errType: errType,
+		errType: ClientError,
+		err:     err,
+	}
+}
+
+func NewServerError(err error) RequestError {
+	return RequestError{
+		errType: ServerError,
 		err:     err,
 	}
 }

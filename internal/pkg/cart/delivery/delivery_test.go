@@ -196,12 +196,12 @@ func TestGetCartSuccess(t *testing.T) {
 	products := []models.Product{
 		{
 			Name:    "a",
-			Price:   "b",
+			Price:   0,
 			Picture: "c",
 		},
 		{
 			Name:    "c",
-			Price:   "a",
+			Price:   0,
 			Picture: "b",
 		},
 	}

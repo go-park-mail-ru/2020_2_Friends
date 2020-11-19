@@ -30,13 +30,13 @@ func TestGet(t *testing.T) {
 			{
 				ID:      0,
 				Name:    "aaa",
-				Price:   "0",
+				Price:   0,
 				Picture: "aaa.png",
 			},
 			{
 				ID:      1,
 				Name:    "bbb",
-				Price:   "1",
+				Price:   0,
 				Picture: "bbb.png",
 			},
 		},
@@ -150,12 +150,14 @@ func TestGetAll(t *testing.T) {
 			Name:        "a",
 			Description: "aa",
 			Picture:     "a.png",
+			Products:    make([]models.Product, 0),
 		},
 		{
 			ID:          1,
 			Name:        "b",
 			Description: "bb",
 			Picture:     "b.jpg",
+			Products:    make([]models.Product, 0),
 		},
 	}
 
@@ -224,19 +226,19 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 
 	repo := NewVendorRepository(db)
 
-	ids := []string{"0", "1"}
+	ids := []int{0, 1}
 	products := []models.Product{
 		{
 			ID:       0,
 			Name:     "aaa",
-			Price:    "0",
+			Price:    0,
 			Picture:  "aaa.png",
 			VendorID: 1,
 		},
 		{
 			ID:       1,
 			Name:     "bbb",
-			Price:    "1",
+			Price:    0,
 			Picture:  "bbb.png",
 			VendorID: 1,
 		},
@@ -253,7 +255,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		WithArgs(pq.Array(ids)).
 		WillReturnRows(rows)
 
-	dbProducts, err := repo.GetAllProductsWithIDs(ids)
+	dbProducts, err := repo.GetAllProductsWithIDsFromSameVendor(ids)
 
 	if !reflect.DeepEqual(dbProducts, products) {
 		t.Errorf("expected: %v\n got: %v", dbProducts, products)
@@ -269,7 +271,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		WithArgs(pq.Array(ids)).
 		WillReturnError(fmt.Errorf("error with db"))
 
-	dbProducts, err = repo.GetAllProductsWithIDs(ids)
+	dbProducts, err = repo.GetAllProductsWithIDsFromSameVendor(ids)
 
 	if dbProducts != nil {
 		t.Errorf("expected: %v\n got: %v", nil, dbProducts)
@@ -290,7 +292,7 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 		WithArgs(pq.Array(ids)).
 		WillReturnRows(rows)
 
-	dbProducts, err = repo.GetAllProductsWithIDs(ids)
+	dbProducts, err = repo.GetAllProductsWithIDsFromSameVendor(ids)
 
 	if dbProducts != nil {
 		t.Errorf("expected: %v\n got: %v", nil, dbProducts)
@@ -520,7 +522,7 @@ func TestAddProduct(t *testing.T) {
 	product := models.Product{
 		VendorID: 1,
 		Name:     "a",
-		Price:    "0",
+		Price:    0,
 	}
 
 	rows := mock.NewRows([]string{"id"}).AddRow(1)
@@ -570,7 +572,7 @@ func TestUpdateProduct(t *testing.T) {
 	product := models.Product{
 		ID:    0,
 		Name:  "a",
-		Price: "0",
+		Price: 0,
 	}
 
 	// good update
@@ -729,12 +731,14 @@ func TestGetPartnerShops(t *testing.T) {
 			Name:        "a",
 			Description: "a",
 			Picture:     "a.jpg",
+			Products:    make([]models.Product, 0),
 		},
 		{
 			ID:          2,
 			Name:        "b",
 			Description: "bb",
 			Picture:     "b.jpg",
+			Products:    make([]models.Product, 0),
 		},
 	}
 
