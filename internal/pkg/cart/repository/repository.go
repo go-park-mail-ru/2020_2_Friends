@@ -43,7 +43,7 @@ func (c CartRepository) Remove(userID, productID string) error {
 	return nil
 }
 
-func (c CartRepository) GetProductIDs(userID string) ([]string, error) {
+func (c CartRepository) GetProductIDs(userID string) ([]int, error) {
 	rows, err := c.db.Query(
 		"SELECT productID from carts where userID=$1",
 		userID,
@@ -54,9 +54,9 @@ func (c CartRepository) GetProductIDs(userID string) ([]string, error) {
 	}
 	defer rows.Close()
 
-	var ids []string
+	var ids []int
 	for rows.Next() {
-		var id string
+		var id int
 		err = rows.Scan(&id)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving id: %w", err)

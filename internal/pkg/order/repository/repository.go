@@ -1,0 +1,198 @@
+package repository
+
+import (
+	"database/sql"
+	"fmt"
+
+	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/order"
+)
+
+type OrderRepository struct {
+	db *sql.DB
+}
+
+func New(db *sql.DB) order.Repository {
+	return OrderRepository{
+		db: db,
+	}
+}
+
+func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int, error) {
+	tx, err := o.db.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("couldn't create transaction: %w", err)
+	}
+	var orderID int
+
+	err = tx.QueryRow(
+		`INSERT INTO orders (userID, vendorID, vendorName, createdAt, clientAddress, price)
+		VALUES($1, $2, $3, $4, $5, $6) RETURNING id`,
+		userID, order.VendorID, order.VendorName, order.CreatedAt, order.Address, order.Price,
+	).Scan(&orderID)
+
+	if err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("couldn't insert order: %w", err)
+	}
+
+	for _, product := range order.Products {
+		_, err = tx.Exec(
+			"INSERT INTO products_in_order (orderID, productName, price, picture) VALUES($1, $2, $3, $4)",
+			orderID, product.Name, product.Price, product.Picture,
+		)
+
+		if err != nil {
+			tx.Rollback()
+			return 0, fmt.Errorf("couldn't insert product: %w", err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return 0, fmt.Errorf("couldn't commit transaction: %w", err)
+	}
+
+	return orderID, nil
+}
+
+func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) {
+	var order models.OrderResponse
+	err := o.db.QueryRow(
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price,
+		FROM orders WHERE id = $1`,
+		orderID,
+	).Scan(
+		&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+		&order.Address, &order.Status, &order.Price,
+	)
+
+	if err != nil {
+		return models.OrderResponse{}, fmt.Errorf("couldn't get order from db: %w", err)
+	}
+
+	err = o.GetProductsFromOrder(&order)
+	if err != nil {
+		return models.OrderResponse{}, err
+	}
+
+	return order, nil
+}
+
+func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, error) {
+	rows, err := o.db.Query(
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
+		FROM orders WHERE userID = $1`,
+		userID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+	}
+
+	var orders []models.OrderResponse
+	for rows.Next() {
+		var order models.OrderResponse
+		err = rows.Scan(
+			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+			&order.Address, &order.Status, &order.Price,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+		}
+
+		err = o.GetProductsFromOrder(&order)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
+	var dbUserID string
+	err := o.db.QueryRow(
+		"SELECT userID FROM orders WHERE id = $1",
+		orderID,
+	).Scan(&dbUserID)
+
+	if err != nil {
+		return false
+	}
+
+	return userID == dbUserID
+}
+
+func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
+	rows, err := o.db.Query(
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
+		FROM orders WHERE vendorID = $1`,
+		vendorID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+	}
+
+	var orders []models.OrderResponse
+	for rows.Next() {
+		var order models.OrderResponse
+		err = rows.Scan(
+			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+			&order.Address, &order.Status, &order.Price,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+		}
+
+		err = o.GetProductsFromOrder(&order)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+func (o OrderRepository) UpdateOrderStatus(orderID string, status string) error {
+	_, err := o.db.Exec(
+		"UPDATE orders SET orderStatus = $1 WHERE id = $2",
+		status, orderID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't update status on orderID: %w", err)
+	}
+
+	return nil
+}
+
+func (o OrderRepository) GetProductsFromOrder(order *models.OrderResponse) error {
+	rows, err := o.db.Query(
+		"SELECT productName, price, picture FROM products_in_order WHERE orderID = $1",
+		order.ID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't get products from order: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		product := models.OrderProduct{}
+		err = rows.Scan(&product.Name, &product.Price, &product.Picture)
+		if err != nil {
+			return fmt.Errorf("couldn't get product: %w", err)
+		}
+
+		order.Products = append(order.Products, product)
+	}
+
+	return nil
+}

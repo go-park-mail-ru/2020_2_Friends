@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS products (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorID INTEGER,
     productName TEXT DEFAULT '' NOT NULL,
-    price TEXT DEFAULT '' NOT NULL,
+    price INTEGER NOT NULL,
     picture TEXT DEFAULT '' NOT NULL,
 
     FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
@@ -49,4 +49,27 @@ CREATE TABLE IF NOT EXISTS carts (
     FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (productID) REFERENCES products (id) ON DELETE CASCADE,
     FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL NOT NULL PRIMARY KEY,
+    userID INTEGER NOT NULL,
+    vendorID INTEGER NOT NULL,
+    vendorName TEXT NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    clientAddress TEXT NOT NULL,
+    orderStatus TEXT DEFAULT '' NOT NULL,
+    price INTEGER NOT NULL,
+
+    FOREIGN KEY (userID) REFERENCES users (id),
+    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+);
+
+CREATE TABLE IF NOT EXISTS products_in_order (
+    orderID INTEGER NOT NULL,
+    productName TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    picture TEXT DEFAULT '' NOT NULL,
+
+    FOREIGN KEY (orderID) REFERENCES orders (id)
 );
