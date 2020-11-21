@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
@@ -14,6 +13,7 @@ import (
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	"github.com/friends/internal/pkg/vendors"
+	"github.com/friends/pkg/httputils"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
@@ -69,21 +69,13 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionName, err := p.sessionUsecase.Create(userID)
+	sessionValue, err := p.sessionUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	expiration := time.Now().Add(configs.ExpireTime)
-	cookie := http.Cookie{
-		Name:     configs.SessionID,
-		Value:    sessionName,
-		Expires:  expiration,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	http.SetCookie(w, &cookie)
+	httputils.SetCookie(w, sessionValue)
 	w.WriteHeader(http.StatusCreated)
 }
 

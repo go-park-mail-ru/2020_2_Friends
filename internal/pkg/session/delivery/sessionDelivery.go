@@ -3,13 +3,13 @@ package delivery
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	ownErr "github.com/friends/pkg/error"
+	"github.com/friends/pkg/httputils"
 	log "github.com/friends/pkg/logger"
 )
 
@@ -47,21 +47,13 @@ func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionName, err := sd.sessionUsecase.Create(userID)
+	sessionValue, err := sd.sessionUsecase.Create(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	expiration := time.Now().Add(configs.ExpireTime)
-	cookie := http.Cookie{
-		Name:     configs.SessionID,
-		Value:    sessionName,
-		Expires:  expiration,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	http.SetCookie(w, &cookie)
+	httputils.SetCookie(w, sessionValue)
 }
 
 func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
@@ -84,8 +76,5 @@ func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie.Expires = time.Now().AddDate(0, 0, -1)
-	cookie.Path = "/"
-	http.SetCookie(w, cookie)
-
+	httputils.DeleteCookie(w, cookie)
 }

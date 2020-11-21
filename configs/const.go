@@ -21,5 +21,4 @@ const (
 	ProductID              = "product_id"
 	UserRole               = 1
 	AdminRole              = 2
-	AdminsCookieName       = "isAdmin"
 )
