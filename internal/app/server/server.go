@@ -93,7 +93,7 @@ func StartApiServer() {
 	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase)
 
 	reviewRepository := reviewRepository.New(db)
-	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo, profRepo)
+	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo, profRepo, vendRepo)
 	reviewDelivery := reviewDelivery.New(reviewUsecase, vendUsecase)
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
