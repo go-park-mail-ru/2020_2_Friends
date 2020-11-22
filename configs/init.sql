@@ -73,3 +73,13 @@ CREATE TABLE IF NOT EXISTS products_in_order (
 
     FOREIGN KEY (orderID) REFERENCES orders (id)
 );
+
+CREATE TABLE IF NOT EXISTS reviews (
+    userID INTEGER NOT NULL,
+    orderID INTEGER NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating > 0 AND rating < 6)
+    review_text TEXT DEFAULT '' NOT NULL,
+
+    FOREIGN KEY (userID) REFERENCES users (id),
+    FOREIGN KEY (orderID) REFERENCES orders (id)
+);
