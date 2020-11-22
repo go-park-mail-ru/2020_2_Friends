@@ -13,6 +13,13 @@ type ReviewUsecase struct {
 	orderRepository  order.Repository
 }
 
+func New(reviewRepository review.Repository, orderRepository order.Repository) review.Usecase {
+	return ReviewUsecase{
+		reviewRepository: reviewRepository,
+		orderRepository:  orderRepository,
+	}
+}
+
 func (r ReviewUsecase) AddReview(review models.Review) error {
 	vendorID, err := r.orderRepository.GetVendorIDFromOrder(review.OrderID)
 	if err != nil {
