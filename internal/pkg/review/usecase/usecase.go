@@ -8,6 +8,7 @@ import (
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/review"
+	"github.com/friends/internal/pkg/vendors"
 
 	ownErr "github.com/friends/pkg/error"
 )
@@ -16,15 +17,18 @@ type ReviewUsecase struct {
 	reviewRepository  review.Repository
 	orderRepository   order.Repository
 	profileRepository profile.Repository
+	vendorRepository  vendors.Repository
 }
 
 func New(
-	reviewRepository review.Repository, orderRepository order.Repository, profileRepository profile.Repository,
+	reviewRepository review.Repository, orderRepository order.Repository,
+	profileRepository profile.Repository, vendorRepository vendors.Repository,
 ) review.Usecase {
 	return ReviewUsecase{
 		reviewRepository:  reviewRepository,
 		orderRepository:   orderRepository,
 		profileRepository: profileRepository,
+		vendorRepository:  vendorRepository,
 	}
 }
 
@@ -48,21 +52,35 @@ func (r ReviewUsecase) GetUserReviews(userID string) ([]models.Review, error) {
 	return r.reviewRepository.GetUserReviews(userID)
 }
 
-func (r ReviewUsecase) GetVendorReviews(vendorID string) ([]models.Review, error) {
+func (r ReviewUsecase) GetVendorReviews(vendorID string) (models.VendorReviewsResponse, error) {
+	idInt, err := strconv.Atoi(vendorID)
+	if err != nil {
+		return models.VendorReviewsResponse{}, err
+	}
+	vendor, err := r.vendorRepository.Get(idInt)
+	if err != nil {
+		return models.VendorReviewsResponse{}, fmt.Errorf("couldn't get vendor: %w", err)
+	}
+
 	reviews, err := r.reviewRepository.GetVendorReviews(vendorID)
 
 	if err != nil {
-		return nil, err
+		return models.VendorReviewsResponse{}, err
 	}
 
 	for idx, review := range reviews {
 		name, err := r.profileRepository.GetUsername(review.UserID)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get username: %w", err)
+			return models.VendorReviewsResponse{}, fmt.Errorf("couldn't get username: %w", err)
 		}
 
 		reviews[idx].Username = name
 	}
 
-	return reviews, nil
+	resp := models.VendorReviewsResponse{
+		VendorName:    vendor.Name,
+		VendorPicture: vendor.Picture,
+		Reviews:       reviews,
+	}
+	return resp, nil
 }

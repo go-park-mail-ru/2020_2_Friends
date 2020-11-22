@@ -17,6 +17,13 @@ type Review struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+//easyjson:json
+type VendorReviewsResponse struct {
+	VendorName    string   `json:"vendor_name"`
+	VendorPicture string   `json:"vendor_picture"`
+	Reviews       []Review `json:"reviews"`
+}
+
 func (r *Review) Sanitize() {
 	p := bluemonday.UGCPolicy()
 	r.Text = p.Sanitize(r.Text)
