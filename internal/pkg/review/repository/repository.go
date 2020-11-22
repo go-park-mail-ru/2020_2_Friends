@@ -22,7 +22,7 @@ func (r ReviewRepository) AddReview(review models.Review) error {
 	_, err := r.db.Exec(
 		`INSERT INTO reviews (userID, orderID, vendorID, rating, review_text, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`,
-		review.UserID, review.OrderID, review.VendorID, review.Rating, review.Text, review.CreateAt,
+		review.UserID, review.OrderID, review.VendorID, review.Rating, review.Text, review.CreatedAt,
 	)
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (r ReviewRepository) GetUserReviews(userID string) ([]models.Review, error)
 	reviews := make([]models.Review, 0)
 	for rows.Next() {
 		review := models.Review{}
-		err = rows.Scan(&review.UserID, &review.OrderID, &review.Rating, &review.Text, &review.CreateAt)
+		err = rows.Scan(&review.UserID, &review.OrderID, &review.Rating, &review.Text, &review.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get user review: %w", err)
 		}
@@ -73,7 +73,7 @@ func (r ReviewRepository) GetVendorReviews(vendorID string) ([]models.Review, er
 	reviews := make([]models.Review, 0)
 	for rows.Next() {
 		review := models.Review{}
-		err = rows.Scan(&review.UserID, &review.OrderID, &review.Rating, &review.Text, &review.CreateAt)
+		err = rows.Scan(&review.UserID, &review.OrderID, &review.Rating, &review.Text, &review.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get vendor review: %w", err)
 		}
