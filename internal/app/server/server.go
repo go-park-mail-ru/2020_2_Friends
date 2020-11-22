@@ -94,7 +94,7 @@ func StartApiServer() {
 
 	reviewRepository := reviewRepository.New(db)
 	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo)
-	reviewDelivery := reviewDelivery.New(reviewUsecase)
+	reviewDelivery := reviewDelivery.New(reviewUsecase, vendUsecase)
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
@@ -128,6 +128,7 @@ func StartApiServer() {
 	mux.Handle("/vendors/{vendorID}/products/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole))).Methods("DELETE")
 	mux.Handle("/vendors/{vendorID}/products/{id}/pictures", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole))).Methods("PUT")
 	mux.Handle("/vendors/{id}/orders", csrfChecker.Check(orderDelivery.GetVendorOrders)).Methods("GET")
+	mux.Handle("/vendors/{id}/reviews", csrfChecker.Check(reviewDelivery.GetVendorReviews)).Methods("GET")
 	mux.Handle("/vendors/{vendorID}/orders/{id}", csrfChecker.Check(orderDelivery.UpdateOrderStatus)).Methods("PUT")
 	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
 	mux.Handle("/partners/vendors", authChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
