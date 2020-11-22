@@ -2,11 +2,14 @@ package usecase
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/review"
+
+	ownErr "github.com/friends/pkg/error"
 )
 
 type ReviewUsecase struct {
@@ -26,6 +29,11 @@ func New(
 }
 
 func (r ReviewUsecase) AddReview(review models.Review) error {
+	isUserOrder := r.orderRepository.CheckOrderByUser(review.UserID, strconv.Itoa(review.OrderID))
+	if !isUserOrder {
+		return ownErr.NewClientError(fmt.Errorf("the order does not belong to the user"))
+	}
+
 	vendorID, err := r.orderRepository.GetVendorIDFromOrder(review.OrderID)
 	if err != nil {
 		return err
