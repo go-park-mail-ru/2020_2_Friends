@@ -139,6 +139,7 @@ func StartApiServer() {
 	mux.Handle("/orders/{id}", csrfChecker.Check(orderDelivery.GetOrder)).Methods("GET")
 	mux.Handle("/csrf", authChecker.Check(csrfDelivery.SetCSRF)).Methods("GET")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
+	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)
