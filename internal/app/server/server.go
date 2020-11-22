@@ -20,6 +20,9 @@ import (
 	profileDelivery "github.com/friends/internal/pkg/profile/delivery"
 	profileRepo "github.com/friends/internal/pkg/profile/repository"
 	profileUsecase "github.com/friends/internal/pkg/profile/usecase"
+	reviewDelivery "github.com/friends/internal/pkg/review/delivery"
+	reviewRepository "github.com/friends/internal/pkg/review/repository"
+	reviewUsecase "github.com/friends/internal/pkg/review/usecase"
 	sessionDelivery "github.com/friends/internal/pkg/session/delivery"
 	sessionRepo "github.com/friends/internal/pkg/session/repository"
 	sessionUsecase "github.com/friends/internal/pkg/session/usecase"
@@ -89,6 +92,10 @@ func StartApiServer() {
 	orderUsecase := orderUsecase.New(orderRepo, vendRepo)
 	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase)
 
+	reviewRepository := reviewRepository.New(db)
+	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo)
+	reviewDelivery := reviewDelivery.New(reviewUsecase)
+
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
 	csrfRepository, err := csrfRepo.New(redisClient)
@@ -131,6 +138,7 @@ func StartApiServer() {
 	mux.Handle("/orders", csrfChecker.Check(orderDelivery.GetUserOrders)).Methods("GET")
 	mux.Handle("/orders/{id}", csrfChecker.Check(orderDelivery.GetOrder)).Methods("GET")
 	mux.Handle("/csrf", authChecker.Check(csrfDelivery.SetCSRF)).Methods("GET")
+	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)

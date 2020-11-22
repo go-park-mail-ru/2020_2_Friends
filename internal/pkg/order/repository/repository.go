@@ -6,6 +6,8 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
+
+	ownErr "github.com/friends/pkg/error"
 )
 
 type OrderRepository struct {
@@ -204,8 +206,12 @@ func (o OrderRepository) GetVendorIDFromOrder(orderID int) (int, error) {
 		orderID,
 	).Scan(&vendorID)
 
+	if err == sql.ErrNoRows {
+		return 0, ownErr.NewClientError(fmt.Errorf("no such order"))
+	}
+
 	if err != nil {
-		return 0, fmt.Errorf("couldn't get vendorID from db: %w", err)
+		return 0, ownErr.NewServerError(fmt.Errorf("couldn't get vendorID from db: %w", err))
 	}
 
 	return vendorID, nil

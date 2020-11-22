@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"fmt"
-
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/review"
@@ -23,7 +21,7 @@ func New(reviewRepository review.Repository, orderRepository order.Repository) r
 func (r ReviewUsecase) AddReview(review models.Review) error {
 	vendorID, err := r.orderRepository.GetVendorIDFromOrder(review.OrderID)
 	if err != nil {
-		return fmt.Errorf("couldn't add review: %w", err)
+		return err
 	}
 
 	review.VendorID = vendorID
