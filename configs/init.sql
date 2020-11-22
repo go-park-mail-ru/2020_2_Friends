@@ -77,10 +77,12 @@ CREATE TABLE IF NOT EXISTS products_in_order (
 CREATE TABLE IF NOT EXISTS reviews (
     userID INTEGER NOT NULL,
     orderID INTEGER NOT NULL,
+    vendorID INTEGER NOT NULL,
     rating INTEGER NOT NULL CHECK (rating > 0 AND rating < 6)
     review_text TEXT DEFAULT '' NOT NULL,
     created_at DATETIME NOT NULL,
 
     FOREIGN KEY (userID) REFERENCES users (id),
-    FOREIGN KEY (orderID) REFERENCES orders (id)
+    FOREIGN KEY (orderID) REFERENCES orders (id),
+    FOREIGN KEY (vendorID) REFERENCES vendors (id)
 );
