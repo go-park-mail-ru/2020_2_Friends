@@ -98,21 +98,8 @@ func (re ReviewDelivery) GetVendorReviews(w http.ResponseWriter, r *http.Request
 		}
 	}()
 
-	userID, ok := r.Context().Value(middleware.UserID(configs.UserID)).(string)
-	if !ok {
-		err = fmt.Errorf("couldn't get userID from context")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	vendorID, ok := mux.Vars(r)["id"]
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = re.vendorUsecase.CheckVendorOwner(userID, vendorID)
-	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
