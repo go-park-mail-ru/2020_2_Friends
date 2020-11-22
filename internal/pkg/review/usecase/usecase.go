@@ -1,20 +1,27 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
+	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/review"
 )
 
 type ReviewUsecase struct {
-	reviewRepository review.Repository
-	orderRepository  order.Repository
+	reviewRepository  review.Repository
+	orderRepository   order.Repository
+	profileRepository profile.Repository
 }
 
-func New(reviewRepository review.Repository, orderRepository order.Repository) review.Usecase {
+func New(
+	reviewRepository review.Repository, orderRepository order.Repository, profileRepository profile.Repository,
+) review.Usecase {
 	return ReviewUsecase{
-		reviewRepository: reviewRepository,
-		orderRepository:  orderRepository,
+		reviewRepository:  reviewRepository,
+		orderRepository:   orderRepository,
+		profileRepository: profileRepository,
 	}
 }
 
@@ -34,5 +41,20 @@ func (r ReviewUsecase) GetUserReviews(userID string) ([]models.Review, error) {
 }
 
 func (r ReviewUsecase) GetVendorReviews(vendorID string) ([]models.Review, error) {
-	return r.reviewRepository.GetVendorReviews(vendorID)
+	reviews, err := r.reviewRepository.GetVendorReviews(vendorID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for idx, review := range reviews {
+		name, err := r.profileRepository.GetUsername(review.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get username: %w", err)
+		}
+
+		reviews[idx].Username = name
+	}
+
+	return reviews, nil
 }

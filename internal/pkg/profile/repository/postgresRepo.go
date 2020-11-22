@@ -117,6 +117,20 @@ func (p ProfileRepository) Delete(userID string) error {
 	return nil
 }
 
+func (p ProfileRepository) GetUsername(userID string) (string, error) {
+	var name string
+	err := p.db.QueryRow(
+		"SELECT username FROM profiles WHERE userID = $1",
+		userID,
+	).Scan(&name)
+
+	if err != nil {
+		return "", fmt.Errorf("couldn't get username")
+	}
+
+	return name, nil
+}
+
 func fromDBToApp(dbProf dbProfile) models.Profile {
 	appProf := models.Profile{
 		UserID: dbProf.UserID,

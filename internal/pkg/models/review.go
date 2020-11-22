@@ -8,7 +8,8 @@ import (
 
 //easyjson:json
 type Review struct {
-	UserID    string    `json:"user_id"`
+	UserID    string    `json:"-"`
+	Username  string    `json:"username"`
 	OrderID   int       `json:"order_id"`
 	VendorID  int       `json:"-"`
 	Rating    int       `json:"rating"`
