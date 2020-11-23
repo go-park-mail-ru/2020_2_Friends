@@ -131,7 +131,7 @@ func StartApiServer() {
 	mux.HandleFunc("/vendors/{id}/reviews", reviewDelivery.GetVendorReviews).Methods("GET")
 	mux.Handle("/vendors/{vendorID}/orders/{id}", csrfChecker.Check(orderDelivery.UpdateOrderStatus)).Methods("PUT")
 	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
-	mux.Handle("/partners/vendors", authChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
+	mux.Handle("/partners/vendors", csrfChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
 	mux.Handle("/carts", csrfChecker.Check(cartDelivery.GetCart)).Methods("GET")
