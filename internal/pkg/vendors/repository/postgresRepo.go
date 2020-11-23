@@ -166,8 +166,9 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	var vendorID int
 
 	err = tx.QueryRow(
-		"INSERT INTO vendors (vendorName, descript) VALUES($1, $2) RETURNING id",
-		vendor.Name, vendor.Description,
+		`INSERT INTO vendors (vendorName, descript, coordinates, service_radius)
+		VALUES ($1, $2, ST_SetSRID(ST_Point($3, $4), 4326), $5) RETURNING id`,
+		vendor.Name, vendor.Description, vendor.Longtitude, vendor.Latitude, vendor.Radius,
 	).Scan(&vendorID)
 
 	if err != nil {
