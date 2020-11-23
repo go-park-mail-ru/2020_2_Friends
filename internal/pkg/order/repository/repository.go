@@ -6,6 +6,8 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
+
+	ownErr "github.com/friends/pkg/error"
 )
 
 type OrderRepository struct {
@@ -60,7 +62,7 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) {
 	var order models.OrderResponse
 	err := o.db.QueryRow(
-		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price,
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
 		FROM orders WHERE id = $1`,
 		orderID,
 	).Scan(
@@ -195,4 +197,22 @@ func (o OrderRepository) GetProductsFromOrder(order *models.OrderResponse) error
 	}
 
 	return nil
+}
+
+func (o OrderRepository) GetVendorIDFromOrder(orderID int) (int, error) {
+	var vendorID int
+	err := o.db.QueryRow(
+		"SELECT vendorID FROM orders WHERE id = $1",
+		orderID,
+	).Scan(&vendorID)
+
+	if err == sql.ErrNoRows {
+		return 0, ownErr.NewClientError(fmt.Errorf("no such order"))
+	}
+
+	if err != nil {
+		return 0, ownErr.NewServerError(fmt.Errorf("couldn't get vendorID from db: %w", err))
+	}
+
+	return vendorID, nil
 }
