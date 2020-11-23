@@ -22,12 +22,13 @@ func NewVendorRepository(db *sql.DB) vendors.Repository {
 
 func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	row := v.db.QueryRow(
-		"SELECT id, vendorName, descript, picture FROM vendors WHERE id=$1",
+		`SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius
+		FROM vendors WHERE id=$1`,
 		id,
 	)
 
 	vendor := models.NewEmptyVendor()
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longtitude, &vendor.Latitude, &vendor.Radius)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("no such vendor")
 	}
@@ -57,7 +58,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 
 func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorName, descript, picture FROM vendors",
+		"SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius FROM vendors",
 	)
 
 	if err != nil {
@@ -68,7 +69,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longtitude, &vendor.Latitude, &vendor.Radius)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
