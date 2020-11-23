@@ -118,7 +118,7 @@ func (p ProfileRepository) Delete(userID string) error {
 }
 
 func (p ProfileRepository) GetUsername(userID string) (string, error) {
-	var name string
+	var name sql.NullString
 	err := p.db.QueryRow(
 		"SELECT username FROM profiles WHERE userID = $1",
 		userID,
@@ -128,7 +128,7 @@ func (p ProfileRepository) GetUsername(userID string) (string, error) {
 		return "", fmt.Errorf("couldn't get username: %w", err)
 	}
 
-	return name, nil
+	return name.String, nil
 }
 
 func fromDBToApp(dbProf dbProfile) models.Profile {
