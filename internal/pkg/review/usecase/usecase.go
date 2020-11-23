@@ -71,7 +71,7 @@ func (r ReviewUsecase) GetVendorReviews(vendorID string) (models.VendorReviewsRe
 	for idx, review := range reviews {
 		name, err := r.profileRepository.GetUsername(review.UserID)
 		if err != nil {
-			return models.VendorReviewsResponse{}, fmt.Errorf("couldn't get username: %w", err)
+			return models.VendorReviewsResponse{}, err
 		}
 
 		reviews[idx].Username = name

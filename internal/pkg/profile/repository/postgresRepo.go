@@ -125,7 +125,7 @@ func (p ProfileRepository) GetUsername(userID string) (string, error) {
 	).Scan(&name)
 
 	if err != nil {
-		return "", fmt.Errorf("couldn't get username")
+		return "", fmt.Errorf("couldn't get username: %w", err)
 	}
 
 	return name, nil
