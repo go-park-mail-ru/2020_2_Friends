@@ -6,9 +6,13 @@ import "github.com/microcosm-cc/bluemonday"
 type Vendor struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"store_name"`
+	HintContent string    `json:"hintContent"`
 	Products    []Product `json:"products"`
 	Description string    `json:"description"`
 	Picture     string    `json:"picture"`
+	Longtitude  float32   `json:"longtitude"`
+	Latitude    float32   `json:"latitude"`
+	Radius      int       `json:"distance"`
 }
 
 //easyjson:json

@@ -22,15 +22,17 @@ func NewVendorRepository(db *sql.DB) vendors.Repository {
 
 func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	row := v.db.QueryRow(
-		"SELECT id, vendorName, descript, picture FROM vendors WHERE id=$1",
+		`SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius
+		FROM vendors WHERE id=$1`,
 		id,
 	)
 
 	vendor := models.NewEmptyVendor()
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longtitude, &vendor.Latitude, &vendor.Radius)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
+	vendor.HintContent = vendor.Name
 
 	rows, err := v.db.Query(
 		"SELECT id, productName, price, picture FROM products WHERE vendorID=$1",
@@ -72,7 +74,7 @@ func (v VendorRepository) GetVendorInfo(id string) (models.Vendor, error) {
 
 func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorName, descript, picture FROM vendors",
+		"SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius FROM vendors",
 	)
 
 	if err != nil {
@@ -83,10 +85,11 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longtitude, &vendor.Latitude, &vendor.Radius)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
+		vendor.HintContent = vendor.Name
 
 		vendors = append(vendors, vendor)
 	}
@@ -181,8 +184,9 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	var vendorID int
 
 	err = tx.QueryRow(
-		"INSERT INTO vendors (vendorName, descript) VALUES($1, $2) RETURNING id",
-		vendor.Name, vendor.Description,
+		`INSERT INTO vendors (vendorName, descript, coordinates, service_radius)
+		VALUES ($1, $2, ST_SetSRID(ST_Point($3, $4), 4326), $5) RETURNING id`,
+		vendor.Name, vendor.Description, vendor.Longtitude, vendor.Latitude, vendor.Radius,
 	).Scan(&vendorID)
 
 	if err != nil {
