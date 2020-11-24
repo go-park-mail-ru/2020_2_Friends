@@ -32,6 +32,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("no such vendor")
 	}
+	vendor.HintContent = vendor.Name
 
 	rows, err := v.db.Query(
 		"SELECT id, productName, price, picture FROM products WHERE vendorID=$1",
@@ -73,6 +74,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
+		vendor.HintContent = vendor.Name
 
 		vendors = append(vendors, vendor)
 	}
