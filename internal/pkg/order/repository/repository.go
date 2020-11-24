@@ -92,7 +92,7 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
 
-	var orders []models.OrderResponse
+	orders := make([]models.OrderResponse, 0)
 	for rows.Next() {
 		var order models.OrderResponse
 		err = rows.Scan(
@@ -139,7 +139,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
 
-	var orders []models.OrderResponse
+	orders := make([]models.OrderResponse, 0)
 	for rows.Next() {
 		var order models.OrderResponse
 		err = rows.Scan(
