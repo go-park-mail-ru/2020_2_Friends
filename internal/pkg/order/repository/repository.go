@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 
@@ -69,6 +70,7 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) 
 		&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
 		&order.Address, &order.Status, &order.Price,
 	)
+	order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
 	if err != nil {
 		return models.OrderResponse{}, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
@@ -103,6 +105,7 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 		if err != nil {
 			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 		}
+		order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
 		err = o.GetProductsFromOrder(&order)
 		if err != nil {
@@ -150,6 +153,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 		if err != nil {
 			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 		}
+		order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
 		err = o.GetProductsFromOrder(&order)
 		if err != nil {

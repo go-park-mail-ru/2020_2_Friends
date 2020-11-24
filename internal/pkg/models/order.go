@@ -19,14 +19,15 @@ type OrderRequest struct {
 
 //easyjson:json
 type OrderResponse struct {
-	ID         int            `json:"id"`
-	UserID     int            `json:"user_id"`
-	VendorName string         `json:"vendor_name,omitempty"`
-	Products   []OrderProduct `json:"products"`
-	CreatedAt  time.Time      `json:"created_at"`
-	Address    string         `json:"address"`
-	Status     string         `json:"status"`
-	Price      int            `json:"price"`
+	ID           int            `json:"id"`
+	UserID       int            `json:"user_id"`
+	VendorName   string         `json:"vendor_name,omitempty"`
+	Products     []OrderProduct `json:"products"`
+	CreatedAt    time.Time      `json:"-"`
+	CreatedAtStr string         `json:"created_at"`
+	Address      string         `json:"address"`
+	Status       string         `json:"status"`
+	Price        int            `json:"price"`
 }
 
 type VendorOrdersResponse struct {

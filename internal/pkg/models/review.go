@@ -8,13 +8,14 @@ import (
 
 //easyjson:json
 type Review struct {
-	UserID    string    `json:"-"`
-	Username  string    `json:"username"`
-	OrderID   int       `json:"order_id"`
-	VendorID  int       `json:"-"`
-	Rating    int       `json:"rating"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"created_at"`
+	UserID       string    `json:"-"`
+	Username     string    `json:"username"`
+	OrderID      int       `json:"order_id"`
+	VendorID     int       `json:"-"`
+	Rating       int       `json:"rating"`
+	Text         string    `json:"text"`
+	CreatedAt    time.Time `json:"-"`
+	CreatedAtStr string    `json:"created_at"`
 }
 
 //easyjson:json
