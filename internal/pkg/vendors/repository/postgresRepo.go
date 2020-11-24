@@ -325,7 +325,7 @@ func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, er
 	}
 	defer rows.Close()
 
-	var vendors []models.Vendor
+	vendors := make([]models.Vendor, 0)
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
 		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
