@@ -161,13 +161,13 @@ func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := o.orderUsecase.GetVendorOrders(vendorID)
+	resp, err := o.orderUsecase.GetVendorOrders(vendorID)
 	if err != nil {
 		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(orders)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

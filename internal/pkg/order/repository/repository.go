@@ -131,7 +131,7 @@ func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
 
 func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
 	rows, err := o.db.Query(
-		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
+		`SELECT id, userID, createdAt, clientAddress, orderStatus, price
 		FROM orders WHERE vendorID = $1`,
 		vendorID,
 	)
@@ -144,7 +144,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 	for rows.Next() {
 		var order models.OrderResponse
 		err = rows.Scan(
-			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+			&order.ID, &order.UserID, &order.CreatedAt,
 			&order.Address, &order.Status, &order.Price,
 		)
 		if err != nil {

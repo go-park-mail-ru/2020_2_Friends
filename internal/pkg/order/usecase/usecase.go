@@ -70,13 +70,23 @@ func (o OrderUsecase) GetUserOrders(userID string) ([]models.OrderResponse, erro
 	return orders, nil
 }
 
-func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
-	orders, err := o.orderRepository.GetVendorOrders(vendorID)
+func (o OrderUsecase) GetVendorOrders(vendorID string) (models.VendorOrdersResponse, error) {
+	vendor, err := o.vendorRepository.GetVendorInfo(vendorID)
 	if err != nil {
-		return nil, err
+		return models.VendorOrdersResponse{}, err
 	}
 
-	return orders, nil
+	vendorWithOrders := models.VendorOrdersResponse{
+		VendorName:    vendor.Name,
+		VendorPicture: vendor.Picture,
+	}
+
+	vendorWithOrders.Orders, err = o.orderRepository.GetVendorOrders(vendorID)
+	if err != nil {
+		return models.VendorOrdersResponse{}, err
+	}
+
+	return vendorWithOrders, nil
 }
 
 func (o OrderUsecase) UpdateOrderStatus(orderID string, status string) error {
