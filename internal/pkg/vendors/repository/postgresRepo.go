@@ -90,7 +90,7 @@ func (v VendorRepository) GetAllProductsWithIDsFromSameVendor(ids []int) ([]mode
 	}
 	defer rows.Close()
 
-	var products []models.Product
+	products := make([]models.Product, 0)
 	vendorID := -1
 	for rows.Next() {
 		var product models.Product
