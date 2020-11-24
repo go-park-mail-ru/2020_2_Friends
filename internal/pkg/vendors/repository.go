@@ -4,6 +4,7 @@ import "github.com/friends/internal/pkg/models"
 
 type Repository interface {
 	Get(id int) (models.Vendor, error)
+	GetVendorInfo(id string) (models.Vendor, error)
 	GetAll() ([]models.Vendor, error)
 	GetAllProductsWithIDsFromSameVendor(ids []int) ([]models.Product, error)
 	GetVendorIDFromProduct(productID string) (string, error)

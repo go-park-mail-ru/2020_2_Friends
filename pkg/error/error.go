@@ -40,11 +40,11 @@ func (r RequestError) IsServerError() bool {
 	return r.errType == ServerError
 }
 
-func HandleErrorAndWriteResponse(w http.ResponseWriter, err error) {
+func HandleErrorAndWriteResponse(w http.ResponseWriter, err error, clientErrorStatusCode int) {
 	re, ok := err.(RequestError)
 	if ok {
 		if re.IsClientError() {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(clientErrorStatusCode)
 			return
 		}
 		if re.IsServerError() {

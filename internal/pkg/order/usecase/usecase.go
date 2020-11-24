@@ -6,6 +6,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
+	ownErr "github.com/friends/pkg/error"
 )
 
 type OrderUsecase struct {
@@ -31,7 +32,7 @@ func (o OrderUsecase) AddOrder(userID string, order models.OrderRequest) (int, e
 
 	products, err := o.vendorRepository.GetAllProductsWithIDsFromSameVendor(order.ProductIDs)
 	if err != nil {
-		return 0, fmt.Errorf("error with db: %w", err)
+		return 0, err
 	}
 
 	for _, product := range products {
@@ -49,12 +50,12 @@ func (o OrderUsecase) AddOrder(userID string, order models.OrderRequest) (int, e
 
 func (o OrderUsecase) GetOrder(userID string, orderID string) (models.OrderResponse, error) {
 	if !o.orderRepository.CheckOrderByUser(userID, orderID) {
-		return models.OrderResponse{}, fmt.Errorf("user is not order owner")
+		return models.OrderResponse{}, ownErr.NewClientError(fmt.Errorf("user is not order owner"))
 	}
 
 	order, err := o.orderRepository.GetOrder(orderID)
 	if err != nil {
-		return models.OrderResponse{}, fmt.Errorf("error with postgres, couldn't get order: %w", err)
+		return models.OrderResponse{}, err
 	}
 
 	return order, nil
@@ -63,19 +64,29 @@ func (o OrderUsecase) GetOrder(userID string, orderID string) (models.OrderRespo
 func (o OrderUsecase) GetUserOrders(userID string) ([]models.OrderResponse, error) {
 	orders, err := o.orderRepository.GetUserOrders(userID)
 	if err != nil {
-		return nil, fmt.Errorf("error with postgres: %w", err)
+		return nil, err
 	}
 
 	return orders, nil
 }
 
-func (o OrderUsecase) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
-	orders, err := o.orderRepository.GetVendorOrders(vendorID)
+func (o OrderUsecase) GetVendorOrders(vendorID string) (models.VendorOrdersResponse, error) {
+	vendor, err := o.vendorRepository.GetVendorInfo(vendorID)
 	if err != nil {
-		return nil, fmt.Errorf("error with postgres: %w", err)
+		return models.VendorOrdersResponse{}, err
 	}
 
-	return orders, nil
+	vendorWithOrders := models.VendorOrdersResponse{
+		VendorName:    vendor.Name,
+		VendorPicture: vendor.Picture,
+	}
+
+	vendorWithOrders.Orders, err = o.orderRepository.GetVendorOrders(vendorID)
+	if err != nil {
+		return models.VendorOrdersResponse{}, err
+	}
+
+	return vendorWithOrders, nil
 }
 
 func (o OrderUsecase) UpdateOrderStatus(orderID string, status string) error {

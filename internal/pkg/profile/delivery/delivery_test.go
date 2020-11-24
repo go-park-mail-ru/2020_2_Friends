@@ -48,7 +48,7 @@ func TestGetSuccess(t *testing.T) {
 	}
 
 	var respProf models.Profile
-	json.Unmarshal(w.Body.Bytes(), &respProf)
+	_ = json.Unmarshal(w.Body.Bytes(), &respProf)
 	if !reflect.DeepEqual(prof, respProf) {
 		t.Errorf("expected: %v\n got: %v", prof, respProf)
 	}
@@ -72,7 +72,7 @@ func TestGetError(t *testing.T) {
 
 	handler.Get(w, r.WithContext(ctx))
 
-	if w.Code != http.StatusBadRequest {
+	if w.Code != http.StatusInternalServerError {
 		t.Errorf("expected: %v\n got: %v", http.StatusCreated, w.Code)
 	}
 }
@@ -147,7 +147,7 @@ func TestUpdateHandlerError(t *testing.T) {
 
 	handler.Update(w, r.WithContext(ctx))
 
-	expected := http.StatusBadRequest
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}

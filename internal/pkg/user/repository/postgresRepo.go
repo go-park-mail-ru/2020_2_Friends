@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/user"
@@ -80,13 +79,9 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 }
 
 func (u UserRepository) Delete(userID string) error {
-	id, err := strconv.Atoi(userID)
-	if err != nil {
-		return fmt.Errorf("couldn't convert to string: %w", err)
-	}
-	_, err = u.db.Exec(
+	_, err := u.db.Exec(
 		"DELETE FROM users WHERE id=$1",
-		id,
+		userID,
 	)
 
 	if err != nil {

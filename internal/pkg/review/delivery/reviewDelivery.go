@@ -57,7 +57,7 @@ func (rd ReviewDelivery) AddReview(w http.ResponseWriter, r *http.Request) {
 
 	err = rd.reviewUsecase.AddReview(review)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 }

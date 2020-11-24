@@ -10,6 +10,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 
 	"github.com/friends/internal/pkg/profile"
+	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
 )
 
@@ -40,7 +41,7 @@ func (p ProfileDelivery) Get(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := p.profUsecase.Get(userID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	profile.Sanitize()
@@ -79,7 +80,7 @@ func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = p.profUsecase.Update(*profile)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -113,7 +114,7 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	imgName, err := p.profUsecase.UpdateAvatar(userID, file)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusUnsupportedMediaType)
 		return
 	}
 

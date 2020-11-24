@@ -55,7 +55,7 @@ func (o OrderDelivery) AddOrder(w http.ResponseWriter, r *http.Request) {
 
 	orderID, err := o.orderUsecase.AddOrder(userID, order)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusConflict)
 		return
 	}
 
@@ -85,11 +85,16 @@ func (o OrderDelivery) GetOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orderID := mux.Vars(r)["id"]
+	orderID, ok := mux.Vars(r)["id"]
+	if !ok {
+		err = fmt.Errorf("no id in path")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	order, err := o.orderUsecase.GetOrder(userID, orderID)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -117,7 +122,7 @@ func (o OrderDelivery) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := o.orderUsecase.GetUserOrders(userID)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -143,7 +148,12 @@ func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vendorID := mux.Vars(r)["id"]
+	vendorID, ok := mux.Vars(r)["id"]
+	if !ok {
+		err = fmt.Errorf("no vendor id in path")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	err = o.vendorUsecase.CheckVendorOwner(partnerID, vendorID)
 	if err != nil {
@@ -151,13 +161,13 @@ func (o OrderDelivery) GetVendorOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := o.orderUsecase.GetVendorOrders(vendorID)
+	resp, err := o.orderUsecase.GetVendorOrders(vendorID)
 	if err != nil {
-		ownErr.HandleErrorAndWriteResponse(w, err)
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(orders)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -179,7 +189,12 @@ func (o OrderDelivery) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	vendorID := mux.Vars(r)["vendorID"]
+	vendorID, ok := mux.Vars(r)["vendorID"]
+	if !ok {
+		err = fmt.Errorf("no vendor id in path")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	err = o.vendorUsecase.CheckVendorOwner(partnerID, vendorID)
 	if err != nil {
@@ -195,7 +210,12 @@ func (o OrderDelivery) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 	}
 	status.Sanitize()
 
-	orderID := mux.Vars(r)["id"]
+	orderID, ok := mux.Vars(r)["id"]
+	if !ok {
+		err = fmt.Errorf("no order id in path")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	err = o.orderUsecase.UpdateOrderStatus(orderID, status.Status)
 	if err != nil {

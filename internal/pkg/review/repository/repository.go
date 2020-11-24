@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/review"
 )
@@ -51,6 +52,7 @@ func (r ReviewRepository) GetUserReviews(userID string) ([]models.Review, error)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get user review: %w", err)
 		}
+		review.CreatedAtStr = review.CreatedAt.Format(configs.TimeFormat)
 
 		reviews = append(reviews, review)
 	}
@@ -77,6 +79,7 @@ func (r ReviewRepository) GetVendorReviews(vendorID string) ([]models.Review, er
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get vendor review: %w", err)
 		}
+		review.CreatedAtStr = review.CreatedAt.Format(configs.TimeFormat)
 
 		reviews = append(reviews, review)
 	}

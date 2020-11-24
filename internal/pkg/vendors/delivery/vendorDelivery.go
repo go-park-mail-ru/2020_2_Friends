@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -28,7 +29,13 @@ func (v VendorDelivery) GetVendor(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	strID := mux.Vars(r)["id"]
+	strID, ok := mux.Vars(r)["id"]
+	if !ok {
+		err = fmt.Errorf("no id in url")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	id, err := strconv.Atoi(strID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -37,7 +44,7 @@ func (v VendorDelivery) GetVendor(w http.ResponseWriter, r *http.Request) {
 
 	vendor, err := v.vendorUsecase.Get(id)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

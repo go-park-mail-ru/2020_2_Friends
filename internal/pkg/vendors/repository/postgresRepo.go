@@ -29,7 +29,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	vendor := models.NewEmptyVendor()
 	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 	if err != nil {
-		return models.Vendor{}, fmt.Errorf("no such vendor")
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
 
 	rows, err := v.db.Query(
@@ -50,6 +50,21 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 		}
 
 		vendor.Products = append(vendor.Products, product)
+	}
+
+	return vendor, nil
+}
+
+func (v VendorRepository) GetVendorInfo(id string) (models.Vendor, error) {
+	row := v.db.QueryRow(
+		"SELECT id, vendorName, descript, picture FROM vendors WHERE id=$1",
+		id,
+	)
+
+	vendor := models.Vendor{}
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
 
 	return vendor, nil
@@ -90,7 +105,7 @@ func (v VendorRepository) GetAllProductsWithIDsFromSameVendor(ids []int) ([]mode
 	}
 	defer rows.Close()
 
-	var products []models.Product
+	products := make([]models.Product, 0)
 	vendorID := -1
 	for rows.Next() {
 		var product models.Product
@@ -325,7 +340,7 @@ func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, er
 	}
 	defer rows.Close()
 
-	var vendors []models.Vendor
+	vendors := make([]models.Vendor, 0)
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
 		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)

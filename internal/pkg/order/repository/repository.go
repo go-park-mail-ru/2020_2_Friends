@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 
@@ -69,9 +70,10 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) 
 		&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
 		&order.Address, &order.Status, &order.Price,
 	)
+	order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
 	if err != nil {
-		return models.OrderResponse{}, fmt.Errorf("couldn't get order from db: %w", err)
+		return models.OrderResponse{}, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 	}
 
 	err = o.GetProductsFromOrder(&order)
@@ -90,10 +92,10 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
 
-	var orders []models.OrderResponse
+	orders := make([]models.OrderResponse, 0)
 	for rows.Next() {
 		var order models.OrderResponse
 		err = rows.Scan(
@@ -101,8 +103,9 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 			&order.Address, &order.Status, &order.Price,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 		}
+		order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
 		err = o.GetProductsFromOrder(&order)
 		if err != nil {
@@ -131,25 +134,26 @@ func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
 
 func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
 	rows, err := o.db.Query(
-		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
+		`SELECT id, userID, createdAt, clientAddress, orderStatus, price
 		FROM orders WHERE vendorID = $1`,
 		vendorID,
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get orders from db: %w", err)
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
 
-	var orders []models.OrderResponse
+	orders := make([]models.OrderResponse, 0)
 	for rows.Next() {
 		var order models.OrderResponse
 		err = rows.Scan(
-			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+			&order.ID, &order.UserID, &order.CreatedAt,
 			&order.Address, &order.Status, &order.Price,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get order from db: %w", err)
+			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
 		}
+		order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
 		err = o.GetProductsFromOrder(&order)
 		if err != nil {
