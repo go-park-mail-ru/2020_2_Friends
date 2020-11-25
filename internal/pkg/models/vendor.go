@@ -17,11 +17,12 @@ type Vendor struct {
 
 //easyjson:json
 type Product struct {
-	ID       int    `json:"id"`
-	Picture  string `json:"picture"`
-	Name     string `json:"food_name"`
-	Price    int    `json:"food_price"`
-	VendorID int    `json:"vendor_id"`
+	ID          int    `json:"id"`
+	Picture     string `json:"picture"`
+	Name        string `json:"food_name"`
+	Description string `json:"description"`
+	Price       int    `json:"food_price"`
+	VendorID    int    `json:"vendor_id"`
 }
 
 type AddResponse struct {
@@ -46,4 +47,5 @@ func (p *Product) Sanitize() {
 	pol := bluemonday.UGCPolicy()
 	p.Picture = pol.Sanitize(p.Picture)
 	p.Name = pol.Sanitize(p.Name)
+	p.Description = pol.Sanitize(p.Description)
 }
