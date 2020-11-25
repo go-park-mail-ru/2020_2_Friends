@@ -35,7 +35,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	vendor.HintContent = vendor.Name
 
 	rows, err := v.db.Query(
-		"SELECT id, productName, price, picture FROM products WHERE vendorID=$1",
+		"SELECT id, productName, descript, price, picture FROM products WHERE vendorID=$1",
 		id,
 	)
 
@@ -46,7 +46,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 
 	for rows.Next() {
 		product := models.Product{}
-		err = rows.Scan(&product.ID, &product.Name, &product.Price, &product.Picture)
+		err = rows.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.Picture)
 		if err != nil {
 			return models.Vendor{}, fmt.Errorf("error in receiving the product: %w", err)
 		}
@@ -99,7 +99,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 
 func (v VendorRepository) GetAllProductsWithIDsFromSameVendor(ids []int) ([]models.Product, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorID, productName, price, picture FROM products WHERE id = ANY ($1)",
+		"SELECT id, vendorID, productName, descript, price, picture FROM products WHERE id = ANY ($1)",
 		pq.Array(ids),
 	)
 
@@ -112,7 +112,7 @@ func (v VendorRepository) GetAllProductsWithIDsFromSameVendor(ids []int) ([]mode
 	vendorID := -1
 	for rows.Next() {
 		var product models.Product
-		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Price, &product.Picture)
+		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Description, &product.Price, &product.Picture)
 		if err != nil {
 			return nil, ownErr.NewServerError(fmt.Errorf("error in receiving product: %w", err))
 		}
@@ -268,8 +268,8 @@ func (v VendorRepository) AddProduct(product models.Product) (int, error) {
 	var productID int
 
 	err := v.db.QueryRow(
-		"INSERT INTO products (vendorID, productName, price) VALUES($1, $2, $3) RETURNING id",
-		product.VendorID, product.Name, product.Price,
+		"INSERT INTO products (vendorID, productName, descript, price) VALUES($1, $2, $3, $4) RETURNING id",
+		product.VendorID, product.Name, product.Description, product.Price,
 	).Scan(&productID)
 
 	if err != nil {
@@ -281,8 +281,8 @@ func (v VendorRepository) AddProduct(product models.Product) (int, error) {
 
 func (v VendorRepository) UpdateProduct(product models.Product) error {
 	_, err := v.db.Exec(
-		"UPDATE products SET productName = $1, price = $2 WHERE id = $3",
-		product.Name, product.Price, product.ID,
+		"UPDATE products SET productName = $1, descript = $2, price = $3 WHERE id = $4",
+		product.Name, product.Description, product.Price, product.ID,
 	)
 
 	if err != nil {

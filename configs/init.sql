@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS products (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorID INTEGER,
     productName TEXT DEFAULT '' NOT NULL,
+    descript TEXT DEFAULT '',
     price INTEGER NOT NULL,
     picture TEXT DEFAULT '' NOT NULL,
 
