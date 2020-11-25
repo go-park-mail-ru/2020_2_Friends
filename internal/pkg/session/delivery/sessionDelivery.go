@@ -78,3 +78,24 @@ func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
 
 	httputils.DeleteCookie(w, cookie)
 }
+
+func (s SessionDelivery) IsAuthorized(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	cookie, err := r.Cookie(configs.SessionID)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	_, err = s.sessionUsecase.Check(cookie.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+}
