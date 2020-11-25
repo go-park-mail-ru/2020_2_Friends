@@ -111,9 +111,10 @@ func StartApiServer() {
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
-	mux.HandleFunc("/users", userHandler.Delete).Methods("DELETE")
+	mux.Handle("/users", csrfChecker.Check(userHandler.Delete)).Methods("DELETE")
 	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
-	mux.HandleFunc("/sessions", sessionDelivery.Delete).Methods("DELETE")
+	mux.Handle("/sessions", csrfChecker.Check(sessionDelivery.Delete)).Methods("DELETE")
+	mux.HandleFunc("/sessions", sessionDelivery.IsAuthorized).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Update)).Methods("PUT")
 	mux.Handle("/profiles/avatars", csrfChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
