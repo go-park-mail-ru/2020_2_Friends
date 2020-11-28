@@ -11,4 +11,5 @@ type Repository interface {
 	UpdateOrderStatus(orderID string, status string) error
 	GetProductsFromOrder(order *models.OrderResponse) error
 	GetVendorIDFromOrder(orderID int) (int, error)
+	GetUserIDFromOrder(orderID int) (string, error)
 }

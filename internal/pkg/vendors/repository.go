@@ -19,4 +19,5 @@ type Repository interface {
 	UpdateVendorImage(vendorID string, link string) error
 	UpdateProductImage(vendorID string, link string) error
 	GetPartnerShops(partnerID string) ([]models.Vendor, error)
+	GetVendorOwner(vendorID int) (string, error)
 }

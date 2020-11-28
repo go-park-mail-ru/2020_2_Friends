@@ -8,4 +8,6 @@ type Usecase interface {
 	GetUserOrders(userID string) ([]models.OrderResponse, error)
 	GetVendorOrders(vendorID string) (models.VendorOrdersResponse, error)
 	UpdateOrderStatus(orderID string, status string) error
+	GetVendorIDFromOrder(orderID int) (int, error)
+	GetUserIDFromOrder(orderID int) (string, error)
 }

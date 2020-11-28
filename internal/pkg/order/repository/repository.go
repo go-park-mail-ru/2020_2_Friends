@@ -220,3 +220,21 @@ func (o OrderRepository) GetVendorIDFromOrder(orderID int) (int, error) {
 
 	return vendorID, nil
 }
+
+func (o OrderRepository) GetUserIDFromOrder(orderID int) (string, error) {
+	var userID string
+	err := o.db.QueryRow(
+		"SELECT userID FROM orders WHERE id = $1",
+		orderID,
+	).Scan(&userID)
+
+	if err == sql.ErrNoRows {
+		return "", ownErr.NewClientError(fmt.Errorf("no such order"))
+	}
+
+	if err != nil {
+		return "", ownErr.NewServerError(fmt.Errorf("couldn't get userID from db: %w", err))
+	}
+
+	return userID, nil
+}

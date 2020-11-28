@@ -357,3 +357,18 @@ func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, er
 
 	return vendors, nil
 }
+
+func (v VendorRepository) GetVendorOwner(vendorID int) (string, error) {
+	row := v.db.QueryRow(
+		"SELECT partnerID FROM vendor_partner WHERE vendorID = $1",
+		vendorID,
+	)
+
+	var partnerID string
+	err := row.Scan(&partnerID)
+	if err != nil {
+		return "", fmt.Errorf("couldn't get partnerID from vendor with id = %v. Error: %w", vendorID, err)
+	}
+
+	return partnerID, nil
+}
