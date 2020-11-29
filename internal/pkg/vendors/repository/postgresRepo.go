@@ -28,7 +28,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	)
 
 	vendor := models.NewEmptyVendor()
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Latitude, &vendor.Longitude, &vendor.Radius)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
@@ -85,7 +85,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Latitude, &vendor.Longitude, &vendor.Radius)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
