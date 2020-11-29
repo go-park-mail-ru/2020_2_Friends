@@ -7,6 +7,7 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/chat"
 	"github.com/friends/internal/pkg/models"
+	"github.com/lib/pq"
 )
 
 type ChatRepository struct {
@@ -58,15 +59,15 @@ func (c ChatRepository) GetChat(orderID int) ([]models.Message, error) {
 	return msgs, nil
 }
 
-func (c ChatRepository) GetUserChats(userID string) ([]models.Chat, error) {
+func (c ChatRepository) GetVendorChats(orderIDs []int) ([]models.Chat, error) {
 	rows, err := c.db.Query(
 		`SELECT orderID, userID, message_text FROM messages
-		WHERE userID = $1 AND sent_at IN (SELECT MAX(sent_at) FROM messages GROUP BY orderID, userID)`,
-		userID,
+		WHERE orderID = ANY ($1) AND sent_at IN (SELECT MAX(sent_at) FROM messages GROUP BY orderID)`,
+		pq.Array(orderIDs),
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get chats for userID %s. Error: %w", userID, err)
+		return nil, fmt.Errorf("couldn't get chats. Error: %w", err)
 	}
 	defer rows.Close()
 
@@ -75,7 +76,7 @@ func (c ChatRepository) GetUserChats(userID string) ([]models.Chat, error) {
 	for rows.Next() {
 		err = rows.Scan(&chat.OrderID, &chat.InterlocutorID, &chat.LastMsg)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get chat for userID %s. Error: %w", userID, err)
+			return nil, fmt.Errorf("couldn't get chat. Error: %w", err)
 		}
 
 		chats = append(chats, chat)

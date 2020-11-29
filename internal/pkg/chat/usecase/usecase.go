@@ -3,18 +3,21 @@ package usecase
 import (
 	"github.com/friends/internal/pkg/chat"
 	"github.com/friends/internal/pkg/models"
+	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/profile"
 )
 
 type ChatUsecase struct {
 	chatRepository    chat.Repository
 	profileRepository profile.Repository
+	orderRepository   order.Repository
 }
 
-func New(chatRepository chat.Repository, profileRepository profile.Repository) chat.Usecase {
+func New(chatRepository chat.Repository, profileRepository profile.Repository, orderRepository order.Repository) chat.Usecase {
 	return ChatUsecase{
 		chatRepository:    chatRepository,
 		profileRepository: profileRepository,
+		orderRepository:   orderRepository,
 	}
 }
 
@@ -39,8 +42,13 @@ func (c ChatUsecase) GetChat(orderID int, userID string) ([]models.Message, erro
 	return msgs, nil
 }
 
-func (c ChatUsecase) GetUserChats(userID string) ([]models.Chat, error) {
-	chats, err := c.chatRepository.GetUserChats(userID)
+func (c ChatUsecase) GetVendorChats(vendorID string) ([]models.Chat, error) {
+	orderIDs, err := c.orderRepository.GetVendorOrdersIDs(vendorID)
+	if err != nil {
+		return nil, err
+	}
+
+	chats, err := c.chatRepository.GetVendorChats(orderIDs)
 	if err != nil {
 		return nil, err
 	}

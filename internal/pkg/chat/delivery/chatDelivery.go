@@ -195,7 +195,7 @@ func (c ChatDelivery) GetChat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c ChatDelivery) GetUserChats(w http.ResponseWriter, r *http.Request) {
+func (c ChatDelivery) GetVendorChats(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -210,7 +210,20 @@ func (c ChatDelivery) GetUserChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chats, err := c.chatUsecase.GetUserChats(userID)
+	vendorID, ok := mux.Vars(r)["id"]
+	if !ok {
+		err = fmt.Errorf("no id in url")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	c.vendorUsecase.CheckVendorOwner(userID, vendorID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	chats, err := c.chatUsecase.GetVendorChats(vendorID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

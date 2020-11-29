@@ -100,7 +100,7 @@ func StartApiServer() {
 	reviewDelivery := reviewDelivery.New(reviewUsecase, vendUsecase)
 
 	chatRepository := chatRepository.New(db)
-	chatUsecase := chatUsecase.New(chatRepository, profRepo)
+	chatUsecase := chatUsecase.New(chatRepository, profRepo, orderRepo)
 	chatDelivery := chatDelivery.New(chatUsecase, orderUsecase, vendUsecase)
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
@@ -150,7 +150,7 @@ func StartApiServer() {
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
 	mux.Handle("/ws", csrfChecker.Check(chatDelivery.Upgrade)).Methods("GET")
-	mux.Handle("/chats", csrfChecker.Check(chatDelivery.GetUserChats)).Methods("GET")
+	mux.Handle("/vendors/{id}/chats", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole))).Methods("GET")
 	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
