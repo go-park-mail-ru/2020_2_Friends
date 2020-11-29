@@ -182,7 +182,7 @@ func (c ChatDelivery) GetChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgs, err := c.chatUsecase.GetChat(orderID)
+	msgs, err := c.chatUsecase.GetChat(orderID, userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

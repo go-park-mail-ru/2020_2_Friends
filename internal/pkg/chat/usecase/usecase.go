@@ -22,8 +22,21 @@ func (c ChatUsecase) Save(msg models.Message) error {
 	return c.chatRepository.Save(msg)
 }
 
-func (c ChatUsecase) GetChat(orderID int) ([]models.Message, error) {
-	return c.chatRepository.GetChat(orderID)
+func (c ChatUsecase) GetChat(orderID int, userID string) ([]models.Message, error) {
+	msgs, err := c.chatRepository.GetChat(orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	for idx := range msgs {
+		if msgs[idx].UserID == userID {
+			msgs[idx].IsYourMsg = true
+		} else {
+			msgs[idx].IsYourMsg = false
+		}
+	}
+
+	return msgs, nil
 }
 
 func (c ChatUsecase) GetUserChats(userID string) ([]models.Chat, error) {

@@ -4,7 +4,8 @@ import "time"
 
 type Message struct {
 	OrderID   int       `json:"order_id,omitempty"`
-	UserID    string    `json:"user_id"`
+	UserID    string    `json:"-"`
+	IsYourMsg bool      `json:"is_your_msg"`
 	Text      string    `json:"text"`
 	SentAt    time.Time `json:"-"`
 	SentAtStr string    `json:"sent_at"`
