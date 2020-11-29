@@ -141,3 +141,11 @@ func (v VendorUsecase) GetVendorIDFromProduct(productID string) (string, error) 
 func (v VendorUsecase) GetPartnerShops(partnerID string) ([]models.Vendor, error) {
 	return v.repository.GetPartnerShops(partnerID)
 }
+
+func (v VendorUsecase) GetVendorOwner(vendorID int) (string, error) {
+	return v.repository.GetVendorOwner(vendorID)
+}
+
+func (v VendorUsecase) GetNearest(longitude, latitude float64) ([]models.Vendor, error) {
+	return v.repository.GetNearest(longitude, latitude)
+}

@@ -9,6 +9,9 @@ import (
 	cartDelivery "github.com/friends/internal/pkg/cart/delivery"
 	cartRepo "github.com/friends/internal/pkg/cart/repository"
 	cartUsecase "github.com/friends/internal/pkg/cart/usecase"
+	chatDelivery "github.com/friends/internal/pkg/chat/delivery"
+	chatRepository "github.com/friends/internal/pkg/chat/repository"
+	chatUsecase "github.com/friends/internal/pkg/chat/usecase"
 	csrfDelivery "github.com/friends/internal/pkg/csrf/delivery"
 	csrfRepo "github.com/friends/internal/pkg/csrf/repository"
 	csrfUsecase "github.com/friends/internal/pkg/csrf/usecase"
@@ -96,6 +99,10 @@ func StartApiServer() {
 	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo, profRepo, vendRepo)
 	reviewDelivery := reviewDelivery.New(reviewUsecase, vendUsecase)
 
+	chatRepository := chatRepository.New(db)
+	chatUsecase := chatUsecase.New(chatRepository, profRepo, orderRepo)
+	chatDelivery := chatDelivery.New(chatUsecase, orderUsecase, vendUsecase)
+
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
 	csrfRepository, err := csrfRepo.New(redisClient)
@@ -120,6 +127,7 @@ func StartApiServer() {
 	mux.Handle("/profiles/avatars", csrfChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
 	mux.Handle("/profiles/addresses", csrfChecker.Check(profDelivery.UpdateAddresses)).Methods("PUT")
 	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
+	mux.HandleFunc("/vendors/nearest", vendDelivery.GetNearest).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
 	mux.Handle("/vendors", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole))).Methods("POST")
 	mux.Handle("/vendors/{id}", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendor, configs.AdminRole))).Methods("PUT")
@@ -142,6 +150,9 @@ func StartApiServer() {
 	mux.Handle("/csrf", authChecker.Check(csrfDelivery.SetCSRF)).Methods("GET")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
+	mux.Handle("/ws", csrfChecker.Check(chatDelivery.Upgrade)).Methods("GET")
+	mux.Handle("/vendors/{id}/chats", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole))).Methods("GET")
+	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)
