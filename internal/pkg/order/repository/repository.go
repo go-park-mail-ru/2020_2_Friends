@@ -63,12 +63,12 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) {
 	var order models.OrderResponse
 	err := o.db.QueryRow(
-		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price, reviewed
 		FROM orders WHERE id = $1`,
 		orderID,
 	).Scan(
 		&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
-		&order.Address, &order.Status, &order.Price,
+		&order.Address, &order.Status, &order.Price, &order.Reviewed,
 	)
 	order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)
 
@@ -86,7 +86,7 @@ func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) 
 
 func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, error) {
 	rows, err := o.db.Query(
-		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price
+		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price, reviewed
 		FROM orders WHERE userID = $1`,
 		userID,
 	)
@@ -100,7 +100,7 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 		var order models.OrderResponse
 		err = rows.Scan(
 			&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
-			&order.Address, &order.Status, &order.Price,
+			&order.Address, &order.Status, &order.Price, &order.Reviewed,
 		)
 		if err != nil {
 			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
@@ -134,7 +134,7 @@ func (o OrderRepository) CheckOrderByUser(userID string, orderID string) bool {
 
 func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderResponse, error) {
 	rows, err := o.db.Query(
-		`SELECT id, userID, createdAt, clientAddress, orderStatus, price
+		`SELECT id, userID, createdAt, clientAddress, orderStatus, price, reviewed
 		FROM orders WHERE vendorID = $1`,
 		vendorID,
 	)
@@ -148,7 +148,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 		var order models.OrderResponse
 		err = rows.Scan(
 			&order.ID, &order.UserID, &order.CreatedAt,
-			&order.Address, &order.Status, &order.Price,
+			&order.Address, &order.Status, &order.Price, &order.Reviewed,
 		)
 		if err != nil {
 			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order from db: %w", err))
@@ -219,4 +219,17 @@ func (o OrderRepository) GetVendorIDFromOrder(orderID int) (int, error) {
 	}
 
 	return vendorID, nil
+}
+
+func (o OrderRepository) SetOrderReviewStatus(orderID int, status bool) error {
+	_, err := o.db.Exec(
+		"UPDATE orders SET reviewed = $1 WHERE id = $2",
+		status, orderID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't update order (id = %v) review status. Error: %w", orderID, err)
+	}
+
+	return nil
 }

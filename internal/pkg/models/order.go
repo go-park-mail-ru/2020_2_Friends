@@ -28,6 +28,7 @@ type OrderResponse struct {
 	Address      string         `json:"address"`
 	Status       string         `json:"status"`
 	Price        int            `json:"price"`
+	Reviewed     bool           `json:"reviewed"`
 }
 
 type VendorOrdersResponse struct {

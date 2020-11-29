@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS orders (
     clientAddress TEXT NOT NULL,
     orderStatus TEXT DEFAULT '' NOT NULL,
     price INTEGER NOT NULL,
+    reviewed BOOLEAN DEFAULT false NOT NULL,
 
     FOREIGN KEY (userID) REFERENCES users (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)

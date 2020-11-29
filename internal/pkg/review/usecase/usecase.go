@@ -45,7 +45,17 @@ func (r ReviewUsecase) AddReview(review models.Review) error {
 
 	review.VendorID = vendorID
 
-	return r.reviewRepository.AddReview(review)
+	err = r.reviewRepository.AddReview(review)
+	if err != nil {
+		return err
+	}
+
+	err = r.orderRepository.SetOrderReviewStatus(review.OrderID, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r ReviewUsecase) GetUserReviews(userID string) ([]models.Review, error) {
