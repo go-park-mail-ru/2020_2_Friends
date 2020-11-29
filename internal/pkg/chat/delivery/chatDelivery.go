@@ -178,8 +178,17 @@ func (c ChatDelivery) GetChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userID != userIDFromDB {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		vendorID, err := c.orderUsecase.GetVendorIDFromOrder(orderID)
+		if err != nil {
+			ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		err = c.vendorUsecase.CheckVendorOwner(userID, strconv.Itoa(vendorID))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 	msgs, err := c.chatUsecase.GetChat(orderID, userID)
