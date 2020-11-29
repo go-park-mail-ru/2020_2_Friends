@@ -63,11 +63,11 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 func (o OrderRepository) GetOrder(orderID string) (models.OrderResponse, error) {
 	var order models.OrderResponse
 	err := o.db.QueryRow(
-		`SELECT id, userID, vendorName, createdAt, clientAddress, orderStatus, price, reviewed
+		`SELECT id, userID, vendorID, vendorName, createdAt, clientAddress, orderStatus, price, reviewed
 		FROM orders WHERE id = $1`,
 		orderID,
 	).Scan(
-		&order.ID, &order.UserID, &order.VendorName, &order.CreatedAt,
+		&order.ID, &order.UserID, &order.VendorID, &order.VendorName, &order.CreatedAt,
 		&order.Address, &order.Status, &order.Price, &order.Reviewed,
 	)
 	order.CreatedAtStr = order.CreatedAt.Format(configs.TimeFormat)

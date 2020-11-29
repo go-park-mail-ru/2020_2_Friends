@@ -21,6 +21,7 @@ type OrderRequest struct {
 type OrderResponse struct {
 	ID           int            `json:"id"`
 	UserID       int            `json:"user_id"`
+	VendorID     int            `json:"-"`
 	VendorName   string         `json:"vendor_name,omitempty"`
 	Products     []OrderProduct `json:"products"`
 	CreatedAt    time.Time      `json:"-"`
