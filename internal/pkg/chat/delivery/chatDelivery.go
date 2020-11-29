@@ -124,20 +124,20 @@ func (c ChatDelivery) read(ws *websocket.Conn, userID string) {
 		}
 
 		if userID == customerID {
-			c.write(partnerID, msg.Text)
-		} else {
-			c.write(customerID, msg.Text)
+			c.write(partnerID, msgJSON)
+		} else if userID == partnerID {
+			c.write(customerID, msgJSON)
 		}
 	}
 }
 
-func (c ChatDelivery) write(userID string, text string) {
+func (c ChatDelivery) write(userID string, text []byte) {
 	conn, ok := c.socketPool[userID]
 	if !ok {
 		return
 	}
 
-	err := conn.WriteMessage(websocket.TextMessage, []byte(text))
+	err := conn.WriteMessage(websocket.TextMessage, text)
 	if err != nil {
 		fmt.Println(err)
 	}
