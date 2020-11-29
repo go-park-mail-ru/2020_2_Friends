@@ -226,7 +226,7 @@ func (c ChatDelivery) GetVendorChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.vendorUsecase.CheckVendorOwner(userID, vendorID)
+	err = c.vendorUsecase.CheckVendorOwner(userID, vendorID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
