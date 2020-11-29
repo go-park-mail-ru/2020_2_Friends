@@ -122,6 +122,21 @@ func (mr *MockUsecaseMockRecorder) GetAll() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockUsecase)(nil).GetAll))
 }
 
+// GetNearest mocks base method
+func (m *MockUsecase) GetNearest(arg0, arg1 float64) ([]models.Vendor, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNearest", arg0, arg1)
+	ret0, _ := ret[0].([]models.Vendor)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNearest indicates an expected call of GetNearest
+func (mr *MockUsecaseMockRecorder) GetNearest(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNearest", reflect.TypeOf((*MockUsecase)(nil).GetNearest), arg0, arg1)
+}
+
 // GetPartnerShops mocks base method
 func (m *MockUsecase) GetPartnerShops(arg0 string) ([]models.Vendor, error) {
 	m.ctrl.T.Helper()

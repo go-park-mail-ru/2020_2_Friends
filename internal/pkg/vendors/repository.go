@@ -20,4 +20,5 @@ type Repository interface {
 	UpdateProductImage(vendorID string, link string) error
 	GetPartnerShops(partnerID string) ([]models.Vendor, error)
 	GetVendorOwner(vendorID int) (string, error)
+	GetNearest(longitude, latitude float64) ([]models.Vendor, error)
 }

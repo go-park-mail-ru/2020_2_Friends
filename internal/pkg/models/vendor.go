@@ -25,6 +25,7 @@ type Product struct {
 	VendorID    int    `json:"vendor_id"`
 }
 
+//easyjson:json
 type AddResponse struct {
 	ID int `json:"id"`
 }

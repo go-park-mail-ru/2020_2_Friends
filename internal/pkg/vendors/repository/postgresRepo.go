@@ -28,7 +28,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	)
 
 	vendor := models.NewEmptyVendor()
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Latitude, &vendor.Longitude, &vendor.Radius)
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
@@ -85,7 +85,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Latitude, &vendor.Longitude, &vendor.Radius)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
@@ -371,4 +371,30 @@ func (v VendorRepository) GetVendorOwner(vendorID int) (string, error) {
 	}
 
 	return partnerID, nil
+}
+
+func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		`SELECT id, vendorName, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius
+		FROM vendors WHERE ST_DWithin(coordinates, ST_SetSRID(ST_Point($1, $2), 4326), 5 * 1000)`,
+		longitude, latitude,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get vendors from db")
+	}
+	defer rows.Close()
+
+	vendors := []models.Vendor{}
+	for rows.Next() {
+		vendor := models.Vendor{}
+		err = rows.Scan(&vendor.ID, &vendor.HintContent, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+		if err != nil {
+			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
 }
