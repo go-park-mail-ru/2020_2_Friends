@@ -10,7 +10,7 @@ type Vendor struct {
 	Products    []Product `json:"products"`
 	Description string    `json:"description"`
 	Picture     string    `json:"picture"`
-	Longtitude  float32   `json:"longtitude"`
+	Longitude   float32   `json:"longitude"`
 	Latitude    float32   `json:"latitude"`
 	Radius      int       `json:"distance"`
 }
