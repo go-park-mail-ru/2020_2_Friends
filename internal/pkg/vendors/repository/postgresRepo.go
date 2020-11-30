@@ -385,7 +385,7 @@ func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vend
 	}
 	defer rows.Close()
 
-	vendors := []models.Vendor{}
+	vendors := make([]models.Vendor, 0)
 	for rows.Next() {
 		vendor := models.Vendor{}
 		err = rows.Scan(&vendor.ID, &vendor.HintContent, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
