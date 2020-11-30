@@ -89,3 +89,13 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (orderID) REFERENCES orders (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
 );
+
+CREATE TABLE IF NOT EXISTS messages (
+    orderID INTEGER NOT NULL,
+    userID INTEGER NOT NULL,
+    message_text TEXT NOT NULL,
+    sent_at TIMESTAMP NOT NULL,
+
+    FOREIGN KEY (orderID) REFERENCES orders (id),
+    FOREIGN KEY (userID) REFERENCES users (id)
+);

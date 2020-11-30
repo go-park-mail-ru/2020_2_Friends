@@ -152,6 +152,21 @@ func (mr *MockUsecaseMockRecorder) GetVendorIDFromProduct(arg0 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendorIDFromProduct", reflect.TypeOf((*MockUsecase)(nil).GetVendorIDFromProduct), arg0)
 }
 
+// GetVendorOwner mocks base method
+func (m *MockUsecase) GetVendorOwner(arg0 int) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVendorOwner", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVendorOwner indicates an expected call of GetVendorOwner
+func (mr *MockUsecaseMockRecorder) GetVendorOwner(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendorOwner", reflect.TypeOf((*MockUsecase)(nil).GetVendorOwner), arg0)
+}
+
 // Update mocks base method
 func (m *MockUsecase) Update(arg0 models.Vendor) error {
 	m.ctrl.T.Helper()

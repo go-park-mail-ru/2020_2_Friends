@@ -166,6 +166,30 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 	return orders, nil
 }
 
+func (o OrderRepository) GetVendorOrdersIDs(vendorID string) ([]int, error) {
+	rows, err := o.db.Query(
+		"SELECT id FROM orders WHERE vendorID = $1",
+		vendorID,
+	)
+
+	if err != nil {
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order ids from db: %w", err))
+	}
+
+	ids := make([]int, 0)
+	for rows.Next() {
+		var id int
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orderID from db: %w", err))
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
 func (o OrderRepository) UpdateOrderStatus(orderID string, status string) error {
 	_, err := o.db.Exec(
 		"UPDATE orders SET orderStatus = $1 WHERE id = $2",
@@ -219,4 +243,22 @@ func (o OrderRepository) GetVendorIDFromOrder(orderID int) (int, error) {
 	}
 
 	return vendorID, nil
+}
+
+func (o OrderRepository) GetUserIDFromOrder(orderID int) (string, error) {
+	var userID string
+	err := o.db.QueryRow(
+		"SELECT userID FROM orders WHERE id = $1",
+		orderID,
+	).Scan(&userID)
+
+	if err == sql.ErrNoRows {
+		return "", ownErr.NewClientError(fmt.Errorf("no such order"))
+	}
+
+	if err != nil {
+		return "", ownErr.NewServerError(fmt.Errorf("couldn't get userID from db: %w", err))
+	}
+
+	return userID, nil
 }

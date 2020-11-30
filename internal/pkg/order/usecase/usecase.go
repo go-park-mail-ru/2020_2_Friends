@@ -92,3 +92,11 @@ func (o OrderUsecase) GetVendorOrders(vendorID string) (models.VendorOrdersRespo
 func (o OrderUsecase) UpdateOrderStatus(orderID string, status string) error {
 	return o.orderRepository.UpdateOrderStatus(orderID, status)
 }
+
+func (o OrderUsecase) GetVendorIDFromOrder(orderID int) (int, error) {
+	return o.orderRepository.GetVendorIDFromOrder(orderID)
+}
+
+func (o OrderUsecase) GetUserIDFromOrder(orderID int) (string, error) {
+	return o.orderRepository.GetUserIDFromOrder(orderID)
+}
