@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorName TEXT NOT NULL UNIQUE,
     descript TEXT DEFAULT '' NOT NULL,
-    picture TEXT DEFAULT '' NOT NULL
+    picture TEXT DEFAULT '' NOT NULL,
     coordinates GEOGRAPHY NOT NULL,
     service_radius INTEGER NOT NULL
 );
@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS orders (
     clientAddress TEXT NOT NULL,
     orderStatus TEXT DEFAULT '' NOT NULL,
     price INTEGER NOT NULL,
+    reviewed BOOLEAN DEFAULT false NOT NULL,
 
     FOREIGN KEY (userID) REFERENCES users (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)

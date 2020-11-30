@@ -33,19 +33,32 @@ func New(
 }
 
 func (r ReviewUsecase) AddReview(review models.Review) error {
-	isUserOrder := r.orderRepository.CheckOrderByUser(review.UserID, strconv.Itoa(review.OrderID))
-	if !isUserOrder {
-		return ownErr.NewClientError(fmt.Errorf("the order does not belong to the user"))
-	}
-
-	vendorID, err := r.orderRepository.GetVendorIDFromOrder(review.OrderID)
+	order, err := r.orderRepository.GetOrder(strconv.Itoa(review.OrderID))
 	if err != nil {
 		return err
 	}
 
-	review.VendorID = vendorID
+	if order.Reviewed {
+		return ownErr.NewClientError(fmt.Errorf("review already exists for order with id = %v", order.ID))
+	}
 
-	return r.reviewRepository.AddReview(review)
+	if review.UserID != strconv.Itoa(order.UserID) {
+		return ownErr.NewClientError(fmt.Errorf("the order does not belong to the user"))
+	}
+
+	review.VendorID = order.VendorID
+
+	err = r.reviewRepository.AddReview(review)
+	if err != nil {
+		return err
+	}
+
+	err = r.orderRepository.SetOrderReviewStatus(review.OrderID, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r ReviewUsecase) GetUserReviews(userID string) ([]models.Review, error) {
