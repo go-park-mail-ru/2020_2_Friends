@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -71,7 +72,7 @@ func (c ChatDelivery) Upgrade(w http.ResponseWriter, r *http.Request) {
 
 	c.addConn(ws, userID)
 
-	c.read(ws, userID)
+	c.read(r.Context(), ws, userID)
 
 	c.deleteConn(userID)
 }
@@ -88,16 +89,18 @@ func (c ChatDelivery) deleteConn(userID string) {
 	c.mux.RUnlock()
 }
 
-func (c ChatDelivery) read(ws *websocket.Conn, userID string) {
+func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID string) {
 	for {
 		_, msgJSON, err := ws.ReadMessage()
 		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
 			continue
 		}
 
 		msg := models.Message{}
 		err = json.Unmarshal(msgJSON, &msg)
 		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
 			continue
 		}
 		msg.UserID = userID
@@ -105,33 +108,37 @@ func (c ChatDelivery) read(ws *websocket.Conn, userID string) {
 
 		err = c.chatUsecase.Save(msg)
 		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
 			return
 		}
 
 		customerID, err := c.orderUsecase.GetUserIDFromOrder(msg.OrderID)
 		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
 			continue
 		}
 
 		vendorID, err := c.orderUsecase.GetVendorIDFromOrder(msg.OrderID)
 		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
 			continue
 		}
 
 		partnerID, err := c.vendorUsecase.GetVendorOwner(vendorID)
 		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
 			continue
 		}
 
 		if userID == customerID {
-			c.write(partnerID, msgJSON)
+			c.write(ctx, partnerID, msgJSON)
 		} else if userID == partnerID {
-			c.write(customerID, msgJSON)
+			c.write(ctx, customerID, msgJSON)
 		}
 	}
 }
 
-func (c ChatDelivery) write(userID string, text []byte) {
+func (c ChatDelivery) write(ctx context.Context, userID string, text []byte) {
 	conn, ok := c.socketPool[userID]
 	if !ok {
 		return
@@ -139,7 +146,7 @@ func (c ChatDelivery) write(userID string, text []byte) {
 
 	err := conn.WriteMessage(websocket.TextMessage, text)
 	if err != nil {
-		fmt.Println(err)
+		log.ErrorLogWithCtx(ctx, err)
 	}
 }
 
