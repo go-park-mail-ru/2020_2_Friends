@@ -22,4 +22,6 @@ const (
 	UserRole               = 1
 	AdminRole              = 2
 	TimeFormat             = "02.01.2006 15:04:05"
+	Longitude              = "longitude"
+	Latitude               = "latitude"
 )
