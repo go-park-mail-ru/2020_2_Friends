@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,16 +21,16 @@ import (
 
 type PartnerDelivery struct {
 	userUsecase    user.Usecase
-	sessionUsecase session.Usecase
+	sessionClient  session.SessionWorkerClient
 	vendorUsecase  vendors.Usecase
 	profileUsecase profile.Usecase
 }
 
-func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionUsecase session.Usecase, vendorUsecase vendors.Usecase) PartnerDelivery {
+func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionClient session.SessionWorkerClient, vendorUsecase vendors.Usecase) PartnerDelivery {
 	return PartnerDelivery{
 		userUsecase:    userUsecase,
 		profileUsecase: profileUsecase,
-		sessionUsecase: sessionUsecase,
+		sessionClient:  sessionClient,
 		vendorUsecase:  vendorUsecase,
 	}
 }
@@ -69,13 +70,13 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionValue, err := p.sessionUsecase.Create(userID)
+	session, err := p.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	httputils.SetCookie(w, sessionValue)
+	httputils.SetCookie(w, session.GetName())
 	w.WriteHeader(http.StatusCreated)
 }
 

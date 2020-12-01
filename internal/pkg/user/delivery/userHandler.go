@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -9,20 +10,21 @@ import (
 	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
+	ownErr "github.com/friends/pkg/error"
 	"github.com/friends/pkg/httputils"
 	log "github.com/friends/pkg/logger"
 )
 
 type UserHandler struct {
 	userUsecase    user.Usecase
-	sessionUsecase session.Usecase
+	sessionClient  session.SessionWorkerClient
 	profileUsecase profile.Usecase
 }
 
-func NewUserHandler(usecase user.Usecase, sessionUsecase session.Usecase, profileUsecase profile.Usecase) UserHandler {
+func NewUserHandler(usecase user.Usecase, sessionClient session.SessionWorkerClient, profileUsecase profile.Usecase) UserHandler {
 	return UserHandler{
 		userUsecase:    usecase,
-		sessionUsecase: sessionUsecase,
+		sessionClient:  sessionClient,
 		profileUsecase: profileUsecase,
 	}
 }
@@ -63,13 +65,13 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionValue, err := u.sessionUsecase.Create(userID)
+	session, err := u.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	httputils.SetCookie(w, sessionValue)
+	httputils.SetCookie(w, session.GetName())
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -87,29 +89,104 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := u.sessionUsecase.Check(cookie.Value)
+	userID, err := u.sessionClient.Check(context.Background(), &session.SessionName{Name: cookie.Value})
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = u.userUsecase.Delete(userID)
+	err = u.userUsecase.Delete(userID.GetId())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = u.profileUsecase.Delete(userID)
+	err = u.profileUsecase.Delete(userID.GetId())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = u.sessionUsecase.Delete(cookie.Value)
+	_, err = u.sessionClient.Delete(context.Background(), &session.SessionName{Name: cookie.Value})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	httputils.DeleteCookie(w, cookie)
+}
+
+func (u UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	user := &models.User{}
+	err = json.NewDecoder(r.Body).Decode(user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	user.Sanitize()
+
+	userID, err := u.userUsecase.Verify(*user)
+	if err != nil {
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	session, err := u.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	httputils.SetCookie(w, session.GetName())
+}
+
+func (u UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	cookie, err := r.Cookie(configs.SessionID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.sessionClient.Delete(context.Background(), &session.SessionName{Name: cookie.Value})
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	httputils.DeleteCookie(w, cookie)
+}
+
+func (u UserHandler) IsAuthorized(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	cookie, err := r.Cookie(configs.SessionID)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	_, err = u.sessionClient.Check(context.Background(), &session.SessionName{Name: cookie.Value})
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 }
