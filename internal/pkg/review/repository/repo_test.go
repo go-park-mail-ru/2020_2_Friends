@@ -106,6 +106,27 @@ func TestGetUserReview(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected error. Got nil")
 	}
+
+	rows = mock.NewRows([]string{"userID"})
+	for i := 0; i < 2; i++ {
+		rows.AddRow(testReview.UserID)
+	}
+
+	// bad query 2
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(testReview.UserID).
+		WillReturnRows(rows)
+
+	reviews, err = repo.GetUserReviews(testReview.UserID)
+
+	if reviews != nil {
+		t.Errorf("expected: %v\n got: %v", nil, reviews)
+	}
+
+	if err == nil {
+		t.Errorf("expected error. Got nil")
+	}
 }
 
 func TestGetVendorReview(t *testing.T) {
@@ -145,6 +166,27 @@ func TestGetVendorReview(t *testing.T) {
 		ExpectQuery("SELECT").
 		WithArgs(strconv.Itoa(testReview.VendorID)).
 		WillReturnError(dbError)
+
+	reviews, err = repo.GetVendorReviews(strconv.Itoa(testReview.VendorID))
+
+	if reviews != nil {
+		t.Errorf("expected: %v\n got: %v", nil, reviews)
+	}
+
+	if err == nil {
+		t.Errorf("expected error. Got nil")
+	}
+
+	rows = mock.NewRows([]string{"userID"})
+	for i := 0; i < 2; i++ {
+		rows.AddRow(testReview.UserID)
+	}
+
+	// bad query 2
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(strconv.Itoa(testReview.VendorID)).
+		WillReturnRows(rows)
 
 	reviews, err = repo.GetVendorReviews(strconv.Itoa(testReview.VendorID))
 

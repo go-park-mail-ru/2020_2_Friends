@@ -10,7 +10,6 @@ import (
 	"github.com/friends/internal/pkg/middleware"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/review"
-	"github.com/friends/internal/pkg/vendors"
 	"github.com/gorilla/mux"
 
 	ownErr "github.com/friends/pkg/error"
@@ -19,13 +18,11 @@ import (
 
 type ReviewDelivery struct {
 	reviewUsecase review.Usecase
-	vendorUsecase vendors.Usecase
 }
 
-func New(reviewUsecase review.Usecase, vendorUsecase vendors.Usecase) ReviewDelivery {
+func New(reviewUsecase review.Usecase) ReviewDelivery {
 	return ReviewDelivery{
 		reviewUsecase: reviewUsecase,
-		vendorUsecase: vendorUsecase,
 	}
 }
 
