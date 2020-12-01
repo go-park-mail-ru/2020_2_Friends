@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package session;
+option go_package = ".;session";
+
+message UserID {
+    string id = 1;
+}
+
+message SessionName {
+    string name = 1;
+}
+
+message DeleteResponse {
+    bool dummy = 1;
+}
+
+service SessionWorker {
+    rpc Create (UserID) returns (SessionName) {}
+    rpc Check (SessionName) returns (UserID) {}
+    rpc Delete (SessionName) returns (DeleteResponse) {}
+}
