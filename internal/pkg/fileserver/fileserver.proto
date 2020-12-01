@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package fileserver;
+option go_package = ".;fileserver";
+
+message Chunk {
+    bytes Content = 1;
+}
+
+message UploadResponse {
+    bool dummy = 1;
+}
+
+service UploadService {
+    rpc Upload(stream Chunk) returns (UploadResponse) {}
+}

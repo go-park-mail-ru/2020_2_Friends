@@ -16,8 +16,8 @@ type Usecase interface {
 	AddProduct(product models.Product) (int, error)
 	UpdateProduct(product models.Product) error
 	DeleteProduct(productID string) error
-	UpdateVendorPicture(vendorID string, file multipart.File) (string, error)
-	UpdateProductPicture(productID string, file multipart.File) (string, error)
+	UpdateVendorPicture(vendorID string, file multipart.File, imgType string) (string, error)
+	UpdateProductPicture(productID string, file multipart.File, imgType string) (string, error)
 	GetVendorIDFromProduct(productID string) (string, error)
 	GetPartnerShops(partnerID string) ([]models.Vendor, error)
 	GetVendorOwner(vendorID int) (string, error)

@@ -15,6 +15,7 @@ import (
 	"github.com/friends/internal/pkg/user"
 	"github.com/friends/internal/pkg/vendors"
 	"github.com/friends/pkg/httputils"
+	"github.com/friends/pkg/image"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
@@ -237,14 +238,21 @@ func (p PartnerDelivery) UpdateVendorPicture(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	file, _, err := r.FormFile(configs.ImgFormFileKey)
+	file, header, err := r.FormFile(configs.ImgFormFileKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	imgName, err := p.vendorUsecase.UpdateVendorPicture(vendorID, file)
+	mimeType := header.Header.Get("Content-Type")
+	imageType, err := image.CheckMimeType(mimeType)
+	if err != nil {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	imgName, err := p.vendorUsecase.UpdateVendorPicture(vendorID, file, imageType)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -362,7 +370,7 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	file, _, err := r.FormFile(configs.ImgFormFileKey)
+	file, header, err := r.FormFile(configs.ImgFormFileKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -371,7 +379,14 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 
 	productID := mux.Vars(r)["id"]
 
-	imgName, err := p.vendorUsecase.UpdateProductPicture(productID, file)
+	mimeType := header.Header.Get("Content-Type")
+	imageType, err := image.CheckMimeType(mimeType)
+	if err != nil {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	imgName, err := p.vendorUsecase.UpdateProductPicture(productID, file, imageType)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
