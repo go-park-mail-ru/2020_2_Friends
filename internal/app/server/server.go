@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/friends/configs"
@@ -26,9 +27,7 @@ import (
 	reviewDelivery "github.com/friends/internal/pkg/review/delivery"
 	reviewRepository "github.com/friends/internal/pkg/review/repository"
 	reviewUsecase "github.com/friends/internal/pkg/review/usecase"
-	sessionDelivery "github.com/friends/internal/pkg/session/delivery"
-	sessionRepo "github.com/friends/internal/pkg/session/repository"
-	sessionUsecase "github.com/friends/internal/pkg/session/usecase"
+	"github.com/friends/internal/pkg/session"
 	userDelivery "github.com/friends/internal/pkg/user/delivery"
 	userRepo "github.com/friends/internal/pkg/user/repository"
 	userUsecase "github.com/friends/internal/pkg/user/usecase"
@@ -39,6 +38,7 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	logrus "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 func StartApiServer() {
@@ -63,23 +63,24 @@ func StartApiServer() {
 		DB:       0,
 	})
 
-	sessionRepo, err := sessionRepo.NewSessionRedisRepo(redisClient)
-	if err != nil {
-		logrus.Error(fmt.Errorf("Session repostiory doen't work: %w", err))
-		return
-	}
-
 	profRepo := profileRepo.NewProfileRepository(db)
 	profUsecase := profileUsecase.NewProfileUsecase(profRepo)
-
-	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRepo)
 
 	vendRepo := vendorRepo.NewVendorRepository(db)
 	vendUsecase := vendorUsecase.NewVendorUsecase(vendRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase, profUsecase)
+	grpcConn, err := grpc.Dial(
+		"localhost"+configs.SessionServicePort,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConn.Close()
 
-	sessionDelivery := sessionDelivery.NewSessionDelivery(sessionUsecase, userUsecase)
+	sessionClient := session.NewSessionWorkerClient(grpcConn)
+
+	userHandler := userDelivery.NewUserHandler(userUsecase, sessionClient, profUsecase)
 
 	profDelivery := profileDelivery.NewProfileDelivery(profUsecase)
 
@@ -89,7 +90,7 @@ func StartApiServer() {
 	cartUsecase := cartUsecase.NewCartUsecase(cartRepo, vendRepo)
 	cartDelivery := cartDelivery.NewCartDelivery(cartUsecase)
 
-	partnerDelivery := partnerDelivery.New(userUsecase, profUsecase, sessionUsecase, vendUsecase)
+	partnerDelivery := partnerDelivery.New(userUsecase, profUsecase, sessionClient, vendUsecase)
 
 	orderRepo := orderRepo.New(db)
 	orderUsecase := orderUsecase.New(orderRepo, vendRepo)
@@ -113,15 +114,15 @@ func StartApiServer() {
 	csrfUsecase := csrfUsecase.New(csrfRepository)
 	csrfDelivery := csrfDelivery.New(csrfUsecase)
 
-	authChecker := middleware.NewAuthChecker(sessionUsecase)
+	authChecker := middleware.NewAuthChecker(sessionClient)
 	csrfChecker := middleware.NewCSRFChecker(authChecker, csrfUsecase)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
 	mux.Handle("/users", csrfChecker.Check(userHandler.Delete)).Methods("DELETE")
-	mux.HandleFunc("/sessions", sessionDelivery.Create).Methods("POST")
-	mux.Handle("/sessions", csrfChecker.Check(sessionDelivery.Delete)).Methods("DELETE")
-	mux.HandleFunc("/sessions", sessionDelivery.IsAuthorized).Methods("GET")
+	mux.HandleFunc("/sessions", userHandler.Login).Methods("POST")
+	mux.Handle("/sessions", authChecker.Check(userHandler.Logout)).Methods("DELETE")
+	mux.HandleFunc("/sessions", userHandler.IsAuthorized).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Update)).Methods("PUT")
 	mux.Handle("/profiles/avatars", csrfChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")

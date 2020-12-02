@@ -2,10 +2,12 @@ package delivery
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/friends/configs"
@@ -22,21 +24,21 @@ func TestCreateHandlerSuccess(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 
 	user := models.User{
 		Login:    "testlogin",
 		Password: "testpswd",
 		Role:     1,
 	}
-	cookieName := "sessname"
+	cookieName := &session.SessionName{Name: "sessname"}
 
 	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
 	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(nil)
-	mockSessionUsecase.EXPECT().Create("0").Times(1).Return(cookieName, nil)
+	mockSessionClient.EXPECT().Create(context.Background(), &session.UserID{Id: "0"}).Times(1).Return(cookieName, nil)
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -50,8 +52,8 @@ func TestCreateHandlerSuccess(t *testing.T) {
 		t.Errorf("expected: %v\n got: %v", http.StatusCreated, w.Code)
 	}
 
-	respCookie := w.Result().Cookies()[0].Value
-	if respCookie != cookieName {
+	respCookie := &session.SessionName{Name: w.Result().Cookies()[0].Value}
+	if !reflect.DeepEqual(respCookie, cookieName) {
 		t.Errorf("expected cookie: %v\n got: %v", cookieName, respCookie)
 	}
 }
@@ -62,7 +64,7 @@ func TestCreateHandlerUserError(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 
 	user := models.User{
 		Login:    "testlogin",
@@ -73,7 +75,7 @@ func TestCreateHandlerUserError(t *testing.T) {
 	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("", fmt.Errorf("db error"))
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -94,7 +96,7 @@ func TestCreateHandlerProfileError(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 
 	user := models.User{
 		Login:    "testlogin",
@@ -106,7 +108,7 @@ func TestCreateHandlerProfileError(t *testing.T) {
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
 	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(fmt.Errorf("db error"))
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -127,7 +129,7 @@ func TestCreateHandlerSessionError(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 
 	user := models.User{
 		Login:    "testlogin",
@@ -138,9 +140,9 @@ func TestCreateHandlerSessionError(t *testing.T) {
 	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
 	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(nil)
-	mockSessionUsecase.EXPECT().Create("0").Times(1).Return("", fmt.Errorf("db error"))
+	mockSessionClient.EXPECT().Create(context.Background(), &session.UserID{Id: "0"}).Times(1).Return(nil, fmt.Errorf("db error"))
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -213,14 +215,14 @@ func TestDeleteSuccess(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 
-	mockSessionUsecase.EXPECT().Check(cookie.Value).Times(1).Return("0", nil)
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(&session.UserID{Id: "0"}, nil)
 	mockUserUsecase.EXPECT().Delete("0").Times(1).Return(nil)
 	mockProfileUsecase.EXPECT().Delete("0").Times(1).Return(nil)
-	mockSessionUsecase.EXPECT().Delete(cookie.Value).Times(1).Return(nil)
+	mockSessionClient.EXPECT().Delete(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(&session.DeleteResponse{}, nil)
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("DELETE", "/users", nil)
@@ -257,12 +259,12 @@ func TestDeleteNoCookie2(t *testing.T) {
 		Value: "testcookie",
 	}
 
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 
-	mockSessionUsecase.EXPECT().Check(cookie.Value).Times(1).Return("", fmt.Errorf("no cookie"))
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(nil, fmt.Errorf("no cookie"))
 
 	handler := UserHandler{
-		sessionUsecase: mockSessionUsecase,
+		sessionClient: mockSessionClient,
 	}
 
 	w := httptest.NewRecorder()
@@ -286,15 +288,15 @@ func TestDeleteUserDBError(t *testing.T) {
 		Value: "testcookie",
 	}
 
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 
-	mockSessionUsecase.EXPECT().Check(cookie.Value).Times(1).Return("0", nil)
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(&session.UserID{Id: "0"}, nil)
 	mockUserUsecase.EXPECT().Delete("0").Times(1).Return(fmt.Errorf("error with db"))
 
 	handler := UserHandler{
-		sessionUsecase: mockSessionUsecase,
-		userUsecase:    mockUserUsecase,
+		sessionClient: mockSessionClient,
+		userUsecase:   mockUserUsecase,
 	}
 
 	w := httptest.NewRecorder()
@@ -318,15 +320,15 @@ func TestDeleteProfileDBError(t *testing.T) {
 		Value: "testcookie",
 	}
 
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
 
-	mockSessionUsecase.EXPECT().Check(cookie.Value).Times(1).Return("0", nil)
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(&session.UserID{Id: "0"}, nil)
 	mockUserUsecase.EXPECT().Delete("0").Times(1).Return(nil)
 	mockProfileUsecase.EXPECT().Delete("0").Times(1).Return(fmt.Errorf("error with db"))
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("DELETE", "/users", nil)
@@ -349,16 +351,16 @@ func TestDeleteSessionDBError(t *testing.T) {
 		Value: "testcookie",
 	}
 
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
 
-	mockSessionUsecase.EXPECT().Check(cookie.Value).Times(1).Return("0", nil)
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(&session.UserID{Id: "0"}, nil)
 	mockUserUsecase.EXPECT().Delete("0").Times(1).Return(nil)
 	mockProfileUsecase.EXPECT().Delete("0").Times(1).Return(nil)
-	mockSessionUsecase.EXPECT().Delete(cookie.Value).Times(1).Return(fmt.Errorf("error with db"))
+	mockSessionClient.EXPECT().Delete(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(nil, fmt.Errorf("db error"))
 
-	handler := NewUserHandler(mockUserUsecase, mockSessionUsecase, mockProfileUsecase)
+	handler := NewUserHandler(mockUserUsecase, mockSessionClient, mockProfileUsecase)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("DELETE", "/users", nil)
