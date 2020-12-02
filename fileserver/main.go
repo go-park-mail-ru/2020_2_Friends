@@ -8,6 +8,7 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/fileserver"
 	"github.com/friends/internal/pkg/fileserver/delivery"
+	"github.com/friends/internal/pkg/fileserver/repository"
 	"github.com/friends/internal/pkg/fileserver/usecase"
 	"github.com/friends/internal/pkg/middleware"
 	"github.com/sirupsen/logrus"
@@ -36,7 +37,8 @@ func StartGRPCServer() {
 		log.Fatalln("can't start session service: ", err)
 	}
 
-	usecase := usecase.New()
+	repository := repository.New()
+	usecase := usecase.New(repository)
 
 	delivery := delivery.New(usecase)
 
