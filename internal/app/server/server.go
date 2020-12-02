@@ -108,7 +108,7 @@ func StartApiServer() {
 
 	reviewRepository := reviewRepository.New(db)
 	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo, profRepo, vendRepo)
-	reviewDelivery := reviewDelivery.New(reviewUsecase, vendUsecase)
+	reviewDelivery := reviewDelivery.New(reviewUsecase)
 
 	chatRepository := chatRepository.New(db)
 	chatUsecase := chatUsecase.New(chatRepository, profRepo, orderRepo)

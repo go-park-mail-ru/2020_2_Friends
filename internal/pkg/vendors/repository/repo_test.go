@@ -24,26 +24,35 @@ func TestGet(t *testing.T) {
 	vendor := models.Vendor{
 		ID:          1,
 		Name:        "b",
-		Description: "bb",
+		HintContent: "b",
+		Description: "cc",
 		Picture:     "b.jpg",
+		Radius:      3,
+		Longitude:   1.0,
+		Latitude:    2.0,
 		Products: []models.Product{
 			{
-				ID:      0,
-				Name:    "aaa",
-				Price:   0,
-				Picture: "aaa.png",
+				ID:          0,
+				Name:        "aaa",
+				Price:       0,
+				Picture:     "aaa.png",
+				Description: "a",
 			},
 			{
-				ID:      1,
-				Name:    "bbb",
-				Price:   0,
-				Picture: "bbb.png",
+				ID:          1,
+				Name:        "bbb",
+				Price:       0,
+				Picture:     "bbb.png",
+				Description: "b",
 			},
 		},
 	}
 
-	rows := mock.NewRows([]string{"id", "vendorName", "descript", "picture"})
-	rows.AddRow(vendor.ID, vendor.Name, vendor.Description, vendor.Picture)
+	rows := mock.NewRows([]string{
+		"id", "vendorName", "descript", "picture", "ST_X(coordinates::geometry)",
+		"ST_Y(coordinates::geometry)", "service_radius",
+	})
+	rows.AddRow(vendor.ID, vendor.Name, vendor.Description, vendor.Picture, vendor.Longitude, vendor.Latitude, vendor.Radius)
 
 	// good query
 	mock.
@@ -51,9 +60,9 @@ func TestGet(t *testing.T) {
 		WithArgs(vendor.ID).
 		WillReturnRows(rows)
 
-	productRows := mock.NewRows([]string{"id", "productName", "price", "picture"})
+	productRows := mock.NewRows([]string{"id", "productName", "descript", "price", "picture"})
 	for _, product := range vendor.Products {
-		productRows.AddRow(product.ID, product.Name, product.Price, product.Picture)
+		productRows.AddRow(product.ID, product.Name, product.Description, product.Price, product.Picture)
 	}
 
 	mock.
@@ -151,6 +160,10 @@ func TestGetAll(t *testing.T) {
 			Description: "aa",
 			Picture:     "a.png",
 			Products:    make([]models.Product, 0),
+			HintContent: "a",
+			Radius:      3,
+			Longitude:   1.0,
+			Latitude:    2.0,
 		},
 		{
 			ID:          1,
@@ -158,12 +171,21 @@ func TestGetAll(t *testing.T) {
 			Description: "bb",
 			Picture:     "b.jpg",
 			Products:    make([]models.Product, 0),
+			HintContent: "b",
+			Radius:      3,
+			Longitude:   1.0,
+			Latitude:    2.0,
 		},
 	}
 
-	rows := mock.NewRows([]string{"id", "vendorName", "descript", "picture"})
+	rows := mock.NewRows([]string{
+		"id", "vendorName", "descript", "picture", "ST_X(coordinates::geometry)",
+		"ST_Y(coordinates::geometry)", "service_radius",
+	})
 	for _, vendor := range vendors {
-		rows.AddRow(vendor.ID, vendor.Name, vendor.Description, vendor.Picture)
+		rows.AddRow(
+			vendor.ID, vendor.Name, vendor.Description, vendor.Picture, vendor.Longitude, vendor.Latitude, vendor.Radius,
+		)
 	}
 
 	// good query
@@ -229,24 +251,26 @@ func TestGetAllProductsWithIDs(t *testing.T) {
 	ids := []int{0, 1}
 	products := []models.Product{
 		{
-			ID:       0,
-			Name:     "aaa",
-			Price:    0,
-			Picture:  "aaa.png",
-			VendorID: 1,
+			ID:          0,
+			Name:        "aaa",
+			Price:       0,
+			Picture:     "aaa.png",
+			VendorID:    1,
+			Description: "a",
 		},
 		{
-			ID:       1,
-			Name:     "bbb",
-			Price:    0,
-			Picture:  "bbb.png",
-			VendorID: 1,
+			ID:          1,
+			Name:        "bbb",
+			Price:       0,
+			Picture:     "bbb.png",
+			VendorID:    1,
+			Description: "b",
 		},
 	}
 
-	rows := mock.NewRows([]string{"id", "vendorID", "productName", "price", "picture"})
+	rows := mock.NewRows([]string{"id", "vendorID", "productName", "descript", "price", "picture"})
 	for _, product := range products {
-		rows.AddRow(product.ID, product.VendorID, product.Name, product.Price, product.Picture)
+		rows.AddRow(product.ID, product.VendorID, product.Name, product.Description, product.Price, product.Picture)
 	}
 
 	// good query
@@ -520,9 +544,10 @@ func TestAddProduct(t *testing.T) {
 	repo := NewVendorRepository(db)
 
 	product := models.Product{
-		VendorID: 1,
-		Name:     "a",
-		Price:    0,
+		VendorID:    1,
+		Name:        "a",
+		Price:       0,
+		Description: "aa",
 	}
 
 	rows := mock.NewRows([]string{"id"}).AddRow(1)
@@ -530,7 +555,7 @@ func TestAddProduct(t *testing.T) {
 	// good query
 	mock.
 		ExpectQuery("INSERT").
-		WithArgs(product.VendorID, product.Name, product.Price).
+		WithArgs(product.VendorID, product.Name, product.Description, product.Price).
 		WillReturnRows(rows)
 
 	id, err := repo.AddProduct(product)
@@ -570,15 +595,16 @@ func TestUpdateProduct(t *testing.T) {
 	repo := NewVendorRepository(db)
 
 	product := models.Product{
-		ID:    0,
-		Name:  "a",
-		Price: 0,
+		ID:          0,
+		Name:        "a",
+		Price:       0,
+		Description: "aa",
 	}
 
 	// good update
 	mock.
 		ExpectExec("UPDATE").
-		WithArgs(product.Name, product.Price, product.ID).
+		WithArgs(product.Name, product.Description, product.Price, product.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = repo.UpdateProduct(product)
