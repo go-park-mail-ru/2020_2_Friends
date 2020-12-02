@@ -75,30 +75,6 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File, imageTy
 	if err != nil {
 		return "", err
 	}
-	// avatarFile, err := os.Create(filepath.Join(configs.FileServerPath+"/img", filepath.Base(imgFullName)))
-	// if err != nil {
-	// 	return "", ownErr.NewServerError(fmt.Errorf("couldn't create file: %w", err))
-	// }
-
-	// switch imgType {
-	// case "png":
-	// 	err = png.Encode(avatarFile, img)
-	// case "jpg":
-	// 	fallthrough
-	// case "jpeg":
-	// 	err = jpeg.Encode(avatarFile, img, nil)
-	// default:
-	// 	return "", ownErr.NewClientError(fmt.Errorf("unsupporter img type: %w", err))
-	// }
-
-	// if err != nil {
-	// 	return "", ownErr.NewServerError(fmt.Errorf("couldn't encode: %w", err))
-	// }
-
-	// err = p.repository.UpdateAvatar(userID, imgFullName)
-	// if err != nil {
-	// 	return "", ownErr.NewServerError(fmt.Errorf("couldn't save link to avatart: %w", err))
-	// }
 
 	return imgFullName, nil
 }
