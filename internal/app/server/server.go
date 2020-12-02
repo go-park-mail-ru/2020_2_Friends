@@ -16,6 +16,7 @@ import (
 	csrfDelivery "github.com/friends/internal/pkg/csrf/delivery"
 	csrfRepo "github.com/friends/internal/pkg/csrf/repository"
 	csrfUsecase "github.com/friends/internal/pkg/csrf/usecase"
+	"github.com/friends/internal/pkg/fileserver"
 	"github.com/friends/internal/pkg/middleware"
 	orderDelivery "github.com/friends/internal/pkg/order/delivery"
 	orderRepo "github.com/friends/internal/pkg/order/repository"
@@ -63,27 +64,36 @@ func StartApiServer() {
 		DB:       0,
 	})
 
-	profRepo := profileRepo.NewProfileRepository(db)
-	profUsecase := profileUsecase.NewProfileUsecase(profRepo)
-
-	vendRepo := vendorRepo.NewVendorRepository(db)
-	vendUsecase := vendorUsecase.NewVendorUsecase(vendRepo)
-
-	grpcConn, err := grpc.Dial(
+	grpcSessionConn, err := grpc.Dial(
 		"localhost"+configs.SessionServicePort,
 		grpc.WithInsecure(),
 	)
 	if err != nil {
 		log.Fatalf("cant connect to grpc")
 	}
-	defer grpcConn.Close()
+	defer grpcSessionConn.Close()
 
-	sessionClient := session.NewSessionWorkerClient(grpcConn)
+	sessionClient := session.NewSessionWorkerClient(grpcSessionConn)
+
+	grpcFileserverConn, err := grpc.Dial(
+		"localhost"+configs.FileServerGRPCPort,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcSessionConn.Close()
+
+	fileserverClient := fileserver.NewUploadServiceClient(grpcFileserverConn)
+
+	profRepo := profileRepo.NewProfileRepository(db)
+	profUsecase := profileUsecase.NewProfileUsecase(profRepo, fileserverClient)
+	profDelivery := profileDelivery.NewProfileDelivery(profUsecase)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionClient, profUsecase)
 
-	profDelivery := profileDelivery.NewProfileDelivery(profUsecase)
-
+	vendRepo := vendorRepo.NewVendorRepository(db)
+	vendUsecase := vendorUsecase.NewVendorUsecase(vendRepo, fileserverClient)
 	vendDelivery := vendorDelivery.NewVendorDelivery(vendUsecase)
 
 	cartRepo := cartRepo.NewCartRepository(db)

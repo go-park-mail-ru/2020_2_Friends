@@ -211,31 +211,31 @@ func (mr *MockUsecaseMockRecorder) UpdateProduct(arg0 interface{}) *gomock.Call 
 }
 
 // UpdateProductPicture mocks base method
-func (m *MockUsecase) UpdateProductPicture(arg0 string, arg1 multipart.File) (string, error) {
+func (m *MockUsecase) UpdateProductPicture(arg0 string, arg1 multipart.File, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateProductPicture", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateProductPicture", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateProductPicture indicates an expected call of UpdateProductPicture
-func (mr *MockUsecaseMockRecorder) UpdateProductPicture(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) UpdateProductPicture(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProductPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateProductPicture), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProductPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateProductPicture), arg0, arg1, arg2)
 }
 
 // UpdateVendorPicture mocks base method
-func (m *MockUsecase) UpdateVendorPicture(arg0 string, arg1 multipart.File) (string, error) {
+func (m *MockUsecase) UpdateVendorPicture(arg0 string, arg1 multipart.File, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateVendorPicture", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateVendorPicture", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateVendorPicture indicates an expected call of UpdateVendorPicture
-func (mr *MockUsecaseMockRecorder) UpdateVendorPicture(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) UpdateVendorPicture(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVendorPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateVendorPicture), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVendorPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateVendorPicture), arg0, arg1, arg2)
 }

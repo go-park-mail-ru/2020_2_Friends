@@ -11,6 +11,7 @@ import (
 
 	"github.com/friends/internal/pkg/profile"
 	ownErr "github.com/friends/pkg/error"
+	image "github.com/friends/pkg/image"
 	log "github.com/friends/pkg/logger"
 )
 
@@ -105,14 +106,21 @@ func (p ProfileDelivery) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	file, _, err := r.FormFile(configs.AvatarFormFileKey)
+	file, header, err := r.FormFile(configs.AvatarFormFileKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	imgName, err := p.profUsecase.UpdateAvatar(userID, file)
+	mimeType := header.Header.Get("Content-Type")
+	imageType, err := image.CheckMimeType(mimeType)
+	if err != nil {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	imgName, err := p.profUsecase.UpdateAvatar(userID, file, imageType)
 	if err != nil {
 		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusUnsupportedMediaType)
 		return

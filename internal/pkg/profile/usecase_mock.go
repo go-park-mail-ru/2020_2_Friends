@@ -106,16 +106,16 @@ func (mr *MockUsecaseMockRecorder) UpdateAddresses(arg0, arg1 interface{}) *gomo
 }
 
 // UpdateAvatar mocks base method
-func (m *MockUsecase) UpdateAvatar(arg0 string, arg1 multipart.File) (string, error) {
+func (m *MockUsecase) UpdateAvatar(arg0 string, arg1 multipart.File, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAvatar", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateAvatar", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateAvatar indicates an expected call of UpdateAvatar
-func (mr *MockUsecaseMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) UpdateAvatar(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUsecase)(nil).UpdateAvatar), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUsecase)(nil).UpdateAvatar), arg0, arg1, arg2)
 }
