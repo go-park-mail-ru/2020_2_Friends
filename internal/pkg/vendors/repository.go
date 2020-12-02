@@ -4,9 +4,11 @@ import "github.com/friends/internal/pkg/models"
 
 type Repository interface {
 	Get(id int) (models.Vendor, error)
+	GetVendorInfo(id string) (models.Vendor, error)
 	GetAll() ([]models.Vendor, error)
-	GetAllProductsWithIDs(ids []string) ([]models.Product, error)
+	GetAllProductsWithIDsFromSameVendor(ids []int) ([]models.Product, error)
 	GetVendorIDFromProduct(productID string) (string, error)
+	GetVendorFromProduct(productID int) (models.Vendor, error)
 	IsVendorExists(vendorName string) error
 	Create(partnerID string, vendor models.Vendor) (int, error)
 	Update(models.Vendor) error
@@ -17,4 +19,6 @@ type Repository interface {
 	UpdateVendorImage(vendorID string, link string) error
 	UpdateProductImage(vendorID string, link string) error
 	GetPartnerShops(partnerID string) ([]models.Vendor, error)
+	GetVendorOwner(vendorID int) (string, error)
+	GetNearest(longitude, latitude float64) ([]models.Vendor, error)
 }

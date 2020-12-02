@@ -6,6 +6,7 @@ import (
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/vendors"
+	ownErr "github.com/friends/pkg/error"
 	"github.com/lib/pq"
 )
 
@@ -21,18 +22,20 @@ func NewVendorRepository(db *sql.DB) vendors.Repository {
 
 func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	row := v.db.QueryRow(
-		"SELECT id, vendorName, descript, picture FROM vendors WHERE id=$1",
+		`SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius
+		FROM vendors WHERE id=$1`,
 		id,
 	)
 
-	vendor := models.Vendor{}
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+	vendor := models.NewEmptyVendor()
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
 	if err != nil {
-		return models.Vendor{}, fmt.Errorf("no such vendor")
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
+	vendor.HintContent = vendor.Name
 
 	rows, err := v.db.Query(
-		"SELECT id, productName, price, picture FROM products WHERE vendorID=$1",
+		"SELECT id, productName, descript, price, picture FROM products WHERE vendorID=$1",
 		id,
 	)
 
@@ -43,7 +46,7 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 
 	for rows.Next() {
 		product := models.Product{}
-		err = rows.Scan(&product.ID, &product.Name, &product.Price, &product.Picture)
+		err = rows.Scan(&product.ID, &product.Name, &product.Description, &product.Price, &product.Picture)
 		if err != nil {
 			return models.Vendor{}, fmt.Errorf("error in receiving the product: %w", err)
 		}
@@ -54,9 +57,24 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	return vendor, nil
 }
 
+func (v VendorRepository) GetVendorInfo(id string) (models.Vendor, error) {
+	row := v.db.QueryRow(
+		"SELECT id, vendorName, descript, picture FROM vendors WHERE id=$1",
+		id,
+	)
+
+	vendor := models.Vendor{}
+	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
+	}
+
+	return vendor, nil
+}
+
 func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorName, descript, picture FROM vendors",
+		"SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius FROM vendors",
 	)
 
 	if err != nil {
@@ -66,11 +84,12 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 
 	var vendors []models.Vendor
 	for rows.Next() {
-		vendor := models.Vendor{}
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		vendor := models.NewEmptyVendor()
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
+		vendor.HintContent = vendor.Name
 
 		vendors = append(vendors, vendor)
 	}
@@ -78,26 +97,32 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	return vendors, nil
 }
 
-func (v VendorRepository) GetAllProductsWithIDs(ids []string) ([]models.Product, error) {
+func (v VendorRepository) GetAllProductsWithIDsFromSameVendor(ids []int) ([]models.Product, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorID, productName, price, picture FROM products WHERE id = ANY ($1)",
+		"SELECT id, vendorID, productName, descript, price, picture FROM products WHERE id = ANY ($1)",
 		pq.Array(ids),
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get products from products: %w", err)
+		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get products from products: %w", err))
 	}
 	defer rows.Close()
 
-	var products []models.Product
+	products := make([]models.Product, 0)
+	vendorID := -1
 	for rows.Next() {
 		var product models.Product
-		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Price, &product.Picture)
+		err = rows.Scan(&product.ID, &product.VendorID, &product.Name, &product.Description, &product.Price, &product.Picture)
 		if err != nil {
-			return nil, fmt.Errorf("error in receiving product: %w", err)
+			return nil, ownErr.NewServerError(fmt.Errorf("error in receiving product: %w", err))
+		}
+
+		if product.VendorID != vendorID && vendorID != -1 {
+			return nil, ownErr.NewClientError(fmt.Errorf("products from different vendors"))
 		}
 
 		products = append(products, product)
+		vendorID = product.VendorID
 	}
 
 	return products, nil
@@ -116,6 +141,22 @@ func (v VendorRepository) GetVendorIDFromProduct(productID string) (string, erro
 	}
 
 	return vendorID, nil
+}
+
+func (v VendorRepository) GetVendorFromProduct(productID int) (models.Vendor, error) {
+	vendor := models.Vendor{}
+	err := v.db.QueryRow(
+		`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
+		JOIN products AS p on v.id = p.vendorID
+		WHERE p.id = $1`,
+		productID,
+	).Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
+	}
+
+	return vendor, nil
 }
 
 func (v VendorRepository) IsVendorExists(vendorName string) error {
@@ -143,8 +184,9 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	var vendorID int
 
 	err = tx.QueryRow(
-		"INSERT INTO vendors (vendorName, descript) VALUES($1, $2) RETURNING id",
-		vendor.Name, vendor.Description,
+		`INSERT INTO vendors (vendorName, descript, coordinates, service_radius)
+		VALUES ($1, $2, ST_SetSRID(ST_Point($3, $4), 4326), $5) RETURNING id`,
+		vendor.Name, vendor.Description, vendor.Longitude, vendor.Latitude, vendor.Radius,
 	).Scan(&vendorID)
 
 	if err != nil {
@@ -226,8 +268,8 @@ func (v VendorRepository) AddProduct(product models.Product) (int, error) {
 	var productID int
 
 	err := v.db.QueryRow(
-		"INSERT INTO products (vendorID, productName, price) VALUES($1, $2, $3) RETURNING id",
-		product.VendorID, product.Name, product.Price,
+		"INSERT INTO products (vendorID, productName, descript, price) VALUES($1, $2, $3, $4) RETURNING id",
+		product.VendorID, product.Name, product.Description, product.Price,
 	).Scan(&productID)
 
 	if err != nil {
@@ -239,8 +281,8 @@ func (v VendorRepository) AddProduct(product models.Product) (int, error) {
 
 func (v VendorRepository) UpdateProduct(product models.Product) error {
 	_, err := v.db.Exec(
-		"UPDATE products SET productName = $1, price = $2 WHERE id = $3",
-		product.Name, product.Price, product.ID,
+		"UPDATE products SET productName = $1, descript = $2, price = $3 WHERE id = $4",
+		product.Name, product.Description, product.Price, product.ID,
 	)
 
 	if err != nil {
@@ -302,10 +344,51 @@ func (v VendorRepository) GetPartnerShops(partnerID string) ([]models.Vendor, er
 	}
 	defer rows.Close()
 
-	var vendors []models.Vendor
+	vendors := make([]models.Vendor, 0)
+	for rows.Next() {
+		vendor := models.NewEmptyVendor()
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorRepository) GetVendorOwner(vendorID int) (string, error) {
+	row := v.db.QueryRow(
+		"SELECT partnerID FROM vendor_partner WHERE vendorID = $1",
+		vendorID,
+	)
+
+	var partnerID string
+	err := row.Scan(&partnerID)
+	if err != nil {
+		return "", fmt.Errorf("couldn't get partnerID from vendor with id = %v. Error: %w", vendorID, err)
+	}
+
+	return partnerID, nil
+}
+
+func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		`SELECT id, vendorName, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius
+		FROM vendors WHERE ST_DWithin(coordinates, ST_SetSRID(ST_Point($1, $2), 4326), 5 * 1000)`,
+		longitude, latitude,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get vendors from db")
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0)
 	for rows.Next() {
 		vendor := models.Vendor{}
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		err = rows.Scan(&vendor.ID, &vendor.HintContent, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}

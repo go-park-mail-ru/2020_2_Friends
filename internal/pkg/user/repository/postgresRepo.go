@@ -3,10 +3,10 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
 
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/user"
+	ownErr "github.com/friends/pkg/error"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -64,28 +64,24 @@ func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string,
 	dbUser := models.User{}
 	switch err := row.Scan(&dbUser.ID, &dbUser.Password); err {
 	case sql.ErrNoRows:
-		return "", fmt.Errorf("user doesn't exist")
+		return "", ownErr.NewClientError(err)
 
 	case nil:
-		isEqual := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
-		if isEqual != nil {
-			return "", fmt.Errorf("wrong password: %w", isEqual)
+		bcryptErr := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
+		if bcryptErr != nil {
+			return "", ownErr.NewClientError(fmt.Errorf("wrong password: %w", bcryptErr))
 		}
 		return dbUser.ID, nil
 
 	default:
-		return "", fmt.Errorf("db error: %w", err)
+		return "", ownErr.NewServerError(fmt.Errorf("db error: %w", err))
 	}
 }
 
 func (u UserRepository) Delete(userID string) error {
-	id, err := strconv.Atoi(userID)
-	if err != nil {
-		return fmt.Errorf("couldn't convert to string: %w", err)
-	}
-	_, err = u.db.Exec(
+	_, err := u.db.Exec(
 		"DELETE FROM users WHERE id=$1",
-		id,
+		userID,
 	)
 
 	if err != nil {

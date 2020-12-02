@@ -133,18 +133,17 @@ func TestUpdate(t *testing.T) {
 	repo := NewProfileRepository(db)
 
 	profile := dbProfile{
-		UserID:    "0",
-		Name:      sql.NullString{String: "testname", Valid: true},
-		Phone:     sql.NullString{String: "0000", Valid: true},
-		Avatar:    sql.NullString{String: "avatar.jpg", Valid: true},
-		Points:    sql.NullInt64{Int64: 0, Valid: true},
-		Addresses: pq.StringArray([]string{"addr1", "addr2"}),
+		UserID: "0",
+		Name:   sql.NullString{String: "testname", Valid: true},
+		Phone:  sql.NullString{String: "0000", Valid: true},
+		Avatar: sql.NullString{String: "avatar.jpg", Valid: true},
+		Points: sql.NullInt64{Int64: 0, Valid: true},
 	}
 
 	// good update
 	mock.
 		ExpectExec("UPDATE profiles").
-		WithArgs(profile.Name, profile.Phone, profile.Addresses, profile.Points, profile.UserID).
+		WithArgs(profile.Name, profile.Phone, profile.Points, profile.UserID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = repo.Update(fromDBToApp(profile))
@@ -156,7 +155,7 @@ func TestUpdate(t *testing.T) {
 	// bad update
 	mock.
 		ExpectExec("UPDATE profiles").
-		WithArgs(profile.Name, profile.Phone, profile.Addresses, profile.Points, profile.UserID).
+		WithArgs(profile.Name, profile.Phone, profile.Points, profile.UserID).
 		WillReturnError(fmt.Errorf("error with db"))
 
 	err = repo.Update(fromDBToApp(profile))
@@ -197,6 +196,43 @@ func TestUpdateAvatar(t *testing.T) {
 		WillReturnError(fmt.Errorf("error with db"))
 
 	err = repo.UpdateAvatar(userID, link)
+	if err == nil {
+		t.Error("expected error")
+		return
+	}
+}
+
+func TestUpdateAddresses(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewProfileRepository(db)
+
+	userID := "0"
+	addresses := []string{"addr1", "addr2"}
+
+	// good update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(pq.StringArray(addresses), userID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = repo.UpdateAddresses(userID, addresses)
+	if err != nil {
+		t.Error("unexpected err: %w", err)
+		return
+	}
+
+	// bad update
+	mock.
+		ExpectExec("UPDATE").
+		WithArgs(pq.StringArray(addresses), userID).
+		WillReturnError(fmt.Errorf("error with db"))
+
+	err = repo.UpdateAddresses(userID, addresses)
 	if err == nil {
 		t.Error("expected error")
 		return

@@ -94,7 +94,7 @@ func TestGet(t *testing.T) {
 	repo := NewCartRepository(db)
 
 	userID := "0"
-	ids := []string{"1", "2"}
+	ids := []int{1, 2}
 
 	// good query
 	rows := mock.NewRows([]string{"productID"})

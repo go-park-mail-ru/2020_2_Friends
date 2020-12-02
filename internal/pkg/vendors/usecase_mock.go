@@ -122,6 +122,21 @@ func (mr *MockUsecaseMockRecorder) GetAll() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockUsecase)(nil).GetAll))
 }
 
+// GetNearest mocks base method
+func (m *MockUsecase) GetNearest(arg0, arg1 float64) ([]models.Vendor, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNearest", arg0, arg1)
+	ret0, _ := ret[0].([]models.Vendor)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNearest indicates an expected call of GetNearest
+func (mr *MockUsecaseMockRecorder) GetNearest(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNearest", reflect.TypeOf((*MockUsecase)(nil).GetNearest), arg0, arg1)
+}
+
 // GetPartnerShops mocks base method
 func (m *MockUsecase) GetPartnerShops(arg0 string) ([]models.Vendor, error) {
 	m.ctrl.T.Helper()
@@ -150,6 +165,21 @@ func (m *MockUsecase) GetVendorIDFromProduct(arg0 string) (string, error) {
 func (mr *MockUsecaseMockRecorder) GetVendorIDFromProduct(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendorIDFromProduct", reflect.TypeOf((*MockUsecase)(nil).GetVendorIDFromProduct), arg0)
+}
+
+// GetVendorOwner mocks base method
+func (m *MockUsecase) GetVendorOwner(arg0 int) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVendorOwner", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVendorOwner indicates an expected call of GetVendorOwner
+func (mr *MockUsecaseMockRecorder) GetVendorOwner(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendorOwner", reflect.TypeOf((*MockUsecase)(nil).GetVendorOwner), arg0)
 }
 
 // Update mocks base method
@@ -181,31 +211,31 @@ func (mr *MockUsecaseMockRecorder) UpdateProduct(arg0 interface{}) *gomock.Call 
 }
 
 // UpdateProductPicture mocks base method
-func (m *MockUsecase) UpdateProductPicture(arg0 string, arg1 multipart.File) (string, error) {
+func (m *MockUsecase) UpdateProductPicture(arg0 string, arg1 multipart.File, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateProductPicture", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateProductPicture", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateProductPicture indicates an expected call of UpdateProductPicture
-func (mr *MockUsecaseMockRecorder) UpdateProductPicture(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) UpdateProductPicture(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProductPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateProductPicture), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProductPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateProductPicture), arg0, arg1, arg2)
 }
 
 // UpdateVendorPicture mocks base method
-func (m *MockUsecase) UpdateVendorPicture(arg0 string, arg1 multipart.File) (string, error) {
+func (m *MockUsecase) UpdateVendorPicture(arg0 string, arg1 multipart.File, arg2 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateVendorPicture", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateVendorPicture", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateVendorPicture indicates an expected call of UpdateVendorPicture
-func (mr *MockUsecaseMockRecorder) UpdateVendorPicture(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockUsecaseMockRecorder) UpdateVendorPicture(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVendorPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateVendorPicture), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVendorPicture", reflect.TypeOf((*MockUsecase)(nil).UpdateVendorPicture), arg0, arg1, arg2)
 }

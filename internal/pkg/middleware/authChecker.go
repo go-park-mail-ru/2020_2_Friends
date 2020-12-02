@@ -12,12 +12,12 @@ import (
 type UserID string
 
 type AuthChecker struct {
-	sessUsecase session.Usecase
+	sessionClient session.SessionWorkerClient
 }
 
-func NewAuthChecker(sessUsecase session.Usecase) AuthChecker {
+func NewAuthChecker(sessionClient session.SessionWorkerClient) AuthChecker {
 	return AuthChecker{
-		sessUsecase: sessUsecase,
+		sessionClient: sessionClient,
 	}
 }
 
@@ -32,18 +32,18 @@ func (a AuthChecker) Check(next http.HandlerFunc) http.Handler {
 
 		cookie, err := r.Cookie(configs.SessionID)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		userID, err := a.sessUsecase.Check(cookie.Value)
+		userID, err := a.sessionClient.Check(context.Background(), &session.SessionName{Name: cookie.Value})
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserID(configs.UserID), userID)
+		ctx = context.WithValue(ctx, UserID(configs.UserID), userID.GetId())
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

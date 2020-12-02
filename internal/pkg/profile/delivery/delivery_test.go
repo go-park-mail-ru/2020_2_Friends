@@ -17,7 +17,7 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestGetHandlerSuccess(t *testing.T) {
+func TestGetSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -34,9 +34,7 @@ func TestGetHandlerSuccess(t *testing.T) {
 
 	mockProfileUsecase.EXPECT().Get(prof.UserID).Times(1).Return(prof, nil)
 
-	handler := ProfileDelivery{
-		profUsecase: mockProfileUsecase,
-	}
+	handler := NewProfileDelivery(mockProfileUsecase)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/profiles", nil)
@@ -50,13 +48,13 @@ func TestGetHandlerSuccess(t *testing.T) {
 	}
 
 	var respProf models.Profile
-	json.Unmarshal(w.Body.Bytes(), &respProf)
+	_ = json.Unmarshal(w.Body.Bytes(), &respProf)
 	if !reflect.DeepEqual(prof, respProf) {
 		t.Errorf("expected: %v\n got: %v", prof, respProf)
 	}
 }
 
-func TestGetHandlerBad(t *testing.T) {
+func TestGetError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -66,9 +64,7 @@ func TestGetHandlerBad(t *testing.T) {
 
 	mockProfileUsecase.EXPECT().Get(userID).Times(1).Return(models.Profile{}, fmt.Errorf("error with profile"))
 
-	handler := ProfileDelivery{
-		profUsecase: mockProfileUsecase,
-	}
+	handler := NewProfileDelivery(mockProfileUsecase)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/profiles", nil)
@@ -76,8 +72,22 @@ func TestGetHandlerBad(t *testing.T) {
 
 	handler.Get(w, r.WithContext(ctx))
 
-	if w.Code != http.StatusBadRequest {
+	if w.Code != http.StatusInternalServerError {
 		t.Errorf("expected: %v\n got: %v", http.StatusCreated, w.Code)
+	}
+}
+
+func TestGetNoUser(t *testing.T) {
+	handler := ProfileDelivery{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/profiles", nil)
+
+	handler.Get(w, r)
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}
 }
 
@@ -87,9 +97,7 @@ func TestUpdateHandlerSuccess(t *testing.T) {
 
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
 
-	handler := ProfileDelivery{
-		profUsecase: mockProfileUsecase,
-	}
+	handler := NewProfileDelivery(mockProfileUsecase)
 
 	prof := models.Profile{
 		UserID: "0",
@@ -120,9 +128,7 @@ func TestUpdateHandlerError(t *testing.T) {
 
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
 
-	handler := ProfileDelivery{
-		profUsecase: mockProfileUsecase,
-	}
+	handler := NewProfileDelivery(mockProfileUsecase)
 
 	prof := models.Profile{
 		UserID: "0",
@@ -141,7 +147,7 @@ func TestUpdateHandlerError(t *testing.T) {
 
 	handler.Update(w, r.WithContext(ctx))
 
-	expected := http.StatusBadRequest
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}
@@ -166,6 +172,20 @@ func TestUpdateHandlerBadJson(t *testing.T) {
 	}
 }
 
+func TestUpdateNoUser(t *testing.T) {
+	handler := ProfileDelivery{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/profiles", nil)
+
+	handler.Update(w, r)
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
 func TestUpdateAvatarError(t *testing.T) {
 	handler := ProfileDelivery{}
 
@@ -178,6 +198,116 @@ func TestUpdateAvatarError(t *testing.T) {
 	handler.UpdateAvatar(w, r.WithContext(ctx))
 
 	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateAvatarNoUser(t *testing.T) {
+	handler := ProfileDelivery{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/profiles/avatars", nil)
+
+	handler.UpdateAvatar(w, r)
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateAddressesSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockProfileUsecase := profile.NewMockUsecase(ctrl)
+
+	handler := NewProfileDelivery(mockProfileUsecase)
+
+	userID := "0"
+	addresses := []string{"addr1", "addr2"}
+	addrJson := fmt.Sprintf(`{"addresses": ["%s", "%s"]}`, addresses[0], addresses[1])
+
+	mockProfileUsecase.EXPECT().UpdateAddresses(userID, addresses).Times(1).Return(nil)
+
+	body := bytes.NewReader([]byte(addrJson))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/profiles/addresses", body)
+	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), userID)
+
+	handler.UpdateAddresses(w, r.WithContext(ctx))
+
+	expected := http.StatusOK
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateAddressesError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockProfileUsecase := profile.NewMockUsecase(ctrl)
+
+	handler := NewProfileDelivery(mockProfileUsecase)
+
+	userID := "0"
+	addresses := []string{"addr1", "addr2"}
+	addrJson := fmt.Sprintf(`{"addresses": ["%s", "%s"]}`, addresses[0], addresses[1])
+
+	mockProfileUsecase.EXPECT().UpdateAddresses(userID, addresses).Times(1).Return(fmt.Errorf("err"))
+
+	body := bytes.NewReader([]byte(addrJson))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/profiles/addresses", body)
+	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), userID)
+
+	handler.UpdateAddresses(w, r.WithContext(ctx))
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateAddressesBadJson(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockProfileUsecase := profile.NewMockUsecase(ctrl)
+
+	handler := NewProfileDelivery(mockProfileUsecase)
+
+	userID := "0"
+	addresses := []string{"addr1", "addr2"}
+	addrJson := fmt.Sprintf(`{"addresses": ["%s", "%s"}`, addresses[0], addresses[1])
+
+	body := bytes.NewReader([]byte(addrJson))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/profiles/addresses", body)
+	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), userID)
+
+	handler.UpdateAddresses(w, r.WithContext(ctx))
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateAddressesNoUser(t *testing.T) {
+	handler := ProfileDelivery{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/profiles/addresses", nil)
+
+	handler.UpdateAddresses(w, r)
+
+	expected := http.StatusInternalServerError
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}

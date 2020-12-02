@@ -1,4 +1,4 @@
-package pkg
+package logger
 
 import (
 	"context"
@@ -20,4 +20,8 @@ func ErrorLogWithCtx(ctx context.Context, err error) {
 	log.WithFields(log.Fields{
 		configs.ReqID: ctx.Value(configs.ReqID),
 	}).Error(err)
+}
+
+func ErrorMessage(msg string) {
+	log.Error(msg)
 }

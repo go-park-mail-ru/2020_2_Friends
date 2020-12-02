@@ -64,9 +64,9 @@ func (p ProfileRepository) Update(appProfile models.Profile) error {
 	profile := fromAppToDB(appProfile)
 	_, err := p.db.Exec(
 		`UPDATE profiles
-		SET username=$1, phone=$2, addresses=$3, points=$4
-		WHERE userID=$5`,
-		profile.Name, profile.Phone, profile.Addresses, profile.Points, profile.UserID,
+		SET username=$1, phone=$2, points=$3
+		WHERE userID=$4`,
+		profile.Name, profile.Phone, profile.Points, profile.UserID,
 	)
 
 	if err != nil {
@@ -91,6 +91,19 @@ func (p ProfileRepository) UpdateAvatar(userID string, link string) error {
 	return nil
 }
 
+func (p ProfileRepository) UpdateAddresses(userID string, addresses []string) error {
+	_, err := p.db.Exec(
+		"UPDATE profiles SET addresses = $1 WHERE userID = $2",
+		pq.StringArray(addresses), userID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("couldn't update addresses: %w", err)
+	}
+
+	return nil
+}
+
 func (p ProfileRepository) Delete(userID string) error {
 	_, err := p.db.Exec(
 		"DELETE FROM profiles WHERE userID=$1",
@@ -102,6 +115,20 @@ func (p ProfileRepository) Delete(userID string) error {
 	}
 
 	return nil
+}
+
+func (p ProfileRepository) GetUsername(userID string) (string, error) {
+	var name sql.NullString
+	err := p.db.QueryRow(
+		"SELECT username FROM profiles WHERE userID = $1",
+		userID,
+	).Scan(&name)
+
+	if err != nil {
+		return "", fmt.Errorf("couldn't get username: %w", err)
+	}
+
+	return name.String, nil
 }
 
 func fromDBToApp(dbProf dbProfile) models.Profile {

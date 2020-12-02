@@ -1,89 +1,60 @@
 package delivery
 
 import (
-	"encoding/json"
-	"net/http"
-	"time"
+	"context"
 
-	"github.com/friends/configs"
-	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
-	"github.com/friends/internal/pkg/user"
-	log "github.com/friends/pkg/logger"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type SessionDelivery struct {
 	sessionUsecase session.Usecase
-	userUsecase    user.Usecase
 }
 
-func NewSessionDelivery(usecase session.Usecase, userUsecase user.Usecase) SessionDelivery {
+func NewSessionDelivery(usecase session.Usecase) session.SessionWorkerServer {
 	return SessionDelivery{
 		sessionUsecase: usecase,
-		userUsecase:    userUsecase,
 	}
 }
 
-func (sd SessionDelivery) Create(w http.ResponseWriter, r *http.Request) {
-	var err error
-	defer func() {
-		if err != nil {
-			log.ErrorLogWithCtx(r.Context(), err)
-		}
-	}()
-
-	user := &models.User{}
-	err = json.NewDecoder(r.Body).Decode(user)
+func (s SessionDelivery) Create(ctx context.Context, userID *session.UserID) (*session.SessionName, error) {
+	sessionName, err := s.sessionUsecase.Create(userID.GetId())
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	user.Sanitize()
-
-	userID, err := sd.userUsecase.Verify(*user)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return nil, status.Errorf(
+			codes.Internal, "couldn't create session for user with id = %s. Error: %v", userID.GetId(), err,
+		)
 	}
 
-	sessionName, err := sd.sessionUsecase.Create(userID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	resp := session.SessionName{
+		Name: sessionName,
 	}
 
-	expiration := time.Now().Add(configs.ExpireTime)
-	cookie := http.Cookie{
-		Name:     configs.SessionID,
-		Value:    sessionName,
-		Expires:  expiration,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	http.SetCookie(w, &cookie)
+	return &resp, nil
 }
 
-func (sd SessionDelivery) Delete(w http.ResponseWriter, r *http.Request) {
-	var err error
-	defer func() {
-		if err != nil {
-			log.ErrorLogWithCtx(r.Context(), err)
-		}
-	}()
-
-	cookie, err := r.Cookie(configs.SessionID)
+func (s SessionDelivery) Check(ctx context.Context, sessionName *session.SessionName) (*session.UserID, error) {
+	id, err := s.sessionUsecase.Check(sessionName.GetName())
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return nil, status.Errorf(
+			codes.Internal, "couldn't check session with name = %v. Error: %v", sessionName.GetName(), err,
+		)
 	}
 
-	err = sd.sessionUsecase.Delete(cookie.Value)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	resp := session.UserID{
+		Id: id,
 	}
 
-	cookie.Expires = time.Now().AddDate(0, 0, -1)
-	cookie.Path = "/"
-	http.SetCookie(w, cookie)
+	return &resp, nil
+}
+
+func (s SessionDelivery) Delete(ctx context.Context, sessionName *session.SessionName) (*session.DeleteResponse, error) {
+	err := s.sessionUsecase.Delete(sessionName.GetName())
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal, "couldn't delete session with name = %v. Error: %v", sessionName.GetName(), err,
+		)
+	}
+
+	return &session.DeleteResponse{}, nil
 }

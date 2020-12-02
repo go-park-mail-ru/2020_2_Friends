@@ -222,12 +222,11 @@ func TestDelete(t *testing.T) {
 	repo := NewUserRepository(db)
 
 	userID := "1"
-	intUserID := 1
 
 	// successful deletion
 	mock.
 		ExpectExec("DELETE FROM users").
-		WithArgs(intUserID).
+		WithArgs(userID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = repo.Delete(userID)
@@ -239,7 +238,7 @@ func TestDelete(t *testing.T) {
 	// error on deletion
 	mock.
 		ExpectExec("DELETE FROM users").
-		WithArgs(intUserID).
+		WithArgs(userID).
 		WillReturnError(fmt.Errorf("db error"))
 
 	err = repo.Delete(userID)

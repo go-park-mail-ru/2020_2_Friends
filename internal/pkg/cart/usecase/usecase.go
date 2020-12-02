@@ -55,5 +55,5 @@ func (c CartUsecase) Get(userID string) ([]models.Product, error) {
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get product ids: %w", err)
 	}
-	return c.vendorRepository.GetAllProductsWithIDs(ids)
+	return c.vendorRepository.GetAllProductsWithIDsFromSameVendor(ids)
 }

@@ -27,7 +27,7 @@ func TestCreateSuccess(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 	mockVendorUsecase := vendors.NewMockUsecase(ctrl)
 
 	user := models.User{
@@ -35,14 +35,14 @@ func TestCreateSuccess(t *testing.T) {
 		Password: "testpswd",
 		Role:     2,
 	}
-	cookieName := "sessname"
+	cookieName := &session.SessionName{Name: "sessname"}
 
 	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
 	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(nil)
-	mockSessionUsecase.EXPECT().Create("0").Times(1).Return(cookieName, nil)
+	mockSessionClient.EXPECT().Create(context.Background(), &session.UserID{Id: "0"}).Times(1).Return(cookieName, nil)
 
-	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionUsecase, mockVendorUsecase)
+	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionClient, mockVendorUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -56,8 +56,8 @@ func TestCreateSuccess(t *testing.T) {
 		t.Errorf("expected: %v\n got: %v", http.StatusCreated, w.Code)
 	}
 
-	respCookie := w.Result().Cookies()[0].Value
-	if respCookie != cookieName {
+	respCookie := &session.SessionName{Name: w.Result().Cookies()[0].Value}
+	if !reflect.DeepEqual(respCookie, cookieName) {
 		t.Errorf("expected cookie: %v\n got: %v", cookieName, respCookie)
 	}
 }
@@ -67,9 +67,6 @@ func TestCreateUserError(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
-	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
-	mockVendorUsecase := vendors.NewMockUsecase(ctrl)
 
 	user := models.User{
 		Login:    "testlogin",
@@ -80,7 +77,9 @@ func TestCreateUserError(t *testing.T) {
 	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("", fmt.Errorf("db error"))
 
-	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionUsecase, mockVendorUsecase)
+	handler := PartnerDelivery{
+		userUsecase: mockUserUsecase,
+	}
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -101,7 +100,7 @@ func TestCreateProfileError(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 	mockVendorUsecase := vendors.NewMockUsecase(ctrl)
 
 	user := models.User{
@@ -114,7 +113,7 @@ func TestCreateProfileError(t *testing.T) {
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
 	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(fmt.Errorf("db error"))
 
-	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionUsecase, mockVendorUsecase)
+	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionClient, mockVendorUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -135,7 +134,7 @@ func TestCreateSessionError(t *testing.T) {
 
 	mockUserUsecase := user.NewMockUsecase(ctrl)
 	mockProfileUsecase := profile.NewMockUsecase(ctrl)
-	mockSessionUsecase := session.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
 	mockVendorUsecase := vendors.NewMockUsecase(ctrl)
 
 	user := models.User{
@@ -147,9 +146,9 @@ func TestCreateSessionError(t *testing.T) {
 	mockUserUsecase.EXPECT().CheckIfUserExists(user).Times(1).Return(nil)
 	mockUserUsecase.EXPECT().Create(user).Times(1).Return("0", nil)
 	mockProfileUsecase.EXPECT().Create("0").Times(1).Return(nil)
-	mockSessionUsecase.EXPECT().Create("0").Times(1).Return("", fmt.Errorf("db error"))
+	mockSessionClient.EXPECT().Create(context.Background(), &session.UserID{Id: "0"}).Times(1).Return(nil, fmt.Errorf("db error"))
 
-	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionUsecase, mockVendorUsecase)
+	handler := New(mockUserUsecase, mockProfileUsecase, mockSessionClient, mockVendorUsecase)
 
 	userJson, _ := json.Marshal(&user)
 	body := bytes.NewReader(userJson)
@@ -488,7 +487,7 @@ func TestAddProductSuccess(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 
@@ -535,7 +534,7 @@ func TestAddProductError(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 
@@ -645,7 +644,7 @@ func TestUpdateProductSuccess(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 
@@ -684,7 +683,7 @@ func TestUpdateProductError(t *testing.T) {
 
 	product := models.Product{
 		Name:    "a",
-		Price:   "b",
+		Price:   0,
 		Picture: "c",
 	}
 

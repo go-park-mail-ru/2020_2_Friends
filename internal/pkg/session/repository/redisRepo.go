@@ -13,18 +13,10 @@ type SessionRedisRepo struct {
 	redis *redis.Client
 }
 
-func NewSessionRedisRepo(redis *redis.Client) (session.Repository, error) {
-	repo := SessionRedisRepo{
+func NewSessionRedisRepo(redis *redis.Client) session.Repository {
+	return SessionRedisRepo{
 		redis: redis,
 	}
-
-	ctx := context.Background()
-	err := redis.Ping(ctx).Err()
-	if err != nil {
-		return SessionRedisRepo{}, fmt.Errorf("redis doesn't not available: %w", err)
-	}
-
-	return repo, nil
 }
 
 func (srr SessionRedisRepo) Create(session models.Session) error {

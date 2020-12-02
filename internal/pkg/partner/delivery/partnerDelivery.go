@@ -1,11 +1,11 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
@@ -14,22 +14,24 @@ import (
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
 	"github.com/friends/internal/pkg/vendors"
+	"github.com/friends/pkg/httputils"
+	"github.com/friends/pkg/image"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
 )
 
 type PartnerDelivery struct {
 	userUsecase    user.Usecase
-	sessionUsecase session.Usecase
+	sessionClient  session.SessionWorkerClient
 	vendorUsecase  vendors.Usecase
 	profileUsecase profile.Usecase
 }
 
-func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionUsecase session.Usecase, vendorUsecase vendors.Usecase) PartnerDelivery {
+func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionClient session.SessionWorkerClient, vendorUsecase vendors.Usecase) PartnerDelivery {
 	return PartnerDelivery{
 		userUsecase:    userUsecase,
 		profileUsecase: profileUsecase,
-		sessionUsecase: sessionUsecase,
+		sessionClient:  sessionClient,
 		vendorUsecase:  vendorUsecase,
 	}
 }
@@ -69,21 +71,13 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionName, err := p.sessionUsecase.Create(userID)
+	session, err := p.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	expiration := time.Now().Add(configs.ExpireTime)
-	cookie := http.Cookie{
-		Name:     configs.SessionID,
-		Value:    sessionName,
-		Expires:  expiration,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	http.SetCookie(w, &cookie)
+	httputils.SetCookie(w, session.GetName())
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -244,14 +238,21 @@ func (p PartnerDelivery) UpdateVendorPicture(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	file, _, err := r.FormFile(configs.ImgFormFileKey)
+	file, header, err := r.FormFile(configs.ImgFormFileKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	imgName, err := p.vendorUsecase.UpdateVendorPicture(vendorID, file)
+	mimeType := header.Header.Get("Content-Type")
+	imageType, err := image.CheckMimeType(mimeType)
+	if err != nil {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	imgName, err := p.vendorUsecase.UpdateVendorPicture(vendorID, file, imageType)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -369,7 +370,7 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	file, _, err := r.FormFile(configs.ImgFormFileKey)
+	file, header, err := r.FormFile(configs.ImgFormFileKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -378,7 +379,14 @@ func (p PartnerDelivery) UpdateProductPicture(w http.ResponseWriter, r *http.Req
 
 	productID := mux.Vars(r)["id"]
 
-	imgName, err := p.vendorUsecase.UpdateProductPicture(productID, file)
+	mimeType := header.Header.Get("Content-Type")
+	imageType, err := image.CheckMimeType(mimeType)
+	if err != nil {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	imgName, err := p.vendorUsecase.UpdateProductPicture(productID, file, imageType)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

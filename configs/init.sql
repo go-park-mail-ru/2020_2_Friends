@@ -13,32 +13,35 @@ CREATE TABLE IF NOT EXISTS profiles (
     points INTEGER,
     avatar TEXT,
 
-    FOREIGN KEY (userID) REFERENCES users (id)
+    FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS vendors (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorName TEXT NOT NULL UNIQUE,
     descript TEXT DEFAULT '' NOT NULL,
-    picture TEXT DEFAULT '' NOT NULL
+    picture TEXT DEFAULT '' NOT NULL,
+    coordinates GEOGRAPHY NOT NULL,
+    service_radius INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL NOT NULL PRIMARY KEY,
     vendorID INTEGER,
     productName TEXT DEFAULT '' NOT NULL,
-    price TEXT DEFAULT '' NOT NULL,
+    descript TEXT DEFAULT '',
+    price INTEGER NOT NULL,
     picture TEXT DEFAULT '' NOT NULL,
 
-    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS vendor_partner (
     partnerID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
 
-    FOREIGN KEY (partnerID) REFERENCES users (id),
-    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+    FOREIGN KEY (partnerID) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS carts (
@@ -46,7 +49,54 @@ CREATE TABLE IF NOT EXISTS carts (
     productID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
 
+    FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (productID) REFERENCES products (id) ON DELETE CASCADE,
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL NOT NULL PRIMARY KEY,
+    userID INTEGER NOT NULL,
+    vendorID INTEGER NOT NULL,
+    vendorName TEXT NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    clientAddress TEXT NOT NULL,
+    orderStatus TEXT DEFAULT '' NOT NULL,
+    price INTEGER NOT NULL,
+    reviewed BOOLEAN DEFAULT false NOT NULL,
+
     FOREIGN KEY (userID) REFERENCES users (id),
-    FOREIGN KEY (productID) REFERENCES products (id),
     FOREIGN KEY (vendorID) REFERENCES vendors (id)
+);
+
+CREATE TABLE IF NOT EXISTS products_in_order (
+    orderID INTEGER NOT NULL,
+    productName TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    picture TEXT DEFAULT '' NOT NULL,
+
+    FOREIGN KEY (orderID) REFERENCES orders (id)
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+    userID INTEGER NOT NULL,
+    orderID INTEGER NOT NULL,
+    vendorID INTEGER NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating > 0 AND rating < 6),
+    review_text TEXT DEFAULT '' NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+
+    FOREIGN KEY (userID) REFERENCES users (id),
+    FOREIGN KEY (orderID) REFERENCES orders (id),
+    FOREIGN KEY (vendorID) REFERENCES vendors (id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    orderID INTEGER NOT NULL,
+    userID INTEGER NOT NULL,
+    message_text TEXT NOT NULL,
+    sent_at TIMESTAMP NOT NULL,
+
+    FOREIGN KEY (orderID) REFERENCES orders (id),
+    FOREIGN KEY (userID) REFERENCES users (id)
 );
