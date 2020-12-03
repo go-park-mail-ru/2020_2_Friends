@@ -105,6 +105,7 @@ func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID strin
 		}
 		msg.UserID = userID
 		msg.SentAt = time.Now()
+		msg.Sanitaze()
 
 		err = c.chatUsecase.Save(msg)
 		if err != nil {
