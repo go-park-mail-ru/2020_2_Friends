@@ -74,18 +74,17 @@ func (v VendorUsecase) UpdatePicture(file multipart.File, imageType string) (str
 		return "", err
 	}
 
-	write := true
 	chunk := make([]byte, 1024)
-
-	for write {
+	for {
 		size, err := file.Read(chunk)
+		if err == io.EOF {
+			break
+		}
+
 		if err != nil {
-			if err == io.EOF {
-				write = false
-				continue
-			}
 			return "", err
 		}
+
 		err = stream.Send(&fileserver.Chunk{Content: chunk[:size]})
 		if err != nil {
 			return "", err
