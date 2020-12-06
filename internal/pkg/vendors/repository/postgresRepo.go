@@ -190,7 +190,7 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	).Scan(&vendorID)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert vendor: %w", err)
 	}
 
@@ -200,7 +200,7 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert partner and vendor: %w", err)
 	}
 
@@ -211,14 +211,14 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 		)
 
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return 0, fmt.Errorf("couldn't insert product: %w", err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 

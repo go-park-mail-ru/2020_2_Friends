@@ -111,6 +111,11 @@ func (v VendorDelivery) GetNearest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vendors, err := v.vendorUsecase.GetNearest(longitude, latitude)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	err = json.NewEncoder(w).Encode(vendors)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
