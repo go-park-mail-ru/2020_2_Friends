@@ -11,6 +11,19 @@ import (
 	"github.com/lib/pq"
 )
 
+var (
+	testProfile = dbProfile{
+		UserID:    "10",
+		Name:      sql.NullString{String: "testname", Valid: true},
+		Phone:     sql.NullString{String: "0000", Valid: true},
+		Avatar:    sql.NullString{String: "avatar.jpg", Valid: true},
+		Points:    sql.NullInt64{Int64: 0, Valid: true},
+		Addresses: pq.StringArray([]string{"addr1", "addr2"}),
+	}
+
+	dbError = fmt.Errorf("db error")
+)
+
 func TestCreate(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -272,5 +285,51 @@ func TestDelete(t *testing.T) {
 	if err == nil {
 		t.Error("expected error")
 		return
+	}
+}
+
+func TestGetUsername(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	repo := NewProfileRepository(db)
+
+	rows := mock.NewRows([]string{"username"})
+	rows.AddRow(testProfile.Name.String)
+
+	// good query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(testProfile.UserID).
+		WillReturnRows(rows)
+
+	name, err := repo.GetUsername(testProfile.UserID)
+
+	if name != testProfile.Name.String {
+		t.Errorf("expected %v\n got: %v", testProfile.Name.String, name)
+	}
+
+	if err != nil {
+		t.Errorf("unexpected err: %v", err)
+	}
+
+	// bad query
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(testProfile.UserID).
+		WillReturnError(dbError)
+
+	name, err = repo.GetUsername(testProfile.UserID)
+
+	expected := ""
+	if name != expected {
+		t.Errorf("expected %v\n got: %v", expected, name)
+	}
+
+	if err == nil {
+		t.Error("expected error")
 	}
 }

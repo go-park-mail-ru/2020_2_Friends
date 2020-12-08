@@ -35,7 +35,7 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 	).Scan(&orderID)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert order: %w", err)
 	}
 
@@ -46,14 +46,14 @@ func (o OrderRepository) AddOrder(userID string, order models.OrderRequest) (int
 		)
 
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return 0, fmt.Errorf("couldn't insert product: %w", err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 

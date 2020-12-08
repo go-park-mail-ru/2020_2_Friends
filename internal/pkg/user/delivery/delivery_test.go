@@ -15,7 +15,26 @@ import (
 	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/session"
 	"github.com/friends/internal/pkg/user"
+	ownErr "github.com/friends/pkg/error"
 	"github.com/golang/mock/gomock"
+)
+
+var (
+	userID      = "10"
+	sessionName = "test_session"
+
+	testUser = models.User{
+		Login:    "test_login",
+		Password: "test_password",
+		Role:     1,
+	}
+
+	cookie = http.Cookie{
+		Name:  configs.SessionID,
+		Value: "testcookie",
+	}
+
+	dbError = fmt.Errorf("db error")
 )
 
 func TestCreateHandlerSuccess(t *testing.T) {
@@ -369,6 +388,230 @@ func TestDeleteSessionDBError(t *testing.T) {
 	handler.Delete(w, r)
 
 	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLoginSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserUsecase := user.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
+
+	userJson, _ := json.Marshal(&testUser)
+	body := bytes.NewReader(userJson)
+
+	mockUserUsecase.EXPECT().Verify(testUser).Times(1).Return(userID, nil)
+	mockSessionClient.EXPECT().Create(context.Background(), &session.UserID{Id: userID}).Times(1).Return(&session.SessionName{Name: sessionName}, nil)
+
+	handler := UserHandler{
+		userUsecase:   mockUserUsecase,
+		sessionClient: mockSessionClient,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/sessions", body)
+
+	handler.Login(w, r)
+
+	expected := http.StatusOK
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLoginCreateError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserUsecase := user.NewMockUsecase(ctrl)
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
+
+	userJson, _ := json.Marshal(&testUser)
+	body := bytes.NewReader(userJson)
+
+	mockUserUsecase.EXPECT().Verify(testUser).Times(1).Return(userID, nil)
+	mockSessionClient.EXPECT().Create(context.Background(), &session.UserID{Id: userID}).Times(1).Return(nil, dbError)
+
+	handler := UserHandler{
+		userUsecase:   mockUserUsecase,
+		sessionClient: mockSessionClient,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/sessions", body)
+
+	handler.Login(w, r)
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLoginVerifyError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserUsecase := user.NewMockUsecase(ctrl)
+
+	userJson, _ := json.Marshal(&testUser)
+	body := bytes.NewReader(userJson)
+
+	mockUserUsecase.EXPECT().Verify(testUser).Times(1).Return("", ownErr.NewClientError(dbError))
+
+	handler := UserHandler{
+		userUsecase: mockUserUsecase,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/sessions", body)
+
+	handler.Login(w, r)
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLoginBadJson(t *testing.T) {
+	body := bytes.NewReader([]byte(`{"name": "fsd"`))
+
+	handler := UserHandler{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/sessions", body)
+
+	handler.Login(w, r)
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLogoutSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
+
+	mockSessionClient.EXPECT().Delete(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(&session.DeleteResponse{}, nil)
+
+	handler := UserHandler{
+		sessionClient: mockSessionClient,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("DELETE", "/sessions", nil)
+	r.AddCookie(&cookie)
+
+	handler.Logout(w, r)
+
+	expected := http.StatusOK
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLogoutError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
+
+	mockSessionClient.EXPECT().Delete(context.Background(), &session.SessionName{Name: cookie.Value}).Times(1).Return(nil, dbError)
+
+	handler := UserHandler{
+		sessionClient: mockSessionClient,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("DELETE", "/sessions", nil)
+	r.AddCookie(&cookie)
+
+	handler.Logout(w, r)
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestLogoutNoCookie(t *testing.T) {
+	handler := UserHandler{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("DELETE", "/sessions", nil)
+
+	handler.Logout(w, r)
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestIsAuthorizedSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
+
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Return(&session.UserID{Id: userID}, nil)
+
+	handler := UserHandler{
+		sessionClient: mockSessionClient,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/sessions", nil)
+	r.AddCookie(&cookie)
+
+	handler.IsAuthorized(w, r)
+
+	expected := http.StatusOK
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestIsAuthorizedError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockSessionClient := session.NewMockSessionWorkerClient(ctrl)
+
+	mockSessionClient.EXPECT().Check(context.Background(), &session.SessionName{Name: cookie.Value}).Return(nil, dbError)
+
+	handler := UserHandler{
+		sessionClient: mockSessionClient,
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/sessions", nil)
+	r.AddCookie(&cookie)
+
+	handler.IsAuthorized(w, r)
+
+	expected := http.StatusUnauthorized
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestIsAuthorizedNoCookie(t *testing.T) {
+	handler := UserHandler{}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/sessions", nil)
+
+	handler.IsAuthorized(w, r)
+
+	expected := http.StatusUnauthorized
 	if w.Code != expected {
 		t.Errorf("expected: %v\n got: %v", expected, w.Code)
 	}
