@@ -54,6 +54,26 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 		vendor.Products = append(vendor.Products, product)
 	}
 
+	categoryRows, err := v.db.Query(
+		"SELECT category FROM vendor_categories WHERE vendorid = $1",
+		id,
+	)
+
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get categories for vendor: %w", err)
+	}
+	defer categoryRows.Close()
+
+	var category string
+	for categoryRows.Next() {
+		err = categoryRows.Scan(&category)
+		if err != nil {
+			return models.Vendor{}, fmt.Errorf("error in receiving category: %w", err)
+		}
+
+		vendor.Categories = append(vendor.Categories, category)
+	}
+
 	return vendor, nil
 }
 
@@ -92,6 +112,29 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 		vendor.HintContent = vendor.Name
 
 		vendors = append(vendors, vendor)
+	}
+
+	for idx, vendor := range vendors {
+		vendors[idx].Categories = make([]string, 0)
+		categoryRows, err := v.db.Query(
+			"SELECT category FROM vendor_categories WHERE vendorid = $1",
+			vendor.ID,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get categories for vendor: %w", err)
+		}
+		defer categoryRows.Close()
+
+		var category string
+		for categoryRows.Next() {
+			err = categoryRows.Scan(&category)
+			if err != nil {
+				return nil, fmt.Errorf("error in receiving category: %w", err)
+			}
+
+			vendors[idx].Categories = append(vendor.Categories, category)
+		}
 	}
 
 	return vendors, nil
@@ -192,6 +235,18 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	if err != nil {
 		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert vendor: %w", err)
+	}
+
+	for _, category := range vendor.Categories {
+		_, err = tx.Exec(
+			"INSERT INTO vendor_categories (vendorID, category) VALUES($1, $2)",
+			vendorID, category,
+		)
+
+		if err != nil {
+			_ = tx.Rollback()
+			return 0, fmt.Errorf("couldn't insert category: %w", err)
+		}
 	}
 
 	_, err = tx.Exec(
