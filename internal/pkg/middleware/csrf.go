@@ -5,19 +5,16 @@ import (
 	"net/http"
 
 	"github.com/friends/configs"
-	"github.com/friends/internal/pkg/csrf"
 	log "github.com/friends/pkg/logger"
 )
 
 type CSRFChecker struct {
-	csrfUsecase csrf.Usecase
 	authChecker AuthChecker
 }
 
-func NewCSRFChecker(authChecker AuthChecker, csrfUsecase csrf.Usecase) CSRFChecker {
+func NewCSRFChecker(authChecker AuthChecker) CSRFChecker {
 	return CSRFChecker{
 		authChecker: authChecker,
-		csrfUsecase: csrfUsecase,
 	}
 }
 
@@ -30,17 +27,16 @@ func (c CSRFChecker) Check(next http.HandlerFunc) http.Handler {
 			}
 		}()
 
-		cookie, err := r.Cookie(configs.SessionID)
+		cookie, err := r.Cookie(configs.CookieCSRF)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 
-		session := cookie.Value
+		tokenFromCookie := cookie.Value
 		tokenFromHeader := r.Header.Get("X-CSRF-Token")
 
-		isSame := c.csrfUsecase.Check(tokenFromHeader, session)
-		if !isSame {
+		if tokenFromCookie != tokenFromHeader {
 			err = fmt.Errorf("token doesn't fit")
 			w.WriteHeader(http.StatusForbidden)
 			return

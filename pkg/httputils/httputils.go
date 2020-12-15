@@ -19,6 +19,18 @@ func SetCookie(w http.ResponseWriter, cookieValue string) {
 	http.SetCookie(w, &cookie)
 }
 
+func SetCSRFCookie(w http.ResponseWriter, cookieValue string) {
+	expiration := time.Now().Add(configs.ExpireTime)
+	cookie := http.Cookie{
+		Name:     configs.CookieCSRF,
+		Value:    cookieValue,
+		Expires:  expiration,
+		HttpOnly: true,
+		Path:     "/",
+	}
+	http.SetCookie(w, &cookie)
+}
+
 func DeleteCookie(w http.ResponseWriter, cookie *http.Cookie) {
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	cookie.Path = "/"
