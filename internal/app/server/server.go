@@ -142,7 +142,7 @@ func StartApiServer() {
 	mux.Handle("/orders/{id}", csrfChecker.Check(orderDelivery.GetOrder)).Methods("GET")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
-	mux.Handle("/ws", csrfChecker.Check(chatDelivery.Upgrade)).Methods("GET")
+	mux.Handle("/ws", authChecker.Check(chatDelivery.Upgrade)).Methods("GET")
 	mux.Handle("/vendors/{id}/chats", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole))).Methods("GET")
 	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
 
