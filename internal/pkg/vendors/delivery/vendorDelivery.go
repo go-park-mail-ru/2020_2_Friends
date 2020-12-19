@@ -122,3 +122,58 @@ func (v VendorDelivery) GetNearest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (v VendorDelivery) GetSimilar(w http.ResponseWriter, r *http.Request) {
+	var err error
+	defer func() {
+		if err != nil {
+			log.ErrorLogWithCtx(r.Context(), err)
+		}
+	}()
+
+	id, ok := mux.Vars(r)["id"]
+	if !ok {
+		err = fmt.Errorf("no id in url")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var (
+		longitude float64
+		latitude  float64
+	)
+
+	longitudeQueryParam, ok := r.URL.Query()[configs.Longitude]
+	if !ok {
+		longitude = 0
+	} else {
+		longitude, err = strconv.ParseFloat(longitudeQueryParam[0], 32)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	latitudeQueryParam, ok := r.URL.Query()[configs.Latitude]
+	if !ok {
+		latitude = 0
+	} else {
+		latitude, err = strconv.ParseFloat(latitudeQueryParam[0], 64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	recommendedVendors, err := v.vendorUsecase.GetSimilar(id, longitude, latitude)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(recommendedVendors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

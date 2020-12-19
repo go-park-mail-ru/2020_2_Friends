@@ -103,6 +103,12 @@ func (p PartnerDelivery) CreateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(vendor.Categories) > 5 {
+		err = fmt.Errorf("too much categories for vendor")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	vendorID, err := p.vendorUsecase.Create(partnerID, vendor)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

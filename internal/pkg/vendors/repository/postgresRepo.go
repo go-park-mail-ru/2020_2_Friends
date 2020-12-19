@@ -453,3 +453,62 @@ func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vend
 
 	return vendors, nil
 }
+
+func (v VendorRepository) GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error) {
+	var geoCondition string
+	if latitude != 0 && longitude != 0 {
+		geoCondition = fmt.Sprintf("ST_DWithin(coordinates, ST_SetSRID(ST_Point(%v, %v), 4326), 5 * 1000) AND", longitude, latitude)
+	}
+
+	rows, err := v.db.Query(
+		fmt.Sprintf(`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
+		JOIN vendor_categories AS vc ON v.id = vc.vendorid
+		WHERE %v
+		category IN (SELECT category FROM vendor_categories WHERE vendorid = $1) AND vendorid != $1
+		GROUP BY v.id
+		ORDER BY COUNT(category) DESC`, geoCondition),
+		vendorID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get recomendations: %w", err)
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0)
+	vendor := models.Vendor{}
+	for rows.Next() {
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get recomendations: %w", err)
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorRepository) Get3RandomVendors() ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		"SELECT id, vendorName, descript, picture FROM vendors ORDER BY RANDOM() LIMIT 3",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0, 3)
+	vendor := models.Vendor{}
+	for rows.Next() {
+		err = rows.Scan(&vendor)
+		if err != nil {
+			return nil, err
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
