@@ -149,8 +149,8 @@ func (v VendorUsecase) GetSimilar(vendorID string, longitude, latitude float64) 
 		return nil, err
 	}
 
-	if len(vendors) == 3 {
-		return vendors, nil
+	if len(vendors) >= 3 {
+		return vendors[:3], nil
 	}
 
 	moreVendors, err := v.repository.Get3RandomVendors()
