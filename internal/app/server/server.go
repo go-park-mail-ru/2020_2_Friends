@@ -13,9 +13,6 @@ import (
 	chatDelivery "github.com/friends/internal/pkg/chat/delivery"
 	chatRepository "github.com/friends/internal/pkg/chat/repository"
 	chatUsecase "github.com/friends/internal/pkg/chat/usecase"
-	csrfDelivery "github.com/friends/internal/pkg/csrf/delivery"
-	csrfRepo "github.com/friends/internal/pkg/csrf/repository"
-	csrfUsecase "github.com/friends/internal/pkg/csrf/usecase"
 	"github.com/friends/internal/pkg/fileserver"
 	"github.com/friends/internal/pkg/middleware"
 	orderDelivery "github.com/friends/internal/pkg/order/delivery"
@@ -35,7 +32,6 @@ import (
 	vendorDelivery "github.com/friends/internal/pkg/vendors/delivery"
 	vendorRepo "github.com/friends/internal/pkg/vendors/repository"
 	vendorUsecase "github.com/friends/internal/pkg/vendors/usecase"
-	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	logrus "github.com/sirupsen/logrus"
@@ -57,12 +53,6 @@ func StartApiServer() {
 
 	userRepo := userRepo.NewUserRepository(db)
 	userUsecase := userUsecase.NewUserUsecase(userRepo)
-
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     configs.RedisAddr,
-		Password: "",
-		DB:       0,
-	})
 
 	grpcSessionConn, err := grpc.Dial(
 		"localhost"+configs.SessionServicePort,
@@ -116,22 +106,14 @@ func StartApiServer() {
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
-	csrfRepository, err := csrfRepo.New(redisClient)
-	if err != nil {
-		logrus.Error(fmt.Errorf("CSRF repository not created: %w", err))
-		return
-	}
-	csrfUsecase := csrfUsecase.New(csrfRepository)
-	csrfDelivery := csrfDelivery.New(csrfUsecase)
-
 	authChecker := middleware.NewAuthChecker(sessionClient)
-	csrfChecker := middleware.NewCSRFChecker(authChecker, csrfUsecase)
+	csrfChecker := middleware.NewCSRFChecker(authChecker)
 
 	mux := mux.NewRouter().PathPrefix(configs.ApiUrl).Subrouter()
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
 	mux.Handle("/users", csrfChecker.Check(userHandler.Delete)).Methods("DELETE")
 	mux.HandleFunc("/sessions", userHandler.Login).Methods("POST")
-	mux.Handle("/sessions", authChecker.Check(userHandler.Logout)).Methods("DELETE")
+	mux.Handle("/sessions", csrfChecker.Check(userHandler.Logout)).Methods("DELETE")
 	mux.HandleFunc("/sessions", userHandler.IsAuthorized).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Get)).Methods("GET")
 	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Update)).Methods("PUT")
@@ -158,10 +140,9 @@ func StartApiServer() {
 	mux.Handle("/orders", csrfChecker.Check(orderDelivery.AddOrder)).Methods("POST")
 	mux.Handle("/orders", csrfChecker.Check(orderDelivery.GetUserOrders)).Methods("GET")
 	mux.Handle("/orders/{id}", csrfChecker.Check(orderDelivery.GetOrder)).Methods("GET")
-	mux.Handle("/csrf", authChecker.Check(csrfDelivery.SetCSRF)).Methods("GET")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
-	mux.Handle("/ws", csrfChecker.Check(chatDelivery.Upgrade)).Methods("GET")
+	mux.Handle("/ws", authChecker.Check(chatDelivery.Upgrade)).Methods("GET")
 	mux.Handle("/vendors/{id}/chats", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole))).Methods("GET")
 	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
 	mux.HandleFunc("/vendors/{id}/similar", vendDelivery.GetSimilar).Methods("GET")
