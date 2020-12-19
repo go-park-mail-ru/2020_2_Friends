@@ -512,3 +512,27 @@ func (v VendorRepository) Get3RandomVendors() ([]models.Vendor, error) {
 
 	return vendors, nil
 }
+
+func (v VendorRepository) GetAllCategories() ([]string, error) {
+	rows, err := v.db.Query(
+		"SELECT category FROM categories",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := make([]string, 0)
+	var category string
+	for rows.Next() {
+		err = rows.Scan(&category)
+		if err != nil {
+			return nil, err
+		}
+
+		categories = append(categories, category)
+	}
+
+	return categories, nil
+}

@@ -23,4 +23,5 @@ type Repository interface {
 	GetNearest(longitude, latitude float64) ([]models.Vendor, error)
 	GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error)
 	Get3RandomVendors() ([]models.Vendor, error)
+	GetAllCategories() ([]string, error)
 }

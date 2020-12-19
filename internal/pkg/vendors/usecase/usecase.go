@@ -173,3 +173,7 @@ func (v VendorUsecase) GetSimilar(vendorID string, longitude, latitude float64) 
 
 	return vendors, nil
 }
+
+func (v VendorUsecase) GetAllCategories() ([]string, error) {
+	return v.repository.GetAllCategories()
+}

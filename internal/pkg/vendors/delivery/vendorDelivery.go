@@ -177,3 +177,17 @@ func (v VendorDelivery) GetSimilar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (v VendorDelivery) GetAllCategories(w http.ResponseWriter, r *http.Request) {
+	categories, err := v.vendorUsecase.GetAllCategories()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(categories)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
