@@ -133,7 +133,7 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 				return nil, fmt.Errorf("error in receiving category: %w", err)
 			}
 
-			vendors[idx].Categories = append(vendor.Categories, category)
+			vendors[idx].Categories = append(vendors[idx].Categories, category)
 		}
 	}
 
