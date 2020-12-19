@@ -502,7 +502,7 @@ func (v VendorRepository) Get3RandomVendors() ([]models.Vendor, error) {
 	vendors := make([]models.Vendor, 0, 3)
 	vendor := models.Vendor{}
 	for rows.Next() {
-		err = rows.Scan(&vendor)
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
 		if err != nil {
 			return nil, err
 		}
