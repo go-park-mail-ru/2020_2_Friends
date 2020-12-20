@@ -7,6 +7,7 @@ import (
 )
 
 type Message struct {
+	Type      string    `json:"type"`
 	OrderID   int       `json:"order_id,omitempty"`
 	UserID    string    `json:"-"`
 	IsYourMsg bool      `json:"is_your_msg"`
