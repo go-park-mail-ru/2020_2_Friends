@@ -10,6 +10,7 @@ type Message struct {
 	Type      string    `json:"type"`
 	OrderID   int       `json:"order_id,omitempty"`
 	UserID    string    `json:"-"`
+	VendorID  int       `json:"vendor_id,omitempty"`
 	IsYourMsg bool      `json:"is_your_msg"`
 	Text      string    `json:"text"`
 	SentAt    time.Time `json:"-"`

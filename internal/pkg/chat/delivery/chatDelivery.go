@@ -120,6 +120,7 @@ func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID strin
 		msg.Type = "message"
 		msgJSON, err = json.Marshal(msg)
 		if userID == customerID {
+			msg.VendorID = vendorID
 			c.write(ctx, partnerID, msgJSON)
 		} else if userID == partnerID {
 			c.write(ctx, customerID, msgJSON)

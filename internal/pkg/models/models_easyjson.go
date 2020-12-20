@@ -1462,6 +1462,8 @@ func easyjsonD2b7633eDecodeGithubComFriendsInternalPkgModels13(in *jlexer.Lexer,
 			out.Type = string(in.String())
 		case "order_id":
 			out.OrderID = int(in.Int())
+		case "vendor_id":
+			out.VendorID = int(in.Int())
 		case "is_your_msg":
 			out.IsYourMsg = bool(in.Bool())
 		case "text":
@@ -1491,6 +1493,11 @@ func easyjsonD2b7633eEncodeGithubComFriendsInternalPkgModels13(out *jwriter.Writ
 		const prefix string = ",\"order_id\":"
 		out.RawString(prefix)
 		out.Int(int(in.OrderID))
+	}
+	if in.VendorID != 0 {
+		const prefix string = ",\"vendor_id\":"
+		out.RawString(prefix)
+		out.Int(int(in.VendorID))
 	}
 	{
 		const prefix string = ",\"is_your_msg\":"
