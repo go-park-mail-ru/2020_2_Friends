@@ -97,7 +97,7 @@ func StartApiServer() {
 
 	orderRepo := orderRepo.New(db)
 	orderUsecase := orderUsecase.New(orderRepo, vendRepo)
-	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase)
+	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase, wsPool)
 
 	reviewRepository := reviewRepository.New(db)
 	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo, profRepo, vendRepo)

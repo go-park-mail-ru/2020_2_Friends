@@ -9,6 +9,7 @@ import (
 //go:generate mockgen -destination=./usecase_mock.go -package=vendors github.com/friends/internal/pkg/vendors Usecase
 type Usecase interface {
 	Get(id int) (models.Vendor, error)
+	GetVendorInfo(id string) (models.Vendor, error)
 	GetAll() ([]models.Vendor, error)
 	Create(partnerID string, vendor models.Vendor) (int, error)
 	Update(vendor models.Vendor) error
