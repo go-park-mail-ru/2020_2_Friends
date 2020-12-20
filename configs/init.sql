@@ -36,6 +36,24 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS categories (
+    category TEXT NOT NULL UNIQUE
+);
+
+INSERT INTO categories (category) VALUES
+    ('Завтраки'),
+    ('Обеды'),
+    ('Супы'),
+    ('Десерты');
+
+CREATE TABLE IF NOT EXISTS vendor_categories (
+    vendorID INTEGER NOT NULL,
+    category TEXT NOT NULL,
+
+    FOREIGN KEY (vendorID) REFERENCES vendors (id) ON DELETE CASCADE,
+    FOREIGN KEY (category) REFERENCES categories (category) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS vendor_partner (
     partnerID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,

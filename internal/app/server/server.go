@@ -148,6 +148,8 @@ func StartApiServer() {
 	mux.Handle("/ws", authChecker.Check(chatDelivery.Upgrade)).Methods("GET")
 	mux.Handle("/vendors/{id}/chats", csrfChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole))).Methods("GET")
 	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
+	mux.HandleFunc("/vendors/{id}/similar", vendDelivery.GetSimilar).Methods("GET")
+	mux.HandleFunc("/categories", vendDelivery.GetAllCategories).Methods("GET")
 
 	accessLogHandler := middleware.AccessLog(mux)
 	corsHandler := middleware.CORS(accessLogHandler)
