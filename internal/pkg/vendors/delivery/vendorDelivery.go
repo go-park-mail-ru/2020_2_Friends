@@ -144,9 +144,7 @@ func (v VendorDelivery) GetSimilar(w http.ResponseWriter, r *http.Request) {
 	)
 
 	longitudeQueryParam, ok := r.URL.Query()[configs.Longitude]
-	if !ok {
-		longitude = 0
-	} else {
+	if ok {
 		longitude, err = strconv.ParseFloat(longitudeQueryParam[0], 32)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -155,9 +153,7 @@ func (v VendorDelivery) GetSimilar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	latitudeQueryParam, ok := r.URL.Query()[configs.Latitude]
-	if !ok {
-		latitude = 0
-	} else {
+	if ok {
 		latitude, err = strconv.ParseFloat(latitudeQueryParam[0], 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
