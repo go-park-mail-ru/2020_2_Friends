@@ -32,6 +32,7 @@ import (
 	vendorDelivery "github.com/friends/internal/pkg/vendors/delivery"
 	vendorRepo "github.com/friends/internal/pkg/vendors/repository"
 	vendorUsecase "github.com/friends/internal/pkg/vendors/usecase"
+	websocketpool "github.com/friends/internal/pkg/websocketPool"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	logrus "github.com/sirupsen/logrus"
@@ -92,9 +93,11 @@ func StartApiServer() {
 
 	partnerDelivery := partnerDelivery.New(userUsecase, profUsecase, sessionClient, vendUsecase)
 
+	wsPool := websocketpool.NewWebsocketPool()
+
 	orderRepo := orderRepo.New(db)
 	orderUsecase := orderUsecase.New(orderRepo, vendRepo)
-	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase)
+	orderDelivery := orderDelivery.New(orderUsecase, vendUsecase, wsPool)
 
 	reviewRepository := reviewRepository.New(db)
 	reviewUsecase := reviewUsecase.New(reviewRepository, orderRepo, profRepo, vendRepo)
@@ -102,7 +105,7 @@ func StartApiServer() {
 
 	chatRepository := chatRepository.New(db)
 	chatUsecase := chatUsecase.New(chatRepository, profRepo, orderRepo)
-	chatDelivery := chatDelivery.New(chatUsecase, orderUsecase, vendUsecase)
+	chatDelivery := chatDelivery.New(chatUsecase, orderUsecase, vendUsecase, wsPool)
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 

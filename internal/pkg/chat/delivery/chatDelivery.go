@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/friends/configs"
@@ -15,6 +14,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
+	pool "github.com/friends/internal/pkg/websocketPool"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 
@@ -27,11 +27,10 @@ type ChatDelivery struct {
 	orderUsecase  order.Usecase
 	vendorUsecase vendors.Usecase
 	upgrader      websocket.Upgrader
-	socketPool    map[string]*websocket.Conn
-	mux           *sync.RWMutex
+	wsPool        pool.WebsocketPool
 }
 
-func New(chatUsecase chat.Usecase, orderUsecase order.Usecase, vendorUsecase vendors.Usecase) ChatDelivery {
+func New(chatUsecase chat.Usecase, orderUsecase order.Usecase, vendorUsecase vendors.Usecase, wsPool pool.WebsocketPool) ChatDelivery {
 	return ChatDelivery{
 		chatUsecase:   chatUsecase,
 		orderUsecase:  orderUsecase,
@@ -43,8 +42,7 @@ func New(chatUsecase chat.Usecase, orderUsecase order.Usecase, vendorUsecase ven
 				return true
 			},
 		},
-		socketPool: make(map[string]*websocket.Conn),
-		mux:        &sync.RWMutex{},
+		wsPool: wsPool,
 	}
 }
 
@@ -70,23 +68,11 @@ func (c ChatDelivery) Upgrade(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
-	c.addConn(ws, userID)
+	c.wsPool.Add(userID, ws)
 
 	c.read(r.Context(), ws, userID)
 
-	c.deleteConn(userID)
-}
-
-func (c ChatDelivery) addConn(ws *websocket.Conn, userID string) {
-	c.mux.RLock()
-	c.socketPool[userID] = ws
-	c.mux.RUnlock()
-}
-
-func (c ChatDelivery) deleteConn(userID string) {
-	c.mux.RLock()
-	delete(c.socketPool, userID)
-	c.mux.RUnlock()
+	c.wsPool.Delete(userID)
 }
 
 func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID string) {
@@ -131,7 +117,10 @@ func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID strin
 			continue
 		}
 
+		msg.Type = "message"
+		msgJSON, err = json.Marshal(msg)
 		if userID == customerID {
+			msg.VendorID = vendorID
 			c.write(ctx, partnerID, msgJSON)
 		} else if userID == partnerID {
 			c.write(ctx, customerID, msgJSON)
@@ -140,7 +129,7 @@ func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID strin
 }
 
 func (c ChatDelivery) write(ctx context.Context, userID string, text []byte) {
-	conn, ok := c.socketPool[userID]
+	conn, ok := c.wsPool.Get(userID)
 	if !ok {
 		return
 	}

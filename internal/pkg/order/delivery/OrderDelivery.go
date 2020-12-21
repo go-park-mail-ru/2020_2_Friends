@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/friends/configs"
@@ -11,20 +12,24 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
+	websocketpool "github.com/friends/internal/pkg/websocketPool"
 	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type OrderDelivery struct {
 	orderUsecase  order.Usecase
 	vendorUsecase vendors.Usecase
+	websocketPool websocketpool.WebsocketPool
 }
 
-func New(orderUsecase order.Usecase, vendorUsecase vendors.Usecase) OrderDelivery {
+func New(orderUsecase order.Usecase, vendorUsecase vendors.Usecase, websocketPool websocketpool.WebsocketPool) OrderDelivery {
 	return OrderDelivery{
 		orderUsecase:  orderUsecase,
 		vendorUsecase: vendorUsecase,
+		websocketPool: websocketPool,
 	}
 }
 
@@ -217,7 +222,50 @@ func (o OrderDelivery) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	orderIDInt, err := strconv.Atoi(orderID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	err = o.orderUsecase.UpdateOrderStatus(orderID, status.Status)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	clientID, err := o.orderUsecase.GetUserIDFromOrder(orderIDInt)
+	if err != nil {
+		ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	wsConn, ok := o.websocketPool.Get(clientID)
+	if !ok {
+		return
+	}
+
+	vendor, err := o.vendorUsecase.GetVendorInfo(vendorID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	orderMessage := models.OrderStatusMessage{
+		Type:          "status",
+		OrderID:       orderID,
+		VendorName:    vendor.Name,
+		VendorPicture: vendor.Picture,
+		Status:        status.Status,
+	}
+
+	msgJSON, err := json.Marshal(orderMessage)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = wsConn.WriteMessage(websocket.TextMessage, msgJSON)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

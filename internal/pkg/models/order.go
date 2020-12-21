@@ -60,6 +60,15 @@ type OrderStatusRequest struct {
 	Status string `json:"status"`
 }
 
+//easyjson:json
+type OrderStatusMessage struct {
+	Type          string `json:"type"`
+	OrderID       string `json:"order_id"`
+	VendorName    string `json:"vendor_name"`
+	VendorPicture string `json:"vendor_picture"`
+	Status        string `json:"order_status"`
+}
+
 func (o *OrderRequest) Sanitize() {
 	p := bluemonday.UGCPolicy()
 	o.VendorName = p.Sanitize(o.VendorName)
