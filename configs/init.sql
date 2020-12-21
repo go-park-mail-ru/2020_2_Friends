@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS orders (
     userID INTEGER NOT NULL,
     vendorID INTEGER NOT NULL,
     vendorName TEXT NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMPTZ NOT NULL,
     clientAddress TEXT NOT NULL,
     orderStatus TEXT DEFAULT '' NOT NULL,
     price INTEGER NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     vendorID INTEGER NOT NULL,
     rating INTEGER NOT NULL CHECK (rating > 0 AND rating < 6),
     review_text TEXT DEFAULT '' NOT NULL,
-    created_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
 
     FOREIGN KEY (userID) REFERENCES users (id),
     FOREIGN KEY (orderID) REFERENCES orders (id),
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS messages (
     orderID INTEGER NOT NULL,
     userID INTEGER NOT NULL,
     message_text TEXT NOT NULL,
-    sent_at TIMESTAMP NOT NULL,
+    sent_at TIMESTAMPTZ NOT NULL,
 
     FOREIGN KEY (orderID) REFERENCES orders (id),
     FOREIGN KEY (userID) REFERENCES users (id)
