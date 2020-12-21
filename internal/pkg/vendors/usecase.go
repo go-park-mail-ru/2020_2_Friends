@@ -22,4 +22,6 @@ type Usecase interface {
 	GetPartnerShops(partnerID string) ([]models.Vendor, error)
 	GetVendorOwner(vendorID int) (string, error)
 	GetNearest(longitude, latitude float64) ([]models.Vendor, error)
+	GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error)
+	GetAllCategories() ([]string, error)
 }

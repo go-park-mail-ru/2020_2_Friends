@@ -142,3 +142,38 @@ func (v VendorUsecase) GetVendorOwner(vendorID int) (string, error) {
 func (v VendorUsecase) GetNearest(longitude, latitude float64) ([]models.Vendor, error) {
 	return v.repository.GetNearest(longitude, latitude)
 }
+
+func (v VendorUsecase) GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error) {
+	vendors, err := v.repository.GetSimilar(vendorID, longitude, latitude)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(vendors) >= 3 {
+		return vendors[:3], nil
+	}
+
+	moreVendors, err := v.repository.Get3RandomVendors()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, vendor := range moreVendors {
+		if len(vendors) == 3 {
+			break
+		}
+
+		for _, anotherVendor := range vendors {
+			if vendor.ID == anotherVendor.ID {
+				break
+			}
+		}
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorUsecase) GetAllCategories() ([]string, error) {
+	return v.repository.GetAllCategories()
+}

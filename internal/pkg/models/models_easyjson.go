@@ -300,6 +300,29 @@ func easyjsonD2b7633eDecodeGithubComFriendsInternalPkgModels2(in *jlexer.Lexer, 
 			out.Latitude = float32(in.Float32())
 		case "distance":
 			out.Radius = int(in.Int())
+		case "categories":
+			if in.IsNull() {
+				in.Skip()
+				out.Categories = nil
+			} else {
+				in.Delim('[')
+				if out.Categories == nil {
+					if !in.IsDelim(']') {
+						out.Categories = make([]string, 0, 4)
+					} else {
+						out.Categories = []string{}
+					}
+				} else {
+					out.Categories = (out.Categories)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v8 string
+					v8 = string(in.String())
+					out.Categories = append(out.Categories, v8)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -336,11 +359,11 @@ func easyjsonD2b7633eEncodeGithubComFriendsInternalPkgModels2(out *jwriter.Write
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v8, v9 := range in.Products {
-				if v8 > 0 {
+			for v9, v10 := range in.Products {
+				if v9 > 0 {
 					out.RawByte(',')
 				}
-				(v9).MarshalEasyJSON(out)
+				(v10).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -369,6 +392,22 @@ func easyjsonD2b7633eEncodeGithubComFriendsInternalPkgModels2(out *jwriter.Write
 		const prefix string = ",\"distance\":"
 		out.RawString(prefix)
 		out.Int(int(in.Radius))
+	}
+	{
+		const prefix string = ",\"categories\":"
+		out.RawString(prefix)
+		if in.Categories == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v11, v12 := range in.Categories {
+				if v11 > 0 {
+					out.RawByte(',')
+				}
+				out.String(string(v12))
+			}
+			out.RawByte(']')
+		}
 	}
 	out.RawByte('}')
 }
@@ -703,9 +742,9 @@ func easyjsonD2b7633eDecodeGithubComFriendsInternalPkgModels6(in *jlexer.Lexer, 
 					out.Addresses = (out.Addresses)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v10 string
-					v10 = string(in.String())
-					out.Addresses = append(out.Addresses, v10)
+					var v13 string
+					v13 = string(in.String())
+					out.Addresses = append(out.Addresses, v13)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -750,11 +789,11 @@ func easyjsonD2b7633eEncodeGithubComFriendsInternalPkgModels6(out *jwriter.Write
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v11, v12 := range in.Addresses {
-				if v11 > 0 {
+			for v14, v15 := range in.Addresses {
+				if v14 > 0 {
 					out.RawByte(',')
 				}
-				out.String(string(v12))
+				out.String(string(v15))
 			}
 			out.RawByte(']')
 		}
@@ -1003,9 +1042,9 @@ func easyjsonD2b7633eDecodeGithubComFriendsInternalPkgModels9(in *jlexer.Lexer, 
 					out.Products = (out.Products)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v13 OrderProduct
-					(v13).UnmarshalEasyJSON(in)
-					out.Products = append(out.Products, v13)
+					var v16 OrderProduct
+					(v16).UnmarshalEasyJSON(in)
+					out.Products = append(out.Products, v16)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1056,11 +1095,11 @@ func easyjsonD2b7633eEncodeGithubComFriendsInternalPkgModels9(out *jwriter.Write
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v14, v15 := range in.Products {
-				if v14 > 0 {
+			for v17, v18 := range in.Products {
+				if v17 > 0 {
 					out.RawByte(',')
 				}
-				(v15).MarshalEasyJSON(out)
+				(v18).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1151,9 +1190,9 @@ func easyjsonD2b7633eDecodeGithubComFriendsInternalPkgModels10(in *jlexer.Lexer,
 					out.ProductIDs = (out.ProductIDs)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v16 int
-					v16 = int(in.Int())
-					out.ProductIDs = append(out.ProductIDs, v16)
+					var v19 int
+					v19 = int(in.Int())
+					out.ProductIDs = append(out.ProductIDs, v19)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1186,11 +1225,11 @@ func easyjsonD2b7633eEncodeGithubComFriendsInternalPkgModels10(out *jwriter.Writ
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v17, v18 := range in.ProductIDs {
-				if v17 > 0 {
+			for v20, v21 := range in.ProductIDs {
+				if v20 > 0 {
 					out.RawByte(',')
 				}
-				out.Int(int(v18))
+				out.Int(int(v21))
 			}
 			out.RawByte(']')
 		}

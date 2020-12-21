@@ -54,6 +54,26 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 		vendor.Products = append(vendor.Products, product)
 	}
 
+	categoryRows, err := v.db.Query(
+		"SELECT category FROM vendor_categories WHERE vendorid = $1",
+		id,
+	)
+
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get categories for vendor: %w", err)
+	}
+	defer categoryRows.Close()
+
+	var category string
+	for categoryRows.Next() {
+		err = categoryRows.Scan(&category)
+		if err != nil {
+			return models.Vendor{}, fmt.Errorf("error in receiving category: %w", err)
+		}
+
+		vendor.Categories = append(vendor.Categories, category)
+	}
+
 	return vendor, nil
 }
 
@@ -92,6 +112,29 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 		vendor.HintContent = vendor.Name
 
 		vendors = append(vendors, vendor)
+	}
+
+	for idx, vendor := range vendors {
+		vendors[idx].Categories = make([]string, 0)
+		categoryRows, err := v.db.Query(
+			"SELECT category FROM vendor_categories WHERE vendorid = $1",
+			vendor.ID,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get categories for vendor: %w", err)
+		}
+		defer categoryRows.Close()
+
+		var category string
+		for categoryRows.Next() {
+			err = categoryRows.Scan(&category)
+			if err != nil {
+				return nil, fmt.Errorf("error in receiving category: %w", err)
+			}
+
+			vendors[idx].Categories = append(vendors[idx].Categories, category)
+		}
 	}
 
 	return vendors, nil
@@ -192,6 +235,18 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	if err != nil {
 		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert vendor: %w", err)
+	}
+
+	for _, category := range vendor.Categories {
+		_, err = tx.Exec(
+			"INSERT INTO vendor_categories (vendorID, category) VALUES($1, $2)",
+			vendorID, category,
+		)
+
+		if err != nil {
+			_ = tx.Rollback()
+			return 0, fmt.Errorf("couldn't insert category: %w", err)
+		}
 	}
 
 	_, err = tx.Exec(
@@ -397,4 +452,87 @@ func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vend
 	}
 
 	return vendors, nil
+}
+
+func (v VendorRepository) GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error) {
+	var geoCondition string
+	if latitude != 0 && longitude != 0 {
+		geoCondition = fmt.Sprintf("ST_DWithin(coordinates, ST_SetSRID(ST_Point(%v, %v), 4326), 5 * 1000) AND", longitude, latitude)
+	}
+
+	rows, err := v.db.Query(
+		fmt.Sprintf(`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
+		JOIN vendor_categories AS vc ON v.id = vc.vendorid
+		WHERE %v
+		category IN (SELECT category FROM vendor_categories WHERE vendorid = $1) AND vendorid != $1
+		GROUP BY v.id
+		ORDER BY COUNT(category) DESC`, geoCondition),
+		vendorID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get recomendations: %w", err)
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0)
+	vendor := models.Vendor{}
+	for rows.Next() {
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get recomendations: %w", err)
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorRepository) Get3RandomVendors() ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		"SELECT id, vendorName, descript, picture FROM vendors ORDER BY RANDOM() LIMIT 3",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0, 3)
+	vendor := models.Vendor{}
+	for rows.Next() {
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		if err != nil {
+			return nil, err
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorRepository) GetAllCategories() ([]string, error) {
+	rows, err := v.db.Query(
+		"SELECT category FROM categories",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := make([]string, 0)
+	var category string
+	for rows.Next() {
+		err = rows.Scan(&category)
+		if err != nil {
+			return nil, err
+		}
+
+		categories = append(categories, category)
+	}
+
+	return categories, nil
 }
