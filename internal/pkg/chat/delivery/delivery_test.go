@@ -17,6 +17,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
+	websocketpool "github.com/friends/internal/pkg/websocketPool"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 )
@@ -58,6 +59,8 @@ var (
 	}
 
 	dbError = fmt.Errorf("db error")
+
+	wsPool = websocketpool.NewWebsocketPool()
 )
 
 func TestGetChatSuccess(t *testing.T) {
@@ -112,7 +115,7 @@ func TestGetChatSuccess2(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"id": strconv.Itoa(orderID)})
 	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), partnerID)
 
-	handler := New(mockChatUsecase, mockOrderUsecase, mockVendorUsecase)
+	handler := New(mockChatUsecase, mockOrderUsecase, mockVendorUsecase, wsPool)
 
 	handler.GetChat(w, r.WithContext(ctx))
 
