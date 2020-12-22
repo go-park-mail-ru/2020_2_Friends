@@ -17,6 +17,7 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
+	websocketpool "github.com/friends/internal/pkg/websocketPool"
 	ownErr "github.com/friends/pkg/error"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
@@ -58,6 +59,8 @@ var (
 	testStatus = models.OrderStatusRequest{
 		Status: "ready",
 	}
+
+	wsPool = websocketpool.NewWebsocketPool()
 )
 
 func TestAddOrderSuccess(t *testing.T) {
@@ -325,7 +328,7 @@ func TestGetVendorOrdersSuccess(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"id": vendorID})
 	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), strconv.Itoa(response.UserID))
 
-	handler := New(mockOrderUsecase, mockVendorUsecase)
+	handler := New(mockOrderUsecase, mockVendorUsecase, wsPool)
 
 	handler.GetVendorOrders(w, r.WithContext(ctx))
 
@@ -356,7 +359,7 @@ func TestGetVendorOrdersError(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"id": vendorID})
 	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), strconv.Itoa(response.UserID))
 
-	handler := New(mockOrderUsecase, mockVendorUsecase)
+	handler := New(mockOrderUsecase, mockVendorUsecase, wsPool)
 
 	handler.GetVendorOrders(w, r.WithContext(ctx))
 
@@ -380,7 +383,7 @@ func TestGetVendorOrdersNotOwner(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"id": vendorID})
 	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), strconv.Itoa(response.UserID))
 
-	handler := New(mockOrderUsecase, mockVendorUsecase)
+	handler := New(mockOrderUsecase, mockVendorUsecase, wsPool)
 
 	handler.GetVendorOrders(w, r.WithContext(ctx))
 
@@ -428,6 +431,7 @@ func TestUpdateOrderStatusSuccess(t *testing.T) {
 
 	mockVendorUsecase.EXPECT().CheckVendorOwner(strconv.Itoa(response.UserID), vendorID).Times(1).Return(nil)
 	mockOrderUsecase.EXPECT().UpdateOrderStatus(strconv.Itoa(response.ID), testStatus.Status).Times(1).Return(nil)
+	mockOrderUsecase.EXPECT().GetUserIDFromOrder(response.ID).Times(1).Return("0", nil)
 
 	statusJson, _ := json.Marshal(&testStatus)
 	body := bytes.NewReader(statusJson)
@@ -437,7 +441,7 @@ func TestUpdateOrderStatusSuccess(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"vendorID": vendorID, "id": strconv.Itoa(response.ID)})
 	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), strconv.Itoa(response.UserID))
 
-	handler := New(mockOrderUsecase, mockVendorUsecase)
+	handler := New(mockOrderUsecase, mockVendorUsecase, wsPool)
 
 	handler.UpdateOrderStatus(w, r.WithContext(ctx))
 
@@ -465,7 +469,7 @@ func TestUpdateOrderStatusError(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"vendorID": vendorID, "id": strconv.Itoa(response.ID)})
 	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), strconv.Itoa(response.UserID))
 
-	handler := New(mockOrderUsecase, mockVendorUsecase)
+	handler := New(mockOrderUsecase, mockVendorUsecase, wsPool)
 
 	handler.UpdateOrderStatus(w, r.WithContext(ctx))
 

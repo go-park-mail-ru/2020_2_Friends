@@ -22,6 +22,7 @@ var (
 		Radius:      3,
 		Longitude:   1.0,
 		Latitude:    2.0,
+		Categories:  []string{"Обеды", "Десерты"},
 		Products: []models.Product{
 			{
 				ID:          0,
@@ -76,6 +77,16 @@ func TestGet(t *testing.T) {
 		ExpectQuery("SELECT id, productName").
 		WithArgs(testVendor.ID).
 		WillReturnRows(productRows)
+
+	categoryRows := mock.NewRows([]string{"category"})
+	for _, category := range testVendor.Categories {
+		categoryRows.AddRow(category)
+	}
+
+	mock.
+		ExpectQuery("SELECT category").
+		WithArgs(testVendor.ID).
+		WillReturnRows(categoryRows)
 
 	dbVendor, err := repo.Get(testVendor.ID)
 
@@ -202,6 +213,7 @@ func TestGetAll(t *testing.T) {
 			Radius:      3,
 			Longitude:   1.0,
 			Latitude:    2.0,
+			Categories:  []string{"Обеды", "Десерты"},
 		},
 		{
 			ID:          1,
@@ -213,6 +225,7 @@ func TestGetAll(t *testing.T) {
 			Radius:      3,
 			Longitude:   1.0,
 			Latitude:    2.0,
+			Categories:  []string{"Обеды", "Десерты"},
 		},
 	}
 
@@ -220,6 +233,7 @@ func TestGetAll(t *testing.T) {
 		"id", "vendorName", "descript", "picture", "ST_X(coordinates::geometry)",
 		"ST_Y(coordinates::geometry)", "service_radius",
 	})
+
 	for _, vendor := range vendors {
 		rows.AddRow(
 			vendor.ID, vendor.Name, vendor.Description, vendor.Picture, vendor.Longitude, vendor.Latitude, vendor.Radius,
@@ -230,6 +244,18 @@ func TestGetAll(t *testing.T) {
 	mock.
 		ExpectQuery("SELECT").
 		WillReturnRows(rows)
+
+	for _, vendor := range vendors {
+		categoryRows := mock.NewRows([]string{"category"})
+		for _, category := range testVendor.Categories {
+			categoryRows.AddRow(category)
+		}
+
+		mock.
+			ExpectQuery("SELECT category").
+			WithArgs(vendor.ID).
+			WillReturnRows(categoryRows)
+	}
 
 	dbVendors, err := repo.GetAll()
 
@@ -980,6 +1006,13 @@ func TestCreate(t *testing.T) {
 		ExpectQuery("INSERT INTO vendors").
 		WithArgs(testVendor.Name, testVendor.Description, testVendor.Longitude, testVendor.Latitude, testVendor.Radius).
 		WillReturnRows(rows)
+
+	for _, category := range testVendor.Categories {
+		mock.
+			ExpectExec("INSERT INTO vendor_categories").
+			WithArgs(testVendor.ID, category).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+	}
 
 	mock.
 		ExpectExec("INSERT INTO vendor_partner").
