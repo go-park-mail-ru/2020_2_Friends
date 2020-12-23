@@ -26,7 +26,7 @@ jobs:
     
     steps:
       - name: tests
-        run: make test
+        run: go test ./...
 
   deploy:
     runs-on: ubuntu-latest
