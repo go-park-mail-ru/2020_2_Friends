@@ -54,4 +54,4 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.DEPLOY_USERNAME }}
         key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-        script: systemctl daemon-reload && systemctl start fileserver.service && systemctl start session.service && systemctl start server.service
+        script: sudo systemctl daemon-reload && systemctl start fileserver.service && systemctl start session.service && systemctl start server.service
