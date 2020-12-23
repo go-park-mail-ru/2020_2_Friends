@@ -48,10 +48,10 @@ jobs:
         key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
         script: chmod -R 755 /home/ubuntu/backend/build
 
-    # - name: restart service
-    #   uses: appleboy/ssh-action@master
-    #   with:
-    #     host: ${{ secrets.HOST }}
-    #     username: ${{ secrets.DEPLOY_USERNAME }}
-    #     key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-    #     script: sudo systemctl start server.service
+    - name: restart service
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.DEPLOY_USERNAME }}
+        key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+        script: systemctl daemon-reload && systemctl start fileserver.service && systemctl start session.service && systemctl start server.service
