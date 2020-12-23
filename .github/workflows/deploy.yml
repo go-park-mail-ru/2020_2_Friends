@@ -21,6 +21,13 @@ jobs:
         name: build
         path: ./build
 
+  tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: tests
+        run: make test
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
