@@ -26,7 +26,7 @@ jobs:
     
     steps:
       - name: tests
-        run: go test ./...
+        run: go test ./internal/...
 
   deploy:
     runs-on: ubuntu-latest
