@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/fileserver"
@@ -20,7 +21,7 @@ func StartFileServer() {
 
 	staticHandler := http.StripPrefix(
 		"/data/",
-		http.FileServer(http.Dir(configs.FileServerPath)),
+		http.FileServer(http.Dir(os.Getenv("img_path")),
 	)
 	mux.Handle("/data/", staticHandler)
 

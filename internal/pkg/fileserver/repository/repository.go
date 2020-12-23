@@ -2,8 +2,8 @@ package repository
 
 import (
 	"io/ioutil"
+	"os"
 
-	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/fileserver"
 )
 
@@ -14,7 +14,8 @@ func New() fileserver.Repository {
 }
 
 func (f FileserverRepository) Save(imageName string, content []byte) error {
-	err := ioutil.WriteFile(configs.ImageDir+imageName, content, 0666)
+	path := os.Getenv("img_path")
+	err := ioutil.WriteFile(path+imageName, content, 0666)
 	if err != nil {
 		return err
 	}
