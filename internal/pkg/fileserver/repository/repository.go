@@ -14,7 +14,7 @@ func New() fileserver.Repository {
 }
 
 func (f FileserverRepository) Save(imageName string, content []byte) error {
-	path := os.Getenv("img_path")
+	path := os.Getenv("picture_storage")
 	err := ioutil.WriteFile(path+imageName, content, 0666)
 	if err != nil {
 		return err

@@ -19,11 +19,11 @@ import (
 func StartFileServer() {
 	mux := http.NewServeMux()
 
-	// staticHandler := http.StripPrefix(
-	// 	"/data/",
-	// 	http.FileServer(http.Dir(os.Getenv("img_path"))),
-	// )
-	mux.Handle("/data/", http.FileServer(http.Dir(os.Getenv("img_path"))))
+	staticHandler := http.StripPrefix(
+		"/data/",
+		http.FileServer(http.Dir(os.Getenv("picture_storage"))),
+	)
+	mux.Handle("/data/", staticHandler)
 
 	corsHandler := middleware.CORS(mux)
 	siteHandler := middleware.Panic(corsHandler)
