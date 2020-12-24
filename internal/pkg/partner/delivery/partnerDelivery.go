@@ -28,7 +28,10 @@ type PartnerDelivery struct {
 	profileUsecase profile.Usecase
 }
 
-func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionClient session.SessionWorkerClient, vendorUsecase vendors.Usecase) PartnerDelivery {
+func New(
+	userUsecase user.Usecase, profileUsecase profile.Usecase,
+	sessionClient session.SessionWorkerClient, vendorUsecase vendors.Usecase,
+) PartnerDelivery {
 	return PartnerDelivery{
 		userUsecase:    userUsecase,
 		profileUsecase: profileUsecase,

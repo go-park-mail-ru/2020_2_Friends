@@ -4,11 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/lib/pq"
-
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/profile"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 type dbProfile struct {
@@ -50,7 +48,9 @@ func (p ProfileRepository) Get(userID string) (models.Profile, error) {
 	)
 
 	profile := dbProfile{}
-	switch err := row.Scan(&profile.UserID, &profile.Name, &profile.Phone, &profile.Addresses, &profile.Points, &profile.Avatar); err {
+	switch err := row.Scan(
+		&profile.UserID, &profile.Name, &profile.Phone, &profile.Addresses, &profile.Points, &profile.Avatar,
+	); err {
 	case sql.ErrNoRows:
 		return models.Profile{}, fmt.Errorf("profile doesn't exist")
 	case nil:

@@ -13,7 +13,9 @@ type ChatUsecase struct {
 	orderRepository   order.Repository
 }
 
-func New(chatRepository chat.Repository, profileRepository profile.Repository, orderRepository order.Repository) chat.Usecase {
+func New(
+	chatRepository chat.Repository, profileRepository profile.Repository, orderRepository order.Repository,
+) chat.Usecase {
 	return ChatUsecase{
 		chatRepository:    chatRepository,
 		profileRepository: profileRepository,

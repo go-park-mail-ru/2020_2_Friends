@@ -8,5 +8,5 @@ import (
 
 func main() {
 	dsn := os.Getenv("dsn")
-	server.StartApiServer(dsn)
+	server.StartAPIServer(dsn)
 }

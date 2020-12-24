@@ -13,6 +13,6 @@ cover:
 	go test -coverprofile=coverage.out -coverpkg=./... -cover ./... && cat coverage.out | grep -v _mock | grep -v _easyjson.go | grep -v _easyjson.go | grep -v pb.go > cover.out && go tool cover -func=cover.out
 	rm -f *.out
 
-# .PHONY: build
-# build:
-# 	go build -o app ./cmd/server/main.go
+.PHONY: lint
+lint:
+	golangci-lint run -c golangci.yml

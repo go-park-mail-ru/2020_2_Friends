@@ -2,11 +2,31 @@ name: deployment
 
 on:
   push:
-    branches: [ deploy ]
+    branches: [ dev, master ]
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: tests
+        run: make test
+
+  linters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--config=../golangci.yml"
+
   build:
     runs-on: ubuntu-latest
+    needs: [tests, linters]
 
     steps:
     - name: Code checkout
@@ -20,15 +40,6 @@ jobs:
       with:
         name: build
         path: ./build
-
-  tests:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: tests
-        run: make test
 
   deploy:
     runs-on: ubuntu-latest

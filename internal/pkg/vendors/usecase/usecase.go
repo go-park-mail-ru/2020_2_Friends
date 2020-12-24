@@ -78,9 +78,13 @@ func (v VendorUsecase) UpdatePicture(file multipart.File, imageType string) (str
 		return "", err
 	}
 
-	chunk := make([]byte, 1024)
+	var (
+		size  int
+		chunk = make([]byte, 1024)
+	)
+
 	for {
-		size, err := file.Read(chunk)
+		size, err = file.Read(chunk)
 		if err == io.EOF {
 			break
 		}

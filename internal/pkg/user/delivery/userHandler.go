@@ -22,7 +22,9 @@ type UserHandler struct {
 	profileUsecase profile.Usecase
 }
 
-func NewUserHandler(usecase user.Usecase, sessionClient session.SessionWorkerClient, profileUsecase profile.Usecase) UserHandler {
+func NewUserHandler(
+	usecase user.Usecase, sessionClient session.SessionWorkerClient, profileUsecase profile.Usecase,
+) UserHandler {
 	return UserHandler{
 		userUsecase:    usecase,
 		sessionClient:  sessionClient,

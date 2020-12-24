@@ -8,7 +8,6 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/middleware"
 	"github.com/friends/internal/pkg/models"
-
 	"github.com/friends/internal/pkg/profile"
 	ownErr "github.com/friends/pkg/error"
 	image "github.com/friends/pkg/image"
