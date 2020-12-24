@@ -25,7 +25,9 @@ type OrderDelivery struct {
 	websocketPool websocketpool.WebsocketPool
 }
 
-func New(orderUsecase order.Usecase, vendorUsecase vendors.Usecase, websocketPool websocketpool.WebsocketPool) OrderDelivery {
+func New(
+	orderUsecase order.Usecase, vendorUsecase vendors.Usecase, websocketPool websocketpool.WebsocketPool,
+) OrderDelivery {
 	return OrderDelivery{
 		orderUsecase:  orderUsecase,
 		vendorUsecase: vendorUsecase,

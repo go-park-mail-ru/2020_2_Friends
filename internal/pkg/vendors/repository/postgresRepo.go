@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/friends/internal/pkg/models"
@@ -28,7 +29,9 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	)
 
 	vendor := models.NewEmptyVendor()
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+	err := row.Scan(
+		&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius,
+	)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
@@ -94,7 +97,8 @@ func (v VendorRepository) GetVendorInfo(id string) (models.Vendor, error) {
 
 func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius FROM vendors",
+		`SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry),
+		ST_Y(coordinates::geometry), service_radius FROM vendors`,
 	)
 
 	if err != nil {
@@ -105,7 +109,9 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+		err = rows.Scan(
+			&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
@@ -208,15 +214,16 @@ func (v VendorRepository) IsVendorExists(vendorName string) error {
 		vendorName,
 	)
 
-	var vn string
-	switch err := row.Scan(&vn); err {
-	case sql.ErrNoRows:
+	err := row.Scan(&vendorName)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil
-	case nil:
-		return fmt.Errorf("vendor exists")
-	default:
-		return fmt.Errorf("couldn't check vendor, error with db: %w", err)
 	}
+
+	if err == nil {
+		return fmt.Errorf("vendor exists")
+	}
+
+	return fmt.Errorf("couldn't check vendor, error with db: %w", err)
 }
 
 func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, error) {
@@ -260,7 +267,7 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	}
 
 	for _, product := range vendor.Products {
-		_, err := tx.Exec(
+		_, err = tx.Exec(
 			"INSERT INTO products (vendorID, productName, price, picture) VALUES($1, $2, $3, $4)",
 			vendorID, product.Name, product.Price, product.Picture,
 		)
@@ -457,7 +464,9 @@ func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vend
 func (v VendorRepository) GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error) {
 	var geoCondition string
 	if latitude != 0 && longitude != 0 {
-		geoCondition = fmt.Sprintf("ST_DWithin(coordinates, ST_SetSRID(ST_Point(%v, %v), 4326), 5 * 1000) AND", longitude, latitude)
+		geoCondition = fmt.Sprintf(
+			"ST_DWithin(coordinates, ST_SetSRID(ST_Point(%v, %v), 4326), 5 * 1000) AND", longitude, latitude,
+		)
 	}
 
 	rows, err := v.db.Query(

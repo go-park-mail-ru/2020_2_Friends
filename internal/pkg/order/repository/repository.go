@@ -7,7 +7,6 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
-
 	ownErr "github.com/friends/pkg/error"
 )
 
@@ -94,6 +93,7 @@ func (o OrderRepository) GetUserOrders(userID string) ([]models.OrderResponse, e
 	if err != nil {
 		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
+	defer rows.Close()
 
 	orders := make([]models.OrderResponse, 0)
 	for rows.Next() {
@@ -142,6 +142,7 @@ func (o OrderRepository) GetVendorOrders(vendorID string) ([]models.OrderRespons
 	if err != nil {
 		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get orders from db: %w", err))
 	}
+	defer rows.Close()
 
 	orders := make([]models.OrderResponse, 0)
 	for rows.Next() {
@@ -175,6 +176,7 @@ func (o OrderRepository) GetVendorOrdersIDs(vendorID string) ([]int, error) {
 	if err != nil {
 		return nil, ownErr.NewServerError(fmt.Errorf("couldn't get order ids from db: %w", err))
 	}
+	defer rows.Close()
 
 	ids := make([]int, 0)
 	for rows.Next() {

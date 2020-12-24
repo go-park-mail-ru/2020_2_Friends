@@ -15,11 +15,10 @@ import (
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/vendors"
 	pool "github.com/friends/internal/pkg/websocketPool"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
-
 	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type ChatDelivery struct {
@@ -30,7 +29,9 @@ type ChatDelivery struct {
 	wsPool        pool.WebsocketPool
 }
 
-func New(chatUsecase chat.Usecase, orderUsecase order.Usecase, vendorUsecase vendors.Usecase, wsPool pool.WebsocketPool) ChatDelivery {
+func New(
+	chatUsecase chat.Usecase, orderUsecase order.Usecase, vendorUsecase vendors.Usecase, wsPool pool.WebsocketPool,
+) ChatDelivery {
 	return ChatDelivery{
 		chatUsecase:   chatUsecase,
 		orderUsecase:  orderUsecase,
@@ -119,6 +120,11 @@ func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID strin
 
 		msg.Type = "message"
 		msgJSON, err = json.Marshal(msg)
+		if err != nil {
+			log.ErrorLogWithCtx(ctx, err)
+			continue
+		}
+
 		if userID == customerID {
 			msg.VendorID = vendorID
 			c.write(ctx, partnerID, msgJSON)
@@ -174,8 +180,9 @@ func (c ChatDelivery) GetChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var vendorID int
 	if userID != userIDFromDB {
-		vendorID, err := c.orderUsecase.GetVendorIDFromOrder(orderID)
+		vendorID, err = c.orderUsecase.GetVendorIDFromOrder(orderID)
 		if err != nil {
 			ownErr.HandleErrorAndWriteResponse(w, err, http.StatusBadRequest)
 			return
