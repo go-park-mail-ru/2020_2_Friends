@@ -10,10 +10,9 @@ import (
 	"github.com/friends/internal/pkg/middleware"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/review"
-	"github.com/gorilla/mux"
-
 	ownErr "github.com/friends/pkg/error"
 	log "github.com/friends/pkg/logger"
+	"github.com/gorilla/mux"
 )
 
 type ReviewDelivery struct {
@@ -59,7 +58,7 @@ func (rd ReviewDelivery) AddReview(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (re ReviewDelivery) GetUserReviews(w http.ResponseWriter, r *http.Request) {
+func (rd ReviewDelivery) GetUserReviews(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -74,7 +73,7 @@ func (re ReviewDelivery) GetUserReviews(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	reviews, err := re.reviewUsecase.GetUserReviews(userID)
+	reviews, err := rd.reviewUsecase.GetUserReviews(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -87,7 +86,7 @@ func (re ReviewDelivery) GetUserReviews(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (re ReviewDelivery) GetVendorReviews(w http.ResponseWriter, r *http.Request) {
+func (rd ReviewDelivery) GetVendorReviews(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -101,7 +100,7 @@ func (re ReviewDelivery) GetVendorReviews(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	reviews, err := re.reviewUsecase.GetVendorReviews(vendorID)
+	reviews, err := rd.reviewUsecase.GetVendorReviews(vendorID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

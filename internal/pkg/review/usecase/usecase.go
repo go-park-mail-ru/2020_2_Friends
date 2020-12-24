@@ -9,7 +9,6 @@ import (
 	"github.com/friends/internal/pkg/profile"
 	"github.com/friends/internal/pkg/review"
 	"github.com/friends/internal/pkg/vendors"
-
 	ownErr "github.com/friends/pkg/error"
 )
 

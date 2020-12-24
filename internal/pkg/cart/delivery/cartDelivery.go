@@ -8,7 +8,6 @@ import (
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/cart"
 	"github.com/friends/internal/pkg/middleware"
-
 	log "github.com/friends/pkg/logger"
 )
 

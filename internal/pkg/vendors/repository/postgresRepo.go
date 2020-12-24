@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/friends/internal/pkg/models"
@@ -28,7 +29,9 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 	)
 
 	vendor := models.NewEmptyVendor()
-	err := row.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+	err := row.Scan(
+		&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius,
+	)
 	if err != nil {
 		return models.Vendor{}, fmt.Errorf("couldn't get vendor: %w", err)
 	}
@@ -54,6 +57,26 @@ func (v VendorRepository) Get(id int) (models.Vendor, error) {
 		vendor.Products = append(vendor.Products, product)
 	}
 
+	categoryRows, err := v.db.Query(
+		"SELECT category FROM vendor_categories WHERE vendorid = $1",
+		id,
+	)
+
+	if err != nil {
+		return models.Vendor{}, fmt.Errorf("couldn't get categories for vendor: %w", err)
+	}
+	defer categoryRows.Close()
+
+	var category string
+	for categoryRows.Next() {
+		err = categoryRows.Scan(&category)
+		if err != nil {
+			return models.Vendor{}, fmt.Errorf("error in receiving category: %w", err)
+		}
+
+		vendor.Categories = append(vendor.Categories, category)
+	}
+
 	return vendor, nil
 }
 
@@ -74,7 +97,8 @@ func (v VendorRepository) GetVendorInfo(id string) (models.Vendor, error) {
 
 func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	rows, err := v.db.Query(
-		"SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry), ST_Y(coordinates::geometry), service_radius FROM vendors",
+		`SELECT id, vendorName, descript, picture, ST_X(coordinates::geometry),
+		ST_Y(coordinates::geometry), service_radius FROM vendors`,
 	)
 
 	if err != nil {
@@ -85,13 +109,38 @@ func (v VendorRepository) GetAll() ([]models.Vendor, error) {
 	var vendors []models.Vendor
 	for rows.Next() {
 		vendor := models.NewEmptyVendor()
-		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius)
+		err = rows.Scan(
+			&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture, &vendor.Longitude, &vendor.Latitude, &vendor.Radius,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("error in receiving the vendor: %w", err)
 		}
 		vendor.HintContent = vendor.Name
 
 		vendors = append(vendors, vendor)
+	}
+
+	for idx, vendor := range vendors {
+		vendors[idx].Categories = make([]string, 0)
+		categoryRows, err := v.db.Query(
+			"SELECT category FROM vendor_categories WHERE vendorid = $1",
+			vendor.ID,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get categories for vendor: %w", err)
+		}
+		defer categoryRows.Close()
+
+		var category string
+		for categoryRows.Next() {
+			err = categoryRows.Scan(&category)
+			if err != nil {
+				return nil, fmt.Errorf("error in receiving category: %w", err)
+			}
+
+			vendors[idx].Categories = append(vendors[idx].Categories, category)
+		}
 	}
 
 	return vendors, nil
@@ -165,15 +214,16 @@ func (v VendorRepository) IsVendorExists(vendorName string) error {
 		vendorName,
 	)
 
-	var vn string
-	switch err := row.Scan(&vn); err {
-	case sql.ErrNoRows:
+	err := row.Scan(&vendorName)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil
-	case nil:
-		return fmt.Errorf("vendor exists")
-	default:
-		return fmt.Errorf("couldn't check vendor, error with db: %w", err)
 	}
+
+	if err == nil {
+		return fmt.Errorf("vendor exists")
+	}
+
+	return fmt.Errorf("couldn't check vendor, error with db: %w", err)
 }
 
 func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, error) {
@@ -190,8 +240,20 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	).Scan(&vendorID)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert vendor: %w", err)
+	}
+
+	for _, category := range vendor.Categories {
+		_, err = tx.Exec(
+			"INSERT INTO vendor_categories (vendorID, category) VALUES($1, $2)",
+			vendorID, category,
+		)
+
+		if err != nil {
+			_ = tx.Rollback()
+			return 0, fmt.Errorf("couldn't insert category: %w", err)
+		}
 	}
 
 	_, err = tx.Exec(
@@ -200,25 +262,25 @@ func (v VendorRepository) Create(partnerID string, vendor models.Vendor) (int, e
 	)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't insert partner and vendor: %w", err)
 	}
 
 	for _, product := range vendor.Products {
-		_, err := tx.Exec(
+		_, err = tx.Exec(
 			"INSERT INTO products (vendorID, productName, price, picture) VALUES($1, $2, $3, $4)",
 			vendorID, product.Name, product.Price, product.Picture,
 		)
 
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return 0, fmt.Errorf("couldn't insert product: %w", err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return 0, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 
@@ -397,4 +459,89 @@ func (v VendorRepository) GetNearest(longitude, latitude float64) ([]models.Vend
 	}
 
 	return vendors, nil
+}
+
+func (v VendorRepository) GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error) {
+	var geoCondition string
+	if latitude != 0 && longitude != 0 {
+		geoCondition = fmt.Sprintf(
+			"ST_DWithin(coordinates, ST_SetSRID(ST_Point(%v, %v), 4326), 5 * 1000) AND", longitude, latitude,
+		)
+	}
+
+	rows, err := v.db.Query(
+		fmt.Sprintf(`SELECT v.id, v.vendorName, v.descript, v.picture FROM vendors AS v
+		JOIN vendor_categories AS vc ON v.id = vc.vendorid
+		WHERE %v
+		category IN (SELECT category FROM vendor_categories WHERE vendorid = $1) AND vendorid != $1
+		GROUP BY v.id
+		ORDER BY COUNT(category) DESC`, geoCondition),
+		vendorID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get recomendations: %w", err)
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0)
+	vendor := models.Vendor{}
+	for rows.Next() {
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get recomendations: %w", err)
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorRepository) Get3RandomVendors() ([]models.Vendor, error) {
+	rows, err := v.db.Query(
+		"SELECT id, vendorName, descript, picture FROM vendors ORDER BY RANDOM() LIMIT 3",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	vendors := make([]models.Vendor, 0, 3)
+	vendor := models.Vendor{}
+	for rows.Next() {
+		err = rows.Scan(&vendor.ID, &vendor.Name, &vendor.Description, &vendor.Picture)
+		if err != nil {
+			return nil, err
+		}
+
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorRepository) GetAllCategories() ([]string, error) {
+	rows, err := v.db.Query(
+		"SELECT category FROM categories",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := make([]string, 0)
+	var category string
+	for rows.Next() {
+		err = rows.Scan(&category)
+		if err != nil {
+			return nil, err
+		}
+
+		categories = append(categories, category)
+	}
+
+	return categories, nil
 }

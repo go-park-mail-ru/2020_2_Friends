@@ -15,16 +15,16 @@ func NewUserUsecase(repo user.Repository) user.Usecase {
 	}
 }
 
-func (uu UserUsecase) Create(user models.User) (userID string, err error) {
-	return uu.repository.Create(user)
+func (u UserUsecase) Create(user models.User) (userID string, err error) {
+	return u.repository.Create(user)
 }
 
-func (uu UserUsecase) CheckIfUserExists(user models.User) error {
-	return uu.repository.CheckIfUserExists(user)
+func (u UserUsecase) CheckIfUserExists(user models.User) error {
+	return u.repository.CheckIfUserExists(user)
 }
 
-func (uu UserUsecase) Verify(user models.User) (userID string, err error) {
-	return uu.repository.CheckLoginAndPassword(user)
+func (u UserUsecase) Verify(user models.User) (userID string, err error) {
+	return u.repository.CheckLoginAndPassword(user)
 }
 
 func (u UserUsecase) Delete(userID string) error {

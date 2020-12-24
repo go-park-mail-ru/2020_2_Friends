@@ -38,7 +38,7 @@ func (p ProfileUsecase) Update(profile models.Profile) error {
 
 func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File, imageType string) (string, error) {
 	imgName := shortuuid.New()
-	imgFullName := imgName + "." + imageType
+	imgFullName := imgName + imageType
 
 	md := metadata.New(map[string]string{"fileName": imgFullName})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
@@ -48,18 +48,21 @@ func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File, imageTy
 		return "", err
 	}
 
-	write := true
-	chunk := make([]byte, 1024)
+	var (
+		size  int
+		chunk = make([]byte, 1024)
+	)
 
-	for write {
-		size, err := file.Read(chunk)
+	for {
+		size, err = file.Read(chunk)
+		if err == io.EOF {
+			break
+		}
+
 		if err != nil {
-			if err == io.EOF {
-				write = false
-				continue
-			}
 			return "", err
 		}
+
 		err = stream.Send(&fileserver.Chunk{Content: chunk[:size]})
 		if err != nil {
 			return "", err

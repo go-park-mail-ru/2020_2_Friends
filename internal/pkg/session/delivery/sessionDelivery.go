@@ -48,7 +48,11 @@ func (s SessionDelivery) Check(ctx context.Context, sessionName *session.Session
 	return &resp, nil
 }
 
-func (s SessionDelivery) Delete(ctx context.Context, sessionName *session.SessionName) (*session.DeleteResponse, error) {
+func (s SessionDelivery) Delete(
+	ctx context.Context, sessionName *session.SessionName,
+) (
+	*session.DeleteResponse, error,
+) {
 	err := s.sessionUsecase.Delete(sessionName.GetName())
 	if err != nil {
 		return nil, status.Errorf(

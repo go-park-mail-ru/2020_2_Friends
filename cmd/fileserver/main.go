@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/fileserver"
@@ -20,7 +21,7 @@ func StartFileServer() {
 
 	staticHandler := http.StripPrefix(
 		"/data/",
-		http.FileServer(http.Dir(configs.FileServerPath)),
+		http.FileServer(http.Dir(os.Getenv("picture_storage"))),
 	)
 	mux.Handle("/data/", staticHandler)
 
@@ -32,11 +33,6 @@ func StartFileServer() {
 }
 
 func StartGRPCServer() {
-	lis, err := net.Listen("tcp", configs.FileServerGRPCPort)
-	if err != nil {
-		log.Fatalln("can't start session service: ", err)
-	}
-
 	repository := repository.New()
 	usecase := usecase.New(repository)
 
@@ -45,6 +41,11 @@ func StartGRPCServer() {
 	server := grpc.NewServer()
 
 	fileserver.RegisterUploadServiceServer(server, delivery)
+
+	lis, err := net.Listen("tcp", configs.FileServerGRPCPort)
+	if err != nil {
+		log.Fatalln("can't start session service: ", err)
+	}
 
 	logrus.Info("starting fileserver service at port ", configs.FileServerGRPCPort)
 	log.Fatal(server.Serve(lis))

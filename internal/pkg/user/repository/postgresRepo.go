@@ -20,13 +20,13 @@ func NewUserRepository(db *sql.DB) user.Repository {
 	}
 }
 
-func (ur UserRepository) Create(user models.User) (userID string, err error) {
+func (u UserRepository) Create(user models.User) (userID string, err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("couldn't hash password: %w", err)
 	}
 
-	err = ur.db.QueryRow(
+	err = u.db.QueryRow(
 		"INSERT INTO users (login, password, role) VALUES ($1, $2, $3) RETURNING id",
 		user.Login, hashedPassword, user.Role,
 	).Scan(&userID)
@@ -38,8 +38,8 @@ func (ur UserRepository) Create(user models.User) (userID string, err error) {
 	return userID, nil
 }
 
-func (ur UserRepository) CheckIfUserExists(user models.User) error {
-	row := ur.db.QueryRow(
+func (u UserRepository) CheckIfUserExists(user models.User) error {
+	row := u.db.QueryRow(
 		"SELECT login FROM users WHERE login=$1",
 		user.Login,
 	)
@@ -55,8 +55,8 @@ func (ur UserRepository) CheckIfUserExists(user models.User) error {
 	}
 }
 
-func (ur UserRepository) CheckLoginAndPassword(user models.User) (userID string, err error) {
-	row := ur.db.QueryRow(
+func (u UserRepository) CheckLoginAndPassword(user models.User) (userID string, err error) {
+	row := u.db.QueryRow(
 		"SELECT id, password FROM users WHERE login=$1",
 		user.Login,
 	)

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"os"
+
 	"github.com/friends/internal/app/server"
 )
 
 func main() {
-	server.StartApiServer()
+	dsn := os.Getenv("dsn")
+	server.StartAPIServer(dsn)
 }

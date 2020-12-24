@@ -29,6 +29,10 @@ func (v VendorUsecase) Get(id int) (models.Vendor, error) {
 	return v.repository.Get(id)
 }
 
+func (v VendorUsecase) GetVendorInfo(id string) (models.Vendor, error) {
+	return v.repository.GetVendorInfo(id)
+}
+
 func (v VendorUsecase) GetAll() ([]models.Vendor, error) {
 	return v.repository.GetAll()
 }
@@ -64,7 +68,7 @@ func (v VendorUsecase) DeleteProduct(productID string) error {
 
 func (v VendorUsecase) UpdatePicture(file multipart.File, imageType string) (string, error) {
 	imgName := shortuuid.New()
-	imgFullName := imgName + "." + imageType
+	imgFullName := imgName + imageType
 
 	md := metadata.New(map[string]string{"fileName": imgFullName})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
@@ -74,18 +78,21 @@ func (v VendorUsecase) UpdatePicture(file multipart.File, imageType string) (str
 		return "", err
 	}
 
-	write := true
-	chunk := make([]byte, 1024)
+	var (
+		size  int
+		chunk = make([]byte, 1024)
+	)
 
-	for write {
-		size, err := file.Read(chunk)
+	for {
+		size, err = file.Read(chunk)
+		if err == io.EOF {
+			break
+		}
+
 		if err != nil {
-			if err == io.EOF {
-				write = false
-				continue
-			}
 			return "", err
 		}
+
 		err = stream.Send(&fileserver.Chunk{Content: chunk[:size]})
 		if err != nil {
 			return "", err
@@ -142,4 +149,39 @@ func (v VendorUsecase) GetVendorOwner(vendorID int) (string, error) {
 
 func (v VendorUsecase) GetNearest(longitude, latitude float64) ([]models.Vendor, error) {
 	return v.repository.GetNearest(longitude, latitude)
+}
+
+func (v VendorUsecase) GetSimilar(vendorID string, longitude, latitude float64) ([]models.Vendor, error) {
+	vendors, err := v.repository.GetSimilar(vendorID, longitude, latitude)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(vendors) >= 3 {
+		return vendors[:3], nil
+	}
+
+	moreVendors, err := v.repository.Get3RandomVendors()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, vendor := range moreVendors {
+		if len(vendors) == 3 {
+			break
+		}
+
+		for _, anotherVendor := range vendors {
+			if vendor.ID == anotherVendor.ID {
+				break
+			}
+		}
+		vendors = append(vendors, vendor)
+	}
+
+	return vendors, nil
+}
+
+func (v VendorUsecase) GetAllCategories() ([]string, error) {
+	return v.repository.GetAllCategories()
 }

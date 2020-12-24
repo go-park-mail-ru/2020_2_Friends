@@ -1,0 +1,77 @@
+name: deployment
+
+on:
+  push:
+    branches: [ dev, master ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: tests
+        run: make test
+
+  linters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--config=../golangci.yml"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [tests, linters]
+
+    steps:
+    - name: Code checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: make build
+
+    - name: Build upload
+      uses: actions/upload-artifact@v1
+      with:
+        name: build
+        path: ./build
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Build download
+      uses: actions/download-artifact@v1
+      with:
+        name: build
+
+    - name: Build files transfer to server
+      uses: appleboy/scp-action@v0.0.10
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.DEPLOY_USERNAME }}
+        key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+        source: "build"
+        target: "/home/ubuntu/backend"
+
+    - name: chmod
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.DEPLOY_USERNAME }}
+        key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+        script: chmod -R 755 /home/ubuntu/backend/build
+
+    - name: restart service
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.DEPLOY_USERNAME }}
+        key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+        script: sudo systemctl daemon-reload && sudo systemctl start fileserver.service && sudo systemctl start session.service && sudo systemctl start server.service

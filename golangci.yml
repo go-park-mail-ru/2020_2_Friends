@@ -1,0 +1,58 @@
+run:
+  tests: false
+
+  skip-dirs:
+    - bin$
+    - \.git$
+    - etc$
+    - protobuf$
+    - scripts$
+    - vendor$
+
+  skip-files:
+    - "_easyjson.go"
+    - ".pb.go"
+    - ".svc.go"
+
+  modules-download-mode: readonly
+
+linters-settings:
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 0.3
+  gocyclo:
+    min-complexity: 20
+  dupl:
+    threshold: 200
+  lll:
+    line-length: 120
+  funlen:
+    statements: 100
+    lines: 160
+
+linters:
+  enable-all: true
+  disable:
+    - gochecknoglobals
+    - gochecknoinits
+    - gomnd
+    - gofumpt
+    - godox
+    - nakedret
+    - gocognit
+    - wsl
+    - nlreturn
+    - rowserrcheck
+    - wrapcheck
+    - goerr113
+    - exhaustivestruct
+    - errorlint
+    - interfacer
+    - golint
+    - staticcheck
+    - gosec
+  fast: false
+
+output:
+  format: tab

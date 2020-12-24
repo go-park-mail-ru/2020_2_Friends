@@ -16,18 +16,13 @@ import (
 )
 
 func StartSessionService() {
-	lis, err := net.Listen("tcp", configs.SessionServicePort)
-	if err != nil {
-		log.Fatalln("can't start session service: ", err)
-	}
-
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     configs.RedisAddr,
 		Password: "",
 		DB:       0,
 	})
 
-	err = redisClient.Ping(context.Background()).Err()
+	err := redisClient.Ping(context.Background()).Err()
 	if err != nil {
 		log.Fatal("redis not available: ", err)
 	}
@@ -40,6 +35,11 @@ func StartSessionService() {
 	sessionDelivery := delivery.NewSessionDelivery(sessionUsecase)
 
 	session.RegisterSessionWorkerServer(server, sessionDelivery)
+
+	lis, err := net.Listen("tcp", configs.SessionServicePort)
+	if err != nil {
+		log.Fatalln("can't start session service: ", err)
+	}
 
 	logrus.Info("starting session service at port ", configs.SessionServicePort)
 	log.Fatal(server.Serve(lis))

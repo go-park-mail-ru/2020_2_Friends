@@ -13,6 +13,7 @@ type Vendor struct {
 	Longitude   float32   `json:"longitude"`
 	Latitude    float32   `json:"latitude"`
 	Radius      int       `json:"distance"`
+	Categories  []string  `json:"categories"`
 }
 
 //easyjson:json

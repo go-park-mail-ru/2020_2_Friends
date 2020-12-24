@@ -21,6 +21,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var (
+	userID   = "10"
+	vendorID = "15"
+
+	dbError = fmt.Errorf("db error")
+)
+
 func TestCreateSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -964,6 +971,82 @@ func TestGetPartnerShopsNoPartner(t *testing.T) {
 	r := httptest.NewRequest("GET", "/partners/vendors", nil)
 
 	handler.GetPartnerShops(w, r)
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateVendorPictureError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockVendorUsecase := vendors.NewMockUsecase(ctrl)
+	mockVendorUsecase.EXPECT().CheckVendorOwner(userID, vendorID).Times(1).Return(dbError)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/partners/vendors", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": vendorID})
+	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), userID)
+
+	handler := PartnerDelivery{
+		vendorUsecase: mockVendorUsecase,
+	}
+
+	handler.UpdateVendorPicture(w, r.WithContext(ctx))
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateVendorNoUser(t *testing.T) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/partners/vendors", nil)
+
+	handler := PartnerDelivery{}
+
+	handler.UpdateVendorPicture(w, r)
+
+	expected := http.StatusInternalServerError
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateProductPictureError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockVendorUsecase := vendors.NewMockUsecase(ctrl)
+	mockVendorUsecase.EXPECT().CheckVendorOwner(userID, vendorID).Times(1).Return(dbError)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/partners/vendors", nil)
+	r = mux.SetURLVars(r, map[string]string{"vendorID": vendorID})
+	ctx := context.WithValue(r.Context(), middleware.UserID(configs.UserID), userID)
+
+	handler := PartnerDelivery{
+		vendorUsecase: mockVendorUsecase,
+	}
+
+	handler.UpdateProductPicture(w, r.WithContext(ctx))
+
+	expected := http.StatusBadRequest
+	if w.Code != expected {
+		t.Errorf("expected: %v\n got: %v", expected, w.Code)
+	}
+}
+
+func TestUpdateProductNoUser(t *testing.T) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/partners/vendors", nil)
+
+	handler := PartnerDelivery{}
+
+	handler.UpdateProductPicture(w, r)
 
 	expected := http.StatusInternalServerError
 	if w.Code != expected {

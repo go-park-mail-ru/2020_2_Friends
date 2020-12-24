@@ -1,10 +1,16 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/microcosm-cc/bluemonday"
+)
 
 type Message struct {
+	Type      string    `json:"type"`
 	OrderID   int       `json:"order_id,omitempty"`
 	UserID    string    `json:"-"`
+	VendorID  int       `json:"vendor_id,omitempty"`
 	IsYourMsg bool      `json:"is_your_msg"`
 	Text      string    `json:"text"`
 	SentAt    time.Time `json:"-"`
@@ -16,4 +22,9 @@ type Chat struct {
 	InterlocutorID   string `json:"interlocutor_id"`
 	InterlocutorName string `json:"interlocutor_name"`
 	LastMsg          string `json:"last_message"`
+}
+
+func (m *Message) Sanitaze() {
+	p := bluemonday.UGCPolicy()
+	m.Text = p.Sanitize(m.Text)
 }

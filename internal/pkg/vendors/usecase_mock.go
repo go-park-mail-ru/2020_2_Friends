@@ -122,6 +122,21 @@ func (mr *MockUsecaseMockRecorder) GetAll() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockUsecase)(nil).GetAll))
 }
 
+// GetAllCategories mocks base method
+func (m *MockUsecase) GetAllCategories() ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllCategories")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllCategories indicates an expected call of GetAllCategories
+func (mr *MockUsecaseMockRecorder) GetAllCategories() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCategories", reflect.TypeOf((*MockUsecase)(nil).GetAllCategories))
+}
+
 // GetNearest mocks base method
 func (m *MockUsecase) GetNearest(arg0, arg1 float64) ([]models.Vendor, error) {
 	m.ctrl.T.Helper()
@@ -152,6 +167,21 @@ func (mr *MockUsecaseMockRecorder) GetPartnerShops(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPartnerShops", reflect.TypeOf((*MockUsecase)(nil).GetPartnerShops), arg0)
 }
 
+// GetSimilar mocks base method
+func (m *MockUsecase) GetSimilar(arg0 string, arg1, arg2 float64) ([]models.Vendor, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSimilar", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.Vendor)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSimilar indicates an expected call of GetSimilar
+func (mr *MockUsecaseMockRecorder) GetSimilar(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilar", reflect.TypeOf((*MockUsecase)(nil).GetSimilar), arg0, arg1, arg2)
+}
+
 // GetVendorIDFromProduct mocks base method
 func (m *MockUsecase) GetVendorIDFromProduct(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
@@ -165,6 +195,21 @@ func (m *MockUsecase) GetVendorIDFromProduct(arg0 string) (string, error) {
 func (mr *MockUsecaseMockRecorder) GetVendorIDFromProduct(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendorIDFromProduct", reflect.TypeOf((*MockUsecase)(nil).GetVendorIDFromProduct), arg0)
+}
+
+// GetVendorInfo mocks base method
+func (m *MockUsecase) GetVendorInfo(arg0 string) (models.Vendor, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVendorInfo", arg0)
+	ret0, _ := ret[0].(models.Vendor)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVendorInfo indicates an expected call of GetVendorInfo
+func (mr *MockUsecaseMockRecorder) GetVendorInfo(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendorInfo", reflect.TypeOf((*MockUsecase)(nil).GetVendorInfo), arg0)
 }
 
 // GetVendorOwner mocks base method

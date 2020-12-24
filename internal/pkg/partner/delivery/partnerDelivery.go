@@ -18,6 +18,7 @@ import (
 	"github.com/friends/pkg/image"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/lithammer/shortuuid"
 )
 
 type PartnerDelivery struct {
@@ -27,7 +28,10 @@ type PartnerDelivery struct {
 	profileUsecase profile.Usecase
 }
 
-func New(userUsecase user.Usecase, profileUsecase profile.Usecase, sessionClient session.SessionWorkerClient, vendorUsecase vendors.Usecase) PartnerDelivery {
+func New(
+	userUsecase user.Usecase, profileUsecase profile.Usecase,
+	sessionClient session.SessionWorkerClient, vendorUsecase vendors.Usecase,
+) PartnerDelivery {
 	return PartnerDelivery{
 		userUsecase:    userUsecase,
 		profileUsecase: profileUsecase,
@@ -78,6 +82,13 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputils.SetCookie(w, session.GetName())
+
+	token := shortuuid.NewWithNamespace(session.GetName())
+	httputils.SetCSRFCookie(w, token)
+
+	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
+	w.Header().Set("X-CSRF-Token", token)
+
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -99,6 +110,12 @@ func (p PartnerDelivery) CreateVendor(w http.ResponseWriter, r *http.Request) {
 	vendor := models.Vendor{}
 	err = json.NewDecoder(r.Body).Decode(&vendor)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if len(vendor.Categories) > 5 {
+		err = fmt.Errorf("too much categories for vendor")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

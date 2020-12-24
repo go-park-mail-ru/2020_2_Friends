@@ -13,6 +13,7 @@ import (
 	ownErr "github.com/friends/pkg/error"
 	"github.com/friends/pkg/httputils"
 	log "github.com/friends/pkg/logger"
+	"github.com/lithammer/shortuuid"
 )
 
 type UserHandler struct {
@@ -21,7 +22,9 @@ type UserHandler struct {
 	profileUsecase profile.Usecase
 }
 
-func NewUserHandler(usecase user.Usecase, sessionClient session.SessionWorkerClient, profileUsecase profile.Usecase) UserHandler {
+func NewUserHandler(
+	usecase user.Usecase, sessionClient session.SessionWorkerClient, profileUsecase profile.Usecase,
+) UserHandler {
 	return UserHandler{
 		userUsecase:    usecase,
 		sessionClient:  sessionClient,
@@ -72,6 +75,13 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputils.SetCookie(w, session.GetName())
+
+	token := shortuuid.NewWithNamespace(session.GetName())
+	httputils.SetCSRFCookie(w, token)
+
+	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
+	w.Header().Set("X-CSRF-Token", token)
+
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -145,6 +155,12 @@ func (u UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputils.SetCookie(w, session.GetName())
+
+	token := shortuuid.NewWithNamespace(session.GetName())
+	httputils.SetCSRFCookie(w, token)
+
+	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
+	w.Header().Set("X-CSRF-Token", token)
 }
 
 func (u UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
