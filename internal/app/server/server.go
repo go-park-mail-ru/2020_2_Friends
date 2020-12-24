@@ -39,8 +39,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-func StartApiServer() {
-	db, err := sql.Open(configs.Postgres, configs.DataSourceNamePostgres)
+func StartApiServer(dsn string) {
+	db, err := sql.Open(configs.Postgres, dsn)
 	if err != nil {
 		logrus.Error(fmt.Errorf("postgres not available: %w", err))
 		fmt.Println("db doesnt work", err)

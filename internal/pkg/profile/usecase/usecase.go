@@ -38,7 +38,7 @@ func (p ProfileUsecase) Update(profile models.Profile) error {
 
 func (p ProfileUsecase) UpdateAvatar(userID string, file multipart.File, imageType string) (string, error) {
 	imgName := shortuuid.New()
-	imgFullName := imgName + "." + imageType
+	imgFullName := imgName + imageType
 
 	md := metadata.New(map[string]string{"fileName": imgFullName})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
