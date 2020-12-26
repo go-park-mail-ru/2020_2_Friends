@@ -47,6 +47,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.Sanitize()
+	log.DataLog(r, user)
 
 	err = u.userUsecase.CheckIfUserExists(*user)
 	if err != nil {
@@ -141,6 +142,7 @@ func (u UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.Sanitize()
+	log.DataLog(r, user)
 
 	userID, err := u.userUsecase.Verify(*user)
 	if err != nil {

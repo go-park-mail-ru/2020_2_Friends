@@ -57,6 +57,7 @@ func (o OrderDelivery) AddOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	order.Sanitize()
+	log.DataLog(r, order)
 
 	order.CreatedAt = time.Now()
 
@@ -216,6 +217,7 @@ func (o OrderDelivery) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	status.Sanitize()
+	log.DataLog(r, status)
 
 	orderID, ok := mux.Vars(r)["id"]
 	if !ok {

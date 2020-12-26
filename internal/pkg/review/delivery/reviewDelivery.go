@@ -47,6 +47,7 @@ func (rd ReviewDelivery) AddReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	review.Sanitize()
+	log.DataLog(r, review)
 
 	review.UserID = userID
 	review.CreatedAt = time.Now()
