@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/friends/configs"
 	log "github.com/friends/pkg/logger"
@@ -14,7 +15,8 @@ func AccessLog(next http.Handler) http.Handler {
 		reqID := shortuuid.New()
 		ctx := context.WithValue(r.Context(), configs.ReqID, reqID)
 		r = r.WithContext(ctx)
-		log.AccessLog(r)
+		start := time.Now()
 		next.ServeHTTP(w, r)
+		log.AccessLog(r, start)
 	})
 }
