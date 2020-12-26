@@ -54,6 +54,7 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	user.Sanitize()
 
 	err = p.userUsecase.CheckIfUserExists(*user)
 	if err != nil {
@@ -113,6 +114,7 @@ func (p PartnerDelivery) CreateVendor(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	vendor.Sanitize()
 
 	if len(vendor.Categories) > 5 {
 		err = fmt.Errorf("too much categories for vendor")
@@ -166,6 +168,7 @@ func (p PartnerDelivery) UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	vendor.Sanitize()
 
 	err = p.vendorUsecase.Update(vendor)
 	if err != nil {
@@ -203,6 +206,7 @@ func (p PartnerDelivery) AddProductToVendor(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	product.Sanitize()
 
 	product.VendorID, err = strconv.Atoi(vendorID)
 	if err != nil {
@@ -311,6 +315,7 @@ func (p PartnerDelivery) UpdateProductOnVendor(w http.ResponseWriter, r *http.Re
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	product.Sanitize()
 
 	productID := mux.Vars(r)["id"]
 
