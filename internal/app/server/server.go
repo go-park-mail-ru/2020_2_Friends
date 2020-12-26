@@ -40,6 +40,7 @@ import (
 )
 
 func StartAPIServer(dsn string) {
+	logrus.SetLevel(logrus.DebugLevel)
 	db, err := sql.Open(configs.Postgres, dsn)
 	if err != nil {
 		logrus.Error(fmt.Errorf("postgres not available: %w", err))

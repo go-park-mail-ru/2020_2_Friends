@@ -87,9 +87,9 @@ func (c ChatDelivery) read(ctx context.Context, ws *websocket.Conn, userID strin
 		msg := models.Message{}
 		err = json.Unmarshal(msgJSON, &msg)
 		if err != nil {
-			log.ErrorLogWithCtx(ctx, err)
 			continue
 		}
+
 		msg.UserID = userID
 		msg.SentAt = time.Now()
 		msg.Sanitaze()
