@@ -18,13 +18,6 @@ func AccessLog(r *http.Request, start time.Time) {
 	}).Info(r.URL.Path)
 }
 
-func DataLog(r *http.Request, data interface{}) {
-	log.WithFields(log.Fields{
-		configs.ReqID: r.Context().Value(configs.ReqID),
-		"data":        data,
-	}).Debug()
-}
-
 func ErrorLogWithCtx(ctx context.Context, err error) {
 	log.WithFields(log.Fields{
 		configs.ReqID: ctx.Value(configs.ReqID),

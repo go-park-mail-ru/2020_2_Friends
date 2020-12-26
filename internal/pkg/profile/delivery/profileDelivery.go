@@ -75,7 +75,6 @@ func (p ProfileDelivery) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	profile.Sanitize()
-	log.DataLog(r, profile)
 
 	profile.UserID = userID
 
@@ -155,7 +154,6 @@ func (p ProfileDelivery) UpdateAddresses(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	profile.Sanitize()
-	log.DataLog(r, profile)
 
 	err = p.profUsecase.UpdateAddresses(userID, profile.Addresses)
 	if err != nil {
