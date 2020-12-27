@@ -76,6 +76,11 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	httputils.SetCookie(w, sessionName.GetName())
 
 	token, err := u.sessionClient.SetCSRFToken(context.Background(), &session.UserID{Id: userID})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	httputils.SetCSRFCookie(w, token.GetValue())
 
 	w.WriteHeader(http.StatusCreated)
@@ -153,6 +158,11 @@ func (u UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	httputils.SetCookie(w, sessionName.GetName())
 
 	token, err := u.sessionClient.SetCSRFToken(context.Background(), &session.UserID{Id: userID})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	httputils.SetCSRFCookie(w, token.GetValue())
 }
 
