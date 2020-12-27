@@ -17,14 +17,24 @@ func NewCartRepository(db *sql.DB) cart.Repository {
 	}
 }
 
-func (c CartRepository) Add(userID, productID, vendorID string) error {
-	_, err := c.db.Exec(
-		"INSERT INTO carts (userID, productID, vendorID) VALUES($1, $2, $3)",
-		userID, productID, vendorID,
-	)
+func (c CartRepository) Add(userID, productID, vendorID string, count int) error {
+	var err error
+	if count == 1 {
+		_, err = c.db.Exec(
+			"INSERT INTO carts (userID, productID, vendorID, product_count) VALUES($1, $2, $3)",
+			userID, productID, vendorID, count,
+		)
+	}
+
+	if count > 1 {
+		_, err = c.db.Exec(
+			"UPDATE carts SET product_count = $1 WHERE userID = $2 AND productID = $3 AND vendorID = $4",
+			count, userID, productID, vendorID,
+		)
+	}
 
 	if err != nil {
-		return fmt.Errorf("couldn't add product to cart: %w", err)
+		return fmt.Errorf("couldn't add or update product to cart: %w", err)
 	}
 
 	return nil

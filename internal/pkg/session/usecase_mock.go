@@ -75,3 +75,33 @@ func (mr *MockUsecaseMockRecorder) Delete(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUsecase)(nil).Delete), arg0)
 }
+
+// GetTokenFromUser mocks base method
+func (m *MockUsecase) GetTokenFromUser(arg0 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTokenFromUser", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTokenFromUser indicates an expected call of GetTokenFromUser
+func (mr *MockUsecaseMockRecorder) GetTokenFromUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenFromUser", reflect.TypeOf((*MockUsecase)(nil).GetTokenFromUser), arg0)
+}
+
+// SetCSRFToken mocks base method
+func (m *MockUsecase) SetCSRFToken(arg0 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetCSRFToken", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetCSRFToken indicates an expected call of SetCSRFToken
+func (mr *MockUsecaseMockRecorder) SetCSRFToken(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCSRFToken", reflect.TypeOf((*MockUsecase)(nil).SetCSRFToken), arg0)
+}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/cart"
@@ -43,7 +44,20 @@ func (c CartDelivery) AddToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.cartUsecase.Add(userID, productID[0])
+	countStr, ok := r.URL.Query()["count"]
+	if !ok {
+		err = fmt.Errorf("no query param")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	count, err := strconv.Atoi(countStr[0])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = c.cartUsecase.Add(userID, productID[0], count)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -21,7 +21,7 @@ func NewCartUsecase(cartsRepo cart.Repository, vendorsRepo vendors.Repository) c
 	}
 }
 
-func (c CartUsecase) Add(userID, productID string) error {
+func (c CartUsecase) Add(userID, productID string, count int) error {
 	cartVendorID, err := c.cartsRepository.GetVendorIDFromCart(userID)
 	if err != nil && !errors.Is(err, cart.ErrCartIsEmpty) {
 		return fmt.Errorf("error with db: %w", err)
@@ -38,7 +38,7 @@ func (c CartUsecase) Add(userID, productID string) error {
 		}
 	}
 
-	err = c.cartsRepository.Add(userID, productID, vendorID)
+	err = c.cartsRepository.Add(userID, productID, vendorID, count)
 	if err != nil {
 		return fmt.Errorf("couldn't add product to cart: %w", err)
 	}
