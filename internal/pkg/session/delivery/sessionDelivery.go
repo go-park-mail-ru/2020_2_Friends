@@ -62,3 +62,33 @@ func (s SessionDelivery) Delete(
 
 	return &session.DeleteResponse{}, nil
 }
+
+func (s SessionDelivery) SetCSRFToken(
+	ctx context.Context, userID *session.UserID,
+) (
+	*session.Token, error,
+) {
+	token, err := s.sessionUsecase.SetCSRFToken(userID.GetId())
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal, "couldn't set token for user with id = %v. Error: %v", userID.GetId(), err,
+		)
+	}
+
+	return &session.Token{Value: token}, nil
+}
+
+func (s SessionDelivery) GetTokenFromUser(
+	ctx context.Context, userID *session.UserID,
+) (
+	*session.Token, error,
+) {
+	token, err := s.sessionUsecase.GetTokenFromUser(userID.GetId())
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal, "couldn't get token for user with id = %v. Error: %v", userID.GetId(), err,
+		)
+	}
+
+	return &session.Token{Value: token}, nil
+}

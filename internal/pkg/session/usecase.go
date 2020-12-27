@@ -5,4 +5,6 @@ type Usecase interface {
 	Create(userID string) (string, error)
 	Check(sessionName string) (userID string, err error)
 	Delete(sessionName string) error
+	SetCSRFToken(userID string) (token string, err error)
+	GetTokenFromUser(userID string) (token string, err error)
 }

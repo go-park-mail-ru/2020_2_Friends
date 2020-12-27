@@ -15,8 +15,14 @@ message DeleteResponse {
     bool dummy = 1;
 }
 
+message Token {
+    string value = 1;
+}
+
 service SessionWorker {
     rpc Create (UserID) returns (SessionName) {}
     rpc Check (SessionName) returns (UserID) {}
     rpc Delete (SessionName) returns (DeleteResponse) {}
+    rpc SetCSRFToken (UserID) returns (Token) {}
+    rpc GetTokenFromUser (UserID) returns (Token) {}
 }

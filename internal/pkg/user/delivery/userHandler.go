@@ -13,7 +13,6 @@ import (
 	ownErr "github.com/friends/pkg/error"
 	"github.com/friends/pkg/httputils"
 	log "github.com/friends/pkg/logger"
-	"github.com/lithammer/shortuuid"
 )
 
 type UserHandler struct {
@@ -68,19 +67,19 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := u.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
+	sessionName, err := u.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	httputils.SetCookie(w, session.GetName())
+	httputils.SetCookie(w, sessionName.GetName())
 
-	token := shortuuid.NewWithNamespace(session.GetName())
-	httputils.SetCSRFCookie(w, token)
+	token, err := u.sessionClient.SetCSRFToken(context.Background(), &session.UserID{Id: userID})
+	httputils.SetCSRFCookie(w, token.GetValue())
 
 	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
-	w.Header().Set("X-CSRF-Token", token)
+	w.Header().Set("X-CSRF-Token", token.GetValue())
 
 	w.WriteHeader(http.StatusCreated)
 }
@@ -148,19 +147,16 @@ func (u UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := u.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
+	sessionName, err := u.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	httputils.SetCookie(w, session.GetName())
+	httputils.SetCookie(w, sessionName.GetName())
 
-	token := shortuuid.NewWithNamespace(session.GetName())
-	httputils.SetCSRFCookie(w, token)
-
-	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
-	w.Header().Set("X-CSRF-Token", token)
+	token, err := u.sessionClient.SetCSRFToken(context.Background(), &session.UserID{Id: userID})
+	httputils.SetCSRFCookie(w, token.GetValue())
 }
 
 func (u UserHandler) Logout(w http.ResponseWriter, r *http.Request) {

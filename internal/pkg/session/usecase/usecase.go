@@ -42,3 +42,17 @@ func (su SessionUsecase) Check(sessionName string) (userID string, err error) {
 func (su SessionUsecase) Delete(sessionName string) error {
 	return su.repository.Delete(sessionName)
 }
+
+func (su SessionUsecase) SetCSRFToken(userID string) (token string, err error) {
+	token = shortuuid.New()
+	err = su.repository.SetCSRFToken(userID, token)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (su SessionUsecase) GetTokenFromUser(userID string) (token string, err error) {
+	return su.repository.GetTokenFromUser(userID)
+}

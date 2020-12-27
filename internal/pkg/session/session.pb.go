@@ -170,6 +170,53 @@ func (x *DeleteResponse) GetDummy() bool {
 	return false
 }
 
+type Token struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Token) Reset() {
+	*x = Token{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_session_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Token) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Token) ProtoMessage() {}
+
+func (x *Token) ProtoReflect() protoreflect.Message {
+	mi := &file_session_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Token.ProtoReflect.Descriptor instead.
+func (*Token) Descriptor() ([]byte, []int) {
+	return file_session_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Token) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 var File_session_proto protoreflect.FileDescriptor
 
 var file_session_proto_rawDesc = []byte{
@@ -180,20 +227,28 @@ var file_session_proto_rawDesc = []byte{
 	0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x26, 0x0a, 0x0e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52,
 	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x75, 0x6d, 0x6d, 0x79,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x64, 0x75, 0x6d, 0x6d, 0x79, 0x32, 0xaf, 0x01,
-	0x0a, 0x0d, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x57, 0x6f, 0x72, 0x6b, 0x65, 0x72, 0x12,
-	0x31, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73,
-	0x69, 0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x1a, 0x14, 0x2e, 0x73, 0x65, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x64, 0x75, 0x6d, 0x6d, 0x79, 0x22, 0x1d, 0x0a,
+	0x05, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x32, 0x99, 0x02, 0x0a,
+	0x0d, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x57, 0x6f, 0x72, 0x6b, 0x65, 0x72, 0x12, 0x31,
+	0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x1a, 0x14, 0x2e, 0x73, 0x65, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x22,
+	0x00, 0x12, 0x30, 0x0a, 0x05, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x12, 0x14, 0x2e, 0x73, 0x65, 0x73,
 	0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x4e, 0x61, 0x6d, 0x65,
-	0x22, 0x00, 0x12, 0x30, 0x0a, 0x05, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x12, 0x14, 0x2e, 0x73, 0x65,
-	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x4e, 0x61, 0x6d,
-	0x65, 0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72,
-	0x49, 0x44, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x14,
-	0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e,
-	0x4e, 0x61, 0x6d, 0x65, 0x1a, 0x17, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x44,
-	0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42,
-	0x0b, 0x5a, 0x09, 0x2e, 0x3b, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49,
+	0x44, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x14, 0x2e,
+	0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x4e,
+	0x61, 0x6d, 0x65, 0x1a, 0x17, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x31,
+	0x0a, 0x0c, 0x53, 0x65, 0x74, 0x43, 0x53, 0x52, 0x46, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x0f,
+	0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x1a,
+	0x0e, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x22,
+	0x00, 0x12, 0x35, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x46, 0x72, 0x6f,
+	0x6d, 0x55, 0x73, 0x65, 0x72, 0x12, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e,
+	0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x1a, 0x0e, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x2e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x00, 0x42, 0x0b, 0x5a, 0x09, 0x2e, 0x3b, 0x73, 0x65,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -208,21 +263,26 @@ func file_session_proto_rawDescGZIP() []byte {
 	return file_session_proto_rawDescData
 }
 
-var file_session_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_session_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_session_proto_goTypes = []interface{}{
 	(*UserID)(nil),         // 0: session.UserID
 	(*SessionName)(nil),    // 1: session.SessionName
 	(*DeleteResponse)(nil), // 2: session.DeleteResponse
+	(*Token)(nil),          // 3: session.Token
 }
 var file_session_proto_depIdxs = []int32{
 	0, // 0: session.SessionWorker.Create:input_type -> session.UserID
 	1, // 1: session.SessionWorker.Check:input_type -> session.SessionName
 	1, // 2: session.SessionWorker.Delete:input_type -> session.SessionName
-	1, // 3: session.SessionWorker.Create:output_type -> session.SessionName
-	0, // 4: session.SessionWorker.Check:output_type -> session.UserID
-	2, // 5: session.SessionWorker.Delete:output_type -> session.DeleteResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	0, // 3: session.SessionWorker.SetCSRFToken:input_type -> session.UserID
+	0, // 4: session.SessionWorker.GetTokenFromUser:input_type -> session.UserID
+	1, // 5: session.SessionWorker.Create:output_type -> session.SessionName
+	0, // 6: session.SessionWorker.Check:output_type -> session.UserID
+	2, // 7: session.SessionWorker.Delete:output_type -> session.DeleteResponse
+	3, // 8: session.SessionWorker.SetCSRFToken:output_type -> session.Token
+	3, // 9: session.SessionWorker.GetTokenFromUser:output_type -> session.Token
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -270,6 +330,18 @@ func file_session_proto_init() {
 				return nil
 			}
 		}
+		file_session_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Token); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -277,7 +349,7 @@ func file_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_session_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -306,6 +378,8 @@ type SessionWorkerClient interface {
 	Create(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*SessionName, error)
 	Check(ctx context.Context, in *SessionName, opts ...grpc.CallOption) (*UserID, error)
 	Delete(ctx context.Context, in *SessionName, opts ...grpc.CallOption) (*DeleteResponse, error)
+	SetCSRFToken(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Token, error)
+	GetTokenFromUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Token, error)
 }
 
 type sessionWorkerClient struct {
@@ -343,11 +417,31 @@ func (c *sessionWorkerClient) Delete(ctx context.Context, in *SessionName, opts 
 	return out, nil
 }
 
+func (c *sessionWorkerClient) SetCSRFToken(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Token, error) {
+	out := new(Token)
+	err := c.cc.Invoke(ctx, "/session.SessionWorker/SetCSRFToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sessionWorkerClient) GetTokenFromUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Token, error) {
+	out := new(Token)
+	err := c.cc.Invoke(ctx, "/session.SessionWorker/GetTokenFromUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SessionWorkerServer is the server API for SessionWorker service.
 type SessionWorkerServer interface {
 	Create(context.Context, *UserID) (*SessionName, error)
 	Check(context.Context, *SessionName) (*UserID, error)
 	Delete(context.Context, *SessionName) (*DeleteResponse, error)
+	SetCSRFToken(context.Context, *UserID) (*Token, error)
+	GetTokenFromUser(context.Context, *UserID) (*Token, error)
 }
 
 // UnimplementedSessionWorkerServer can be embedded to have forward compatible implementations.
@@ -362,6 +456,12 @@ func (*UnimplementedSessionWorkerServer) Check(context.Context, *SessionName) (*
 }
 func (*UnimplementedSessionWorkerServer) Delete(context.Context, *SessionName) (*DeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (*UnimplementedSessionWorkerServer) SetCSRFToken(context.Context, *UserID) (*Token, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetCSRFToken not implemented")
+}
+func (*UnimplementedSessionWorkerServer) GetTokenFromUser(context.Context, *UserID) (*Token, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTokenFromUser not implemented")
 }
 
 func RegisterSessionWorkerServer(s *grpc.Server, srv SessionWorkerServer) {
@@ -422,6 +522,42 @@ func _SessionWorker_Delete_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SessionWorker_SetCSRFToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionWorkerServer).SetCSRFToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/session.SessionWorker/SetCSRFToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionWorkerServer).SetCSRFToken(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SessionWorker_GetTokenFromUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionWorkerServer).GetTokenFromUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/session.SessionWorker/GetTokenFromUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionWorkerServer).GetTokenFromUser(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _SessionWorker_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "session.SessionWorker",
 	HandlerType: (*SessionWorkerServer)(nil),
@@ -437,6 +573,14 @@ var _SessionWorker_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _SessionWorker_Delete_Handler,
+		},
+		{
+			MethodName: "SetCSRFToken",
+			Handler:    _SessionWorker_SetCSRFToken_Handler,
+		},
+		{
+			MethodName: "GetTokenFromUser",
+			Handler:    _SessionWorker_GetTokenFromUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

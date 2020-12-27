@@ -22,11 +22,10 @@ func SetCookie(w http.ResponseWriter, cookieValue string) {
 func SetCSRFCookie(w http.ResponseWriter, cookieValue string) {
 	expiration := time.Now().Add(configs.ExpireTime)
 	cookie := http.Cookie{
-		Name:     configs.CookieCSRF,
-		Value:    cookieValue,
-		Expires:  expiration,
-		HttpOnly: true,
-		Path:     "/",
+		Name:    configs.CookieCSRF,
+		Value:   cookieValue,
+		Expires: expiration,
+		Path:    "/",
 	}
 	http.SetCookie(w, &cookie)
 }

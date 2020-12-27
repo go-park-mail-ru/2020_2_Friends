@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/friends/configs"
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/session"
 	"github.com/go-redis/redis/v8"
@@ -47,4 +48,24 @@ func (srr SessionRedisRepo) Delete(sessionName string) error {
 	}
 
 	return nil
+}
+
+func (srr SessionRedisRepo) SetCSRFToken(userID, token string) error {
+	ctx := context.Background()
+	err := srr.redis.Set(ctx, userID, token, configs.ExpireTime).Err()
+	if err != nil {
+		return fmt.Errorf("couldn't set value in redis: %w", err)
+	}
+
+	return nil
+}
+
+func (srr SessionRedisRepo) GetTokenFromUser(userID string) (token string, err error) {
+	ctx := context.Background()
+	token, err = srr.redis.Get(ctx, userID).Result()
+	if err != nil {
+		return "", fmt.Errorf("couldn't get value from redis: %w", err)
+	}
+
+	return token, nil
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/friends/pkg/image"
 	log "github.com/friends/pkg/logger"
 	"github.com/gorilla/mux"
-	"github.com/lithammer/shortuuid"
 )
 
 type PartnerDelivery struct {
@@ -76,19 +75,19 @@ func (p PartnerDelivery) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := p.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
+	sessionName, err := p.sessionClient.Create(context.Background(), &session.UserID{Id: userID})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	httputils.SetCookie(w, session.GetName())
+	httputils.SetCookie(w, sessionName.GetName())
 
-	token := shortuuid.NewWithNamespace(session.GetName())
-	httputils.SetCSRFCookie(w, token)
+	token, err := p.sessionClient.SetCSRFToken(context.Background(), &session.UserID{Id: userID})
+	httputils.SetCSRFCookie(w, token.GetValue())
 
 	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
-	w.Header().Set("X-CSRF-Token", token)
+	w.Header().Set("X-CSRF-Token", token.GetValue())
 
 	w.WriteHeader(http.StatusCreated)
 }
