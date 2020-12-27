@@ -184,7 +184,7 @@ func StartAPIServer(dsn string) {
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
 	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
 
-	mux.Handle("/ws", csrfChecker.Check(chatDelivery.Upgrade)).Methods("GET")
+	mux.Handle("/ws", authChecker.Check(chatDelivery.Upgrade)).Methods("GET")
 	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
 
 	mux.HandleFunc("/categories", vendDelivery.GetAllCategories).Methods("GET")
