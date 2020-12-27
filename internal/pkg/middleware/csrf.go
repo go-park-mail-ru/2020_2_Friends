@@ -39,6 +39,10 @@ func (c CSRFChecker) Check(next http.HandlerFunc) http.Handler {
 		}
 
 		token, err := c.sessionClient.GetTokenFromUser(context.Background(), &session.UserID{Id: userID})
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 
 		tokenFromHeader := r.Header.Get("X-CSRF-Token")
 
