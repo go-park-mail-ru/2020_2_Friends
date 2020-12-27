@@ -13,18 +13,16 @@ type UserID string
 
 type AuthChecker struct {
 	sessionClient session.SessionWorkerClient
-	csrfChecker   CSRFChecker
 }
 
-func NewAuthChecker(sessionClient session.SessionWorkerClient, csrfChecker CSRFChecker) AuthChecker {
+func NewAuthChecker(sessionClient session.SessionWorkerClient) AuthChecker {
 	return AuthChecker{
 		sessionClient: sessionClient,
-		csrfChecker:   csrfChecker,
 	}
 }
 
 func (a AuthChecker) Check(next http.HandlerFunc) http.Handler {
-	handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		defer func() {
 			if err != nil {
@@ -49,6 +47,4 @@ func (a AuthChecker) Check(next http.HandlerFunc) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-
-	return a.csrfChecker.Check(handlerFunc)
 }

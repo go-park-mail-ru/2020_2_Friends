@@ -110,82 +110,82 @@ func StartAPIServer(dsn string) {
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
 
-	csrfChecker := middleware.NewCSRFChecker(sessionClient)
-	authChecker := middleware.NewAuthChecker(sessionClient, csrfChecker)
+	authChecker := middleware.NewAuthChecker(sessionClient)
+	csrfChecker := middleware.NewCSRFChecker(authChecker, sessionClient)
 
 	mux := mux.NewRouter().PathPrefix(configs.APIURL).Subrouter()
 
 	mux.HandleFunc("/users", userHandler.Create).Methods("POST")
-	mux.Handle("/users", authChecker.Check(userHandler.Delete)).Methods("DELETE")
+	mux.Handle("/users", csrfChecker.Check(userHandler.Delete)).Methods("DELETE")
 
 	mux.HandleFunc("/sessions", userHandler.Login).Methods("POST")
-	mux.Handle("/sessions", authChecker.Check(userHandler.Logout)).Methods("DELETE")
+	mux.Handle("/sessions", csrfChecker.Check(userHandler.Logout)).Methods("DELETE")
 	mux.HandleFunc("/sessions", userHandler.IsAuthorized).Methods("GET")
 
-	mux.Handle("/profiles", authChecker.Check(profDelivery.Get)).Methods("GET")
-	mux.Handle("/profiles", authChecker.Check(profDelivery.Update)).Methods("PUT")
-	mux.Handle("/profiles/avatars", authChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
-	mux.Handle("/profiles/addresses", authChecker.Check(profDelivery.UpdateAddresses)).Methods("PUT")
+	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Get)).Methods("GET")
+	mux.Handle("/profiles", csrfChecker.Check(profDelivery.Update)).Methods("PUT")
+	mux.Handle("/profiles/avatars", csrfChecker.Check(profDelivery.UpdateAvatar)).Methods("PUT")
+	mux.Handle("/profiles/addresses", csrfChecker.Check(profDelivery.UpdateAddresses)).Methods("PUT")
 
 	mux.HandleFunc("/vendors", vendDelivery.GetAll).Methods("GET")
 	mux.HandleFunc("/vendors/nearest", vendDelivery.GetNearest).Methods("GET")
 	mux.HandleFunc("/vendors/{id}", vendDelivery.GetVendor).Methods("GET")
 	mux.Handle(
 		"/vendors",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.CreateVendor, configs.AdminRole)),
 	).Methods("POST")
 	mux.Handle(
 		"/vendors/{id}",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendor, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendor, configs.AdminRole)),
 	).Methods("PUT")
 	mux.Handle(
 		"/vendors/{id}/pictures",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendorPicture, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateVendorPicture, configs.AdminRole)),
 	).Methods("PUT")
 	mux.Handle(
 		"/vendors/{id}/products",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.AddProductToVendor, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.AddProductToVendor, configs.AdminRole)),
 	).Methods("POST")
 	mux.Handle(
 		"/vendors/{vendorID}/products/{id}",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductOnVendor, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductOnVendor, configs.AdminRole)),
 	).Methods("PUT")
 	mux.Handle(
 		"/vendors/{vendorID}/products/{id}",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.DeleteProductFromVendor, configs.AdminRole)),
 	).Methods("DELETE")
 	mux.Handle(
 		"/vendors/{vendorID}/products/{id}/pictures",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(partnerDelivery.UpdateProductPicture, configs.AdminRole)),
 	).Methods("PUT")
 	mux.Handle(
 		"/vendors/{id}/orders",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(orderDelivery.GetVendorOrders, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(orderDelivery.GetVendorOrders, configs.AdminRole)),
 	).Methods("GET")
 	mux.HandleFunc("/vendors/{id}/reviews", reviewDelivery.GetVendorReviews).Methods("GET")
-	mux.Handle("/vendors/{vendorID}/orders/{id}", authChecker.Check(orderDelivery.UpdateOrderStatus)).Methods("PUT")
+	mux.Handle("/vendors/{vendorID}/orders/{id}", csrfChecker.Check(orderDelivery.UpdateOrderStatus)).Methods("PUT")
 	mux.Handle(
 		"/vendors/{id}/chats",
-		authChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole)),
+		csrfChecker.Check(accessRighsChecker.AccessRightsCheck(chatDelivery.GetVendorChats, configs.AdminRole)),
 	).Methods("GET")
 	mux.HandleFunc("/vendors/{id}/similar", vendDelivery.GetSimilar).Methods("GET")
 
 	mux.HandleFunc("/partners", partnerDelivery.Create).Methods("POST")
-	mux.Handle("/partners/vendors", authChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
+	mux.Handle("/partners/vendors", csrfChecker.Check(partnerDelivery.GetPartnerShops)).Methods("GET")
 
-	mux.Handle("/carts", authChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
-	mux.Handle("/carts", authChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
-	mux.Handle("/carts", authChecker.Check(cartDelivery.GetCart)).Methods("GET")
+	mux.Handle("/carts", csrfChecker.Check(cartDelivery.AddToCart)).Methods("PUT")
+	mux.Handle("/carts", csrfChecker.Check(cartDelivery.RemoveFromCart)).Methods("DELETE")
+	mux.Handle("/carts", csrfChecker.Check(cartDelivery.GetCart)).Methods("GET")
 
-	mux.Handle("/orders", authChecker.Check(orderDelivery.AddOrder)).Methods("POST")
-	mux.Handle("/orders", authChecker.Check(orderDelivery.GetUserOrders)).Methods("GET")
-	mux.Handle("/orders/{id}", authChecker.Check(orderDelivery.GetOrder)).Methods("GET")
+	mux.Handle("/orders", csrfChecker.Check(orderDelivery.AddOrder)).Methods("POST")
+	mux.Handle("/orders", csrfChecker.Check(orderDelivery.GetUserOrders)).Methods("GET")
+	mux.Handle("/orders/{id}", csrfChecker.Check(orderDelivery.GetOrder)).Methods("GET")
 
-	mux.Handle("/reviews", authChecker.Check(reviewDelivery.AddReview)).Methods("POST")
-	mux.Handle("/reviews", authChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
+	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.AddReview)).Methods("POST")
+	mux.Handle("/reviews", csrfChecker.Check(reviewDelivery.GetUserReviews)).Methods("GET")
 
-	mux.Handle("/ws", authChecker.Check(chatDelivery.Upgrade)).Methods("GET")
-	mux.Handle("/chats/{id}", authChecker.Check(chatDelivery.GetChat)).Methods("GET")
+	mux.Handle("/ws", csrfChecker.Check(chatDelivery.Upgrade)).Methods("GET")
+	mux.Handle("/chats/{id}", csrfChecker.Check(chatDelivery.GetChat)).Methods("GET")
 
 	mux.HandleFunc("/categories", vendDelivery.GetAllCategories).Methods("GET")
 

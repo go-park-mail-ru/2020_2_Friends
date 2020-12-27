@@ -11,17 +11,19 @@ import (
 )
 
 type CSRFChecker struct {
+	authChecker   AuthChecker
 	sessionClient session.SessionWorkerClient
 }
 
-func NewCSRFChecker(sessionClient session.SessionWorkerClient) CSRFChecker {
+func NewCSRFChecker(authChecker AuthChecker, sessionClient session.SessionWorkerClient) CSRFChecker {
 	return CSRFChecker{
+		authChecker:   authChecker,
 		sessionClient: sessionClient,
 	}
 }
 
 func (c CSRFChecker) Check(next http.HandlerFunc) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		defer func() {
 			if err != nil {
@@ -48,4 +50,6 @@ func (c CSRFChecker) Check(next http.HandlerFunc) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+
+	return c.authChecker.Check(handlerFunc)
 }
