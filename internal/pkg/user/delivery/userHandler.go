@@ -78,9 +78,6 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	token, err := u.sessionClient.SetCSRFToken(context.Background(), &session.UserID{Id: userID})
 	httputils.SetCSRFCookie(w, token.GetValue())
 
-	w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
-	w.Header().Set("X-CSRF-Token", token.GetValue())
-
 	w.WriteHeader(http.StatusCreated)
 }
 
