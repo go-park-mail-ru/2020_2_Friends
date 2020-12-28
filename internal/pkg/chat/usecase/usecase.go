@@ -5,21 +5,25 @@ import (
 	"github.com/friends/internal/pkg/models"
 	"github.com/friends/internal/pkg/order"
 	"github.com/friends/internal/pkg/profile"
+	"github.com/friends/internal/pkg/vendors"
 )
 
 type ChatUsecase struct {
 	chatRepository    chat.Repository
 	profileRepository profile.Repository
 	orderRepository   order.Repository
+	vendorRepository  vendors.Repository
 }
 
 func New(
-	chatRepository chat.Repository, profileRepository profile.Repository, orderRepository order.Repository,
+	chatRepository chat.Repository, profileRepository profile.Repository,
+	orderRepository order.Repository, vendorRepository vendors.Repository,
 ) chat.Usecase {
 	return ChatUsecase{
 		chatRepository:    chatRepository,
 		profileRepository: profileRepository,
 		orderRepository:   orderRepository,
+		vendorRepository:  vendorRepository,
 	}
 }
 
@@ -44,25 +48,36 @@ func (c ChatUsecase) GetChat(orderID int, userID string) ([]models.Message, erro
 	return msgs, nil
 }
 
-func (c ChatUsecase) GetVendorChats(vendorID string) ([]models.Chat, error) {
+func (c ChatUsecase) GetVendorChats(vendorID string) (models.VendorChatsWithInfo, error) {
 	orderIDs, err := c.orderRepository.GetVendorOrdersIDs(vendorID)
 	if err != nil {
-		return nil, err
+		return models.VendorChatsWithInfo{}, err
 	}
 
 	chats, err := c.chatRepository.GetVendorChats(orderIDs)
 	if err != nil {
-		return nil, err
+		return models.VendorChatsWithInfo{}, err
 	}
 
 	for idx := range chats {
 		name, err := c.profileRepository.GetUsername(chats[idx].InterlocutorID)
 		if err != nil {
-			return nil, err
+			return models.VendorChatsWithInfo{}, err
 		}
 
 		chats[idx].InterlocutorName = name
 	}
 
-	return chats, nil
+	vendorInfo, err := c.vendorRepository.GetVendorInfo(vendorID)
+	if err != nil {
+		return models.VendorChatsWithInfo{}, err
+	}
+
+	chatsWithInfo := models.VendorChatsWithInfo{
+		Chats:         chats,
+		VendorName:    vendorInfo.Name,
+		VendorPicture: vendorInfo.Picture,
+	}
+
+	return chatsWithInfo, nil
 }

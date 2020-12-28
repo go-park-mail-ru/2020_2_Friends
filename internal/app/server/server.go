@@ -105,7 +105,7 @@ func StartAPIServer(dsn string) {
 	reviewDelivery := reviewDelivery.New(reviewUsecase)
 
 	chatRepository := chatRepository.New(db)
-	chatUsecase := chatUsecase.New(chatRepository, profRepo, orderRepo)
+	chatUsecase := chatUsecase.New(chatRepository, profRepo, orderRepo, vendRepo)
 	chatDelivery := chatDelivery.New(chatUsecase, orderUsecase, vendUsecase, wsPool)
 
 	accessRighsChecker := middleware.NewAccessRightsChecker(userUsecase)
